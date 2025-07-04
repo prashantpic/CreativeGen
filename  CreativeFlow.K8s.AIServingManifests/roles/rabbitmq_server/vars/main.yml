@@ -1,0 +1,6 @@
+---
+# Role-specific variables for rabbitmq_server.
+# Sensitive values should be defined in vaulted files.
+rabbitmq_user: "{{ vault_rabbitmq_user }}"
+rabbitmq_password: "{{ vault_rabbitmq_password }}"
+erlang_cookie: "{{ vault_erlang_cookie }}" # Required for clustering

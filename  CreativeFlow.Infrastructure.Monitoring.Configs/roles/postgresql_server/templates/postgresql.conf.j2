@@ -1,0 +1,27 @@
+# -----------------------------
+# PostgreSQL configuration file
+# -----------------------------
+
+# This is a sample file. A production file would have many more
+# settings tuned for performance (shared_buffers, effective_cache_size, etc.)
+
+# --- Connections and Authentication ---
+listen_addresses = '*'
+port = {{ pg_port }}
+max_connections = 100
+
+# --- Write-Ahead Log ---
+wal_level = {{ pg_wal_level }}
+max_wal_senders = {{ pg_max_wal_senders }}
+wal_keep_size = {{ pg_wal_keep_segments * 16 }}MB # wal_keep_segments is deprecated in newer PG versions
+
+# --- Replication ---
+# These settings are primarily for the primary server
+# hot_standby = on # On replicas, this is on by default if in recovery
+
+# --- Logging ---
+# log_destination = 'stderr'
+# logging_collector = on
+# log_directory = 'log'
+# log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+# log_statement = 'ddl'

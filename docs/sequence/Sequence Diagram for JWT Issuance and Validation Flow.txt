@@ -1,0 +1,69 @@
+sequenceDiagram
+    actor "WebApp (PWA)" as repo-webapp-pwa
+    participant "Odoo Backend (Auth)" as svc-odoo-backend
+    participant "Secrets Vault" as svc-secrets-vault
+    participant "API Gateway (Nginx)" as comp-apigateway-nginx
+
+    note over svc-odoo-backend: This sequence assumes user has already successfully authenticated prior to step 1, and Odoo Backend is proceeding with token issuance.
+
+    activate svc-odoo-backend
+    svc-odoo-backend-svc-secrets-vault: 1. Request JWT Signing Key
+    activate svc-secrets-vault
+    svc-secrets-vault--svc-odoo-backend: 1.1. Return JWT Signing Key
+    deactivate svc-secrets-vault
+
+    svc-odoo-backend-svc-odoo-backend: 2. Generate Access Token (short-lived) & Refresh Token (long-lived)
+
+    svc-odoo-backend--repo-webapp-pwa: 3. Return JWTs (Access Token, Refresh Token)
+    deactivate svc-odoo-backend
+
+    activate repo-webapp-pwa
+    repo-webapp-pwa-repo-webapp-pwa: 4. Securely Store Tokens (Access Token in memory/localStorage, Refresh Token in HttpOnly cookie or secure storage)
+
+    repo-webapp-pwa-comp-apigateway-nginx: 5. Request Protected Resource: GET /api/protected/data (Authorization: Bearer )
+    activate comp-apigateway-nginx
+
+    note over comp-apigateway-nginx: API Gateway might cache the public key/signing secret to avoid calling Odoo Backend for every token validation. This diagram shows explicit validation call for clarity.
+
+    comp-apigateway-nginx-svc-odoo-backend: 6. Validate Access Token (accesstoken)
+    activate svc-odoo-backend
+    svc-odoo-backend--comp-apigateway-nginx: 6.1. TokenValidationResult (status: 'Valid'/'Invalid'/'Expired')
+    deactivate svc-odoo-backend
+
+    alt 7. [TokenValidationResult.status is 'Valid']
+        comp-apigateway-nginx-svc-odoo-backend: 7.1. Forward Request: GET /api/protected/data (Internal)
+        activate svc-odoo-backend
+        svc-odoo-backend--comp-apigateway-nginx: 7.1.1. Protected Data Response
+        deactivate svc-odoo-backend
+        comp-apigateway-nginx--repo-webapp-pwa: 7.2. Return Protected Data (200 OK)
+    else 8. [TokenValidationResult.status is 'Invalid' or 'Expired']
+        comp-apigateway-nginx--repo-webapp-pwa: 8.1. Return Error 401 Unauthorized (Token Invalid/Expired)
+    end
+    deactivate comp-apigateway-nginx
+
+    repo-webapp-pwa-repo-webapp-pwa: 8.2. Note: If 401 due to expired access token (from 8.1), WebApp proceeds to refresh token.
+
+    repo-webapp-pwa-svc-odoo-backend: 9. Request New Access Token: POST /auth/refresh (using refreshtoken)
+    activate svc-odoo-backend
+
+    svc-odoo-backend-svc-odoo-backend: 10. Validate Refresh Token (validity, expiry, revocation)
+
+    opt 11. [Refresh Token is Valid]
+        svc-odoo-backend-svc-secrets-vault: 11.1. Request JWT Signing Key (if not cached)
+        activate svc-secrets-vault
+        svc-secrets-vault--svc-odoo-backend: 11.1.1. Return JWT Signing Key
+        deactivate svc-secrets-vault
+
+        note right of svc-odoo-backend: If refresh token rotation is implemented, a new refresh token is issued along with the new access token.
+
+        svc-odoo-backend-svc-odoo-backend: 11.2. Generate New Access Token (and optionally new Refresh Token for rotation)
+        svc-odoo-backend--repo-webapp-pwa: 11.3. Return New Access Token (and new Refresh Token if rotated)
+        repo-webapp-pwa-repo-webapp-pwa: 11.4. Securely Store New Tokens
+        repo-webapp-pwa-repo-webapp-pwa: 11.5. Note: WebApp retries original request (e.g., step 5) with new Access Token
+    else 12. [Refresh Token is Invalid/Expired]
+        svc-odoo-backend--repo-webapp-pwa: 12.1. Return Error 401 Unauthorized (Invalid Refresh Token)
+        repo-webapp-pwa-repo-webapp-pwa: 12.2. Handle Refresh Failure (Clear tokens, Redirect to Login)
+    end
+
+    deactivate svc-odoo-backend
+    deactivate repo-webapp-pwa

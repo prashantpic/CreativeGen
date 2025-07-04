@@ -1,0 +1,104 @@
+# Installs components common to all Kubernetes nodes.
+---
+- name: Ensure kernel modules are loaded
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - overlay
+    - br_netfilter
+
+- name: Persist kernel modules on boot
+  ansible.builtin.copy:
+    content: |
+      overlay
+      br_netfilter
+    dest: /etc/modules-load.d/k8s.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Configure required sysctl params for Kubernetes
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    sysctl_file: /etc/sysctl.d/99-kubernetes-cri.conf
+    reload: yes
+  loop:
+    - { key: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+    - { key: 'net.ipv4.ip_forward', value: '1' }
+    - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+
+- name: Disable swap
+  ansible.builtin.command: swapoff -a
+  when: ansible_swaptotal_mb > 0
+  changed_when: true
+
+- name: Remove swap from /etc/fstab
+  ansible.posix.mount:
+    name: swap
+    fstype: swap
+    state: absent
+
+- name: Add Kubernetes apt-key
+  ansible.builtin.get_url:
+    url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+    dest: /etc/apt/trusted.gpg.d/kubernetes.gpg
+    mode: '0644'
+
+- name: Add Kubernetes apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+    state: present
+    filename: kubernetes
+
+- name: Install containerd
+  ansible.builtin.apt:
+    name: containerd.io
+    state: present
+    update_cache: yes
+
+- name: Create containerd configuration directory
+  ansible.builtin.file:
+    path: /etc/containerd
+    state: directory
+    mode: '0755'
+
+- name: Generate containerd default config
+  ansible.builtin.command: containerd config default
+  register: containerd_config_default
+  changed_when: true
+
+- name: Write containerd config file
+  ansible.builtin.copy:
+    content: "{{ containerd_config_default.stdout }}"
+    dest: /etc/containerd/config.toml
+    mode: '0644'
+  notify: Restart containerd
+
+- name: Ensure containerd uses SystemdCgroup
+  ansible.builtin.lineinfile:
+    path: /etc/containerd/config.toml
+    regexp: '(\s*SystemdCgroup\s*=\s*)false'
+    line: '\1true'
+    backrefs: yes
+  notify: Restart containerd
+
+- name: Install kubelet, kubeadm, and kubectl
+  ansible.builtin.apt:
+    name:
+      - "kubelet={{ k8s_version }}-00"
+      - "kubeadm={{ k8s_version }}-00"
+      - "kubectl={{ k8s_version }}-00"
+    state: present
+    allow_downgrade: yes
+  notify: Restart containerd
+
+- name: Hold Kubernetes packages to prevent unintended upgrades
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - kubelet
+    - kubeadm
+    - kubectl

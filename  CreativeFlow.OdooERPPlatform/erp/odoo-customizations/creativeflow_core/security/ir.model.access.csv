@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+# This module does not introduce new models, it only extends res.partner.
+# Access to res.partner is governed by the base module's ACLs.
+# The new fields' visibility is controlled by view definitions and group attributes.

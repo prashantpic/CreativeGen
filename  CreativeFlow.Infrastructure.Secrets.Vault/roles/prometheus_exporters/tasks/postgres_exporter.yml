@@ -1,0 +1,62 @@
+---
+- name: Create postgres_exporter system user
+  ansible.builtin.user:
+    name: "{{ postgres_exporter_user }}"
+    system: yes
+    shell: /usr/sbin/nologin
+    create_home: no
+
+- name: Download and unarchive PostgreSQL Exporter
+  ansible.builtin.unarchive:
+    src: "{{ postgres_exporter_binary_url }}"
+    dest: /tmp/
+    remote_src: yes
+    creates: "/tmp/postgres_exporter-{{ postgres_exporter_version }}.linux-amd64/postgres_exporter"
+
+- name: Copy postgres_exporter binary to /usr/local/bin
+  ansible.builtin.copy:
+    src: "/tmp/postgres_exporter-{{ postgres_exporter_version }}.linux-amd64/postgres_exporter"
+    dest: /usr/local/bin/postgres_exporter
+    remote_src: yes
+    owner: "{{ postgres_exporter_user }}"
+    group: "{{ postgres_exporter_user }}"
+    mode: '0755'
+  notify: restart postgres_exporter
+
+- name: Create a read-only monitoring user in PostgreSQL
+  community.postgresql.postgresql_user:
+    name: "{{ postgres_exporter_user }}"
+    password: "{{ postgres_exporter_password }}" # from vault
+    state: present
+  become: yes
+  become_user: postgres
+  no_log: true
+  run_once: true
+  when: "'db_primary' in group_names"
+
+- name: Grant necessary privileges to monitoring user
+  community.postgresql.postgresql_privs:
+    role: "{{ postgres_exporter_user }}"
+    privs: "SELECT"
+    objs: "pg_stat_database"
+    type: "table"
+    state: "present"
+  become: yes
+  become_user: postgres
+  run_once: true
+  when: "'db_primary' in group_names"
+
+- name: Deploy systemd service file for postgres_exporter
+  ansible.builtin.template:
+    src: postgres_exporter.service.j2
+    dest: /etc/systemd/system/postgres_exporter.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart postgres_exporter
+
+- name: Enable and start postgres_exporter service
+  ansible.builtin.systemd:
+    name: postgres_exporter
+    enabled: yes
+    state: started

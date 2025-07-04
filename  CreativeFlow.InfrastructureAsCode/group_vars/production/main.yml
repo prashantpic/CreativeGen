@@ -1,0 +1,15 @@
+---
+# This file contains variables specific to the Production environment.
+# They override any variables defined in group_vars/all/common_vars.yml.
+
+# Environment identifier
+environment: 'production'
+
+# Production specific endpoints
+api_server_url: 'https://api.creativeflow.ai'
+app_domain_name: 'app.creativeflow.ai'
+
+# Performance tuning for production
+postgresql_shared_buffers: "4GB"
+postgresql_effective_cache_size: "12GB"
+nginx_worker_processes: 8

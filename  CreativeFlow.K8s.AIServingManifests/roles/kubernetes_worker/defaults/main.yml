@@ -1,0 +1,9 @@
+---
+# defaults file for kubernetes_worker
+
+# Set to true to force a reset of the worker node before joining. Use with caution.
+kubeadm_reset: false
+
+# Extra arguments for the `kubeadm join` command.
+# For example, to specify a node name or other flags.
+kubeadm_join_extra_args: ""

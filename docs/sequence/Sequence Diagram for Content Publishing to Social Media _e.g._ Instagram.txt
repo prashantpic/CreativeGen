@@ -1,0 +1,70 @@
+sequenceDiagram
+    actor "WebApp (PWA)" as repo-webapp-pwa
+    participant "API Gateway" as comp-apigateway-nginx
+    participant "Odoo Backend" as svc-odoo-backend
+    participant "Secrets Vault" as svc-secrets-vault
+    participant "PostgreSQL DB" as repo-db-postgresql
+    participant "Instagram API" as ext-social-instagram-api
+
+    activate repo-webapp-pwa
+    repo-webapp-pwa-comp-apigateway-nginx: 1. POST /api/v1/publish/social (assetId, socialAccountId, caption)
+    note over repo-webapp-pwa: User initiates content publishing to Instagram from the WebApp.
+    activate comp-apigateway-nginx
+
+    comp-apigateway-nginx-comp-apigateway-nginx: 1.1. Validate JWT & Authorize Request
+
+    comp-apigateway-nginx-svc-odoo-backend: 2. publishToSocial(assetId, socialAccountId, caption)
+    activate svc-odoo-backend
+
+    svc-odoo-backend-svc-odoo-backend: 2.1. Verify user permissions for publishing
+
+    svc-odoo-backend-repo-db-postgresql: 2.2. Query: Get asset details (asseturl, userid)
+    activate repo-db-postgresql
+    repo-db-postgresql--svc-odoo-backend: asseturl, userid
+    deactivate repo-db-postgresql
+
+    svc-odoo-backend-repo-db-postgresql: 2.3. Query: Get social connection details (platformuserid, tokenref)
+    activate repo-db-postgresql
+    repo-db-postgresql--svc-odoo-backend: platformuserid, tokenref
+    deactivate repo-db-postgresql
+
+    svc-odoo-backend-svc-secrets-vault: 2.4. Read OAuth Token (using tokenref)
+    activate svc-secrets-vault
+    note over svc-odoo-backend: Odoo Backend retrieves the encrypted OAuth token reference from DB and fetches the actual token from Vault. This interaction assumes Vault is used for secure token storage as per SEC-001.
+    svc-secrets-vault--svc-odoo-backend: decryptedoauthtoken
+    deactivate svc-secrets-vault
+
+    svc-odoo-backend-svc-odoo-backend: 2.5. Prepare content for Instagram API
+
+    svc-odoo-backend-ext-social-instagram-api: 2.6. POST media (asseturl, caption, accesstoken)
+    activate ext-social-instagram-api
+    note over ext-social-instagram-api: Interaction with Instagram API (e.g., media upload then publish) is simplified here. Actual implementation would follow Instagram Graph API specifications.
+    ext-social-instagram-api--svc-odoo-backend: API Response (mediaid or error)
+    deactivate ext-social-instagram-api
+
+    svc-odoo-backend-svc-odoo-backend: 2.7. Process Instagram API Response
+    alt [ALT Instagram API Success]
+        svc-odoo-backend-repo-db-postgresql: 2.7.1.1. Command: Update publishing status (published, mediaid)
+        activate repo-db-postgresql
+        repo-db-postgresql--svc-odoo-backend: statusupdated
+        deactivate repo-db-postgresql
+        svc-odoo-backend-svc-odoo-backend: 2.7.1.2. Prepare success response for user
+    else [ALT Instagram API Error (e.g., auth, rate limit)]
+        note over svc-odoo-backend: Error handling includes checking for rate limits, authentication errors (token expiry), and other API errors as per INT-001. If re-authentication is needed, the user is prompted.
+        svc-odoo-backend-repo-db-postgresql: 2.7.2.1. Command: Update publishing status (failed, errormessage)
+        activate repo-db-postgresql
+        repo-db-postgresql--svc-odoo-backend: statusupdated
+        deactivate repo-db-postgresql
+        svc-odoo-backend-svc-odoo-backend: 2.7.2.2. Handle specific error (e.g., flag for re-authentication)
+        svc-odoo-backend-svc-odoo-backend: 2.7.2.3. Prepare error response for user
+    end
+
+    svc-odoo-backend--comp-apigateway-nginx: 3. Publishing Result (success/failure details)
+    deactivate svc-odoo-backend
+
+    comp-apigateway-nginx--repo-webapp-pwa: 4. Publishing Result (HTTP 200 OK / Error Status)
+    deactivate comp-apigateway-nginx
+
+    repo-webapp-pwa-repo-webapp-pwa: 5. Display publish status to user (success/failure, re-auth prompt if needed)
+    note over repo-webapp-pwa: User notification about publish status is primarily handled by the WebApp updating its UI based on the synchronous API response. Asynchronous notifications via a dedicated Notification Service could also be implemented if Odoo published an event.
+    deactivate repo-webapp-pwa

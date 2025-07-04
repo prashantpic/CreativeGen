@@ -1,0 +1,98 @@
+{
+  "name": "invoke-internal-k8s-model",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "invoke-k8s"
+      },
+      "id": "5146c0d8-1e4e-4f0e-ac22-de9f1b4020a4",
+      "name": "Workflow Trigger",
+      "type": "n8n-nodes-base.workflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jobNamePrefix": "internal-model-",
+        "namespace": "={{$env.KUBERNETES_NAMESPACE}}",
+        "containerImage": "={{$json.modelImage}}",
+        "inputData": "={{$json.inputJson}}",
+        "waitForCompletion": true
+      },
+      "id": "d9817757-0a44-42f5-b6d1-125035775f0a",
+      "name": "Submit Kubernetes Job",
+      "type": "kubernetesJobSubmitter",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "onError": "continue"
+    },
+    {
+      "parameters": {
+        "responseData": "={{$json.logs}}",
+        "options": {}
+      },
+      "id": "a91e57c8-7f55-4422-b5e1-8889989d2d0b",
+      "name": "Respond to Workflow",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Workflow Trigger": {
+      "main": [
+        [
+          {
+            "id": "d9817757-0a44-42f5-b6d1-125035775f0a",
+            "name": "Submit Kubernetes Job"
+          }
+        ]
+      ]
+    },
+    "Submit Kubernetes Job": {
+      "main": [
+        [
+          {
+            "id": "a91e57c8-7f55-4422-b5e1-8889989d2d0b",
+            "name": "Respond to Workflow"
+          }
+        ]
+      ]
+    },
+    "d9817757-0a44-42f5-b6d1-125035775f0a": {
+      "main": [
+        [
+          {
+            "id": "a91e57c8-7f55-4422-b5e1-8889989d2d0b",
+            "name": "Respond to Workflow"
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "f041767e-3467-4224-b17b-abcc1c1ed09f",
+  "triggerCount": 0,
+  "tags": [
+    {
+      "id": "90e38605-245c-43f5-9bc6-35326c2e3612",
+      "name": "sub-workflow"
+    },
+    {
+      "id": "31349341-a20c-433b-82a9-b42e7bde9353",
+      "name": "invoke-internal-k8s-model"
+    }
+  ]
+}

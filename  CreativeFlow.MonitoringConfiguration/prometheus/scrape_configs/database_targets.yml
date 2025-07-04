@@ -1,0 +1,23 @@
+# Prometheus scrape configuration for database exporters.
+# This uses static configurations for exporters running at fixed addresses.
+# For exporters running inside Kubernetes, consider using kubernetes_sd_configs.
+# Requirement(s) Addressed: DEP-005, QA-003
+
+- job_name: 'postgres_exporter'
+  # static_configs are suitable when you have a fixed set of database exporters,
+  # for example, for your primary and replica PostgreSQL instances.
+  static_configs:
+    - targets:
+        - '<POSTGRES_EXPORTER_HOST_1>:9187'
+        - '<POSTGRES_EXPORTER_HOST_2>:9187'
+      labels:
+        env: 'production'
+        role: 'primary-replica-pair-1'
+
+- job_name: 'redis_exporter'
+  static_configs:
+    - targets:
+        - '<REDIS_EXPORTER_HOST_1>:9121'
+      labels:
+        env: 'production'
+        role: 'main-cache'

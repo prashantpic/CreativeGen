@@ -1,0 +1,73 @@
+---
+# This role only runs on hosts in the 'k8s_workers_gpu' group
+- name: Install NVIDIA drivers
+  block:
+    - name: Add NVIDIA graphics drivers PPA
+      ansible.builtin.apt_repository:
+        repo: ppa:graphics-drivers/ppa
+        state: present
+
+    - name: Install specific NVIDIA driver version
+      ansible.builtin.apt:
+        name: "nvidia-driver-{{ nvidia_driver_version }}"
+        state: present
+        update_cache: yes
+      notify: reload systemd daemon
+
+    - name: Ensure nvidia-modprobe is installed
+      ansible.builtin.apt:
+        name: nvidia-modprobe
+        state: present
+
+- name: Install NVIDIA Container Toolkit
+  block:
+    - name: Add NVIDIA Container Toolkit GPG key
+      ansible.builtin.get_url:
+        url: "{{ nvidia_container_toolkit_repo_key_url }}"
+        dest: /etc/apt/trusted.gpg.d/nvidia-container-toolkit-keyring.asc
+        mode: '0644'
+
+    - name: Add NVIDIA Container Toolkit repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/trusted.gpg.d/nvidia-container-toolkit-keyring.asc] {{ nvidia_container_toolkit_repo_url }} /"
+        state: present
+        filename: nvidia-container-toolkit
+
+    - name: Install NVIDIA Container Toolkit packages
+      ansible.builtin.apt:
+        name:
+          - nvidia-container-toolkit
+        state: present
+        update_cache: yes
+      notify: restart containerd
+
+- name: Deploy NVIDIA GPU Operator
+  block:
+    - name: Add NVIDIA Helm repository
+      community.kubernetes.helm_repository:
+        name: "{{ gpu_operator_helm_repo_name }}"
+        repo_url: "{{ gpu_operator_helm_repo_url }}"
+        state: present
+      delegate_to: localhost
+      run_once: true
+
+    - name: Create GPU Operator namespace
+      community.kubernetes.k8s:
+        name: "{{ gpu_operator_namespace }}"
+        api_version: v1
+        kind: Namespace
+        state: present
+      delegate_to: localhost
+      run_once: true
+
+    - name: Deploy GPU Operator using Helm
+      community.kubernetes.helm:
+        name: "{{ gpu_operator_release_name }}"
+        chart_ref: "{{ gpu_operator_helm_repo_name }}/{{ gpu_operator_chart_name }}"
+        chart_version: "{{ gpu_operator_chart_version }}"
+        release_namespace: "{{ gpu_operator_namespace }}"
+        create_namespace: yes
+        state: present
+      delegate_to: localhost
+      run_once: true
+  when: "'k8s_masters' in group_names and inventory_hostname == groups['k8s_masters'][0]"

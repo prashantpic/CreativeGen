@@ -1,0 +1,13 @@
+---
+# handlers file for kubernetes_common
+- name: reload sysctl
+  ansible.builtin.command:
+    cmd: sysctl --system
+  changed_when: false
+  listen: "reload sysctl"
+
+- name: restart containerd
+  ansible.builtin.service:
+    name: containerd
+    state: restarted
+  listen: "restart containerd"

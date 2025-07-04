@@ -1,0 +1,7 @@
+# Variables for PostgreSQL. Sensitive data like user passwords and the replication
+# password should be defined in ansible-vault encrypted files.
+---
+# pg_replication_password: "{{ vaulted_pg_replication_password }}"
+# pg_users:
+#  - name: myapp_user
+#    password: "{{ vaulted_myapp_db_password }}"

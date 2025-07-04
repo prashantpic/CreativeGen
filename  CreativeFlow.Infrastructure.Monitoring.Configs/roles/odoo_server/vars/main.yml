@@ -1,0 +1,4 @@
+---
+# Role-specific variables for Odoo.
+# Define database connection details, addons paths, and other configurations here.
+# The db_password should be defined in a vaulted secrets file.

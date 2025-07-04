@@ -1,0 +1,50 @@
+# CreativeFlow Redis Sentinel Configuration Template
+# This template provides a standardized foundation for Redis Sentinel instances.
+# Placeholders in the format ##PLACEHOLDER## are intended to be replaced by setup scripts or automation tools like Ansible.
+# Based on SDS section 4.1.2.
+
+# The port that this sentinel instance will run on
+port ##SENTINEL_PORT##
+
+# Run as a background process.
+daemonize yes
+
+# The file path where the process ID is written.
+pidfile /var/run/redis-sentinel_##SENTINEL_PORT##.pid
+
+# Specify the log file name.
+logfile "/var/log/redis/sentinel_##SENTINEL_PORT##.log"
+
+# The working directory.
+dir "/tmp"
+
+# Tell Sentinel to monitor this master and to consider it in objective-down
+# state (ODOWN) if at least <quorum> sentinels agree.
+#
+# sentinel monitor <master-name> <ip> <port> <quorum>
+sentinel monitor ##MASTER_NAME## ##MASTER_IP## ##MASTER_PORT## ##QUORUM##
+
+# If the master is password protected, Sentinel needs the password to connect.
+sentinel auth-pass ##MASTER_NAME## "##MASTER_PASSWORD##"
+
+# Time in milliseconds that a master must be unreachable for a Sentinel to consider it in
+# subjective-down state (SDOWN).
+sentinel down-after-milliseconds ##MASTER_NAME## ##DOWN_AFTER_MS##
+
+# Number of replicas that can be reconfigured to point to the new master at the
+# same time after a failover.
+sentinel parallel-syncs ##MASTER_NAME## 1
+
+# Specifies the failover timeout in milliseconds. It is used in many ways:
+# 1. The time needed to re-start a failover after a previous one was already
+#    in progress for the same master, but it timed out.
+# 2. The time a slave is perceived as disconnected from the master to be not
+#    eligible for promotion.
+# 3. The time to cancel a failover that is already in progress but is not
+#    producing any effect.
+sentinel failover-timeout ##MASTER_NAME## ##FAILOVER_TIMEOUT_MS##
+
+# Optional: In NAT or Docker environments where the Sentinel's IP is different
+# from the one other Sentinels should use to connect, you can announce a specific IP and port.
+# sentinel announce-ip ##ANNOUNCE_IP##
+# sentinel announce-port ##SENTINEL_PORT##

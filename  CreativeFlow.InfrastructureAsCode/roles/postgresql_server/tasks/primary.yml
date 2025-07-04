@@ -1,0 +1,14 @@
+---
+# Tasks specific to the PostgreSQL Primary server
+
+- name: Create replication user on primary
+  community.postgresql.postgresql_user:
+    name: "{{ pg_replication_user }}"
+    password: "{{ pg_replication_password }}" # From vault
+    role_attr_flags: "REPLICATION,LOGIN"
+    state: present
+  become: true
+  become_user: postgres
+  no_log: true
+
+# The pg_hba.conf template will handle allowing this user to connect from replicas

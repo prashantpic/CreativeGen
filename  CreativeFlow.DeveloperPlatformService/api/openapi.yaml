@@ -1,0 +1,474 @@
+openapi: 3.0.3
+info:
+  title: CreativeFlow Developer Platform API
+  description: API for managing developer resources like API keys, webhooks, and for proxying requests to core platform services.
+  version: 1.0.0
+servers:
+  - url: /
+    description: Current server
+tags:
+  - name: API Keys
+    description: Manage your API keys for programmatic access.
+  - name: Webhooks
+    description: Configure webhooks to receive real-time event notifications.
+  - name: API Usage
+    description: Query your API usage and check quota status.
+  - name: Platform API Proxy
+    description: Access core platform functionalities like AI generation and asset management.
+paths:
+  /api-keys:
+    post:
+      tags:
+        - API Keys
+      summary: Create API Key
+      description: Generates a new API key for a user. The secret is only returned once in this response.
+      operationId: create_api_key
+      security:
+        - UserJWTSecurity: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/APIKeyCreateSchema'
+      responses:
+        '201':
+          description: API Key created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIKeyCreateResponseSchema'
+        '401':
+          description: Unauthorized
+        '422':
+          description: Validation Error
+    get:
+      tags:
+        - API Keys
+      summary: List API Keys
+      description: Retrieves a list of all API keys belonging to the authenticated user, excluding secrets.
+      operationId: list_api_keys
+      security:
+        - UserJWTSecurity: []
+      responses:
+        '200':
+          description: A list of API keys.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/APIKeyResponseSchema'
+        '401':
+          description: Unauthorized
+  /api-keys/{api_key_id}:
+    parameters:
+      - name: api_key_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - API Keys
+      summary: Get API Key Details
+      description: Retrieves details for a specific API key.
+      operationId: get_api_key
+      security:
+        - UserJWTSecurity: []
+      responses:
+        '200':
+          description: API key details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIKeyResponseSchema'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+    put:
+      tags:
+        - API Keys
+      summary: Update API Key
+      description: Updates the name, permissions, or active status of an API key.
+      operationId: update_api_key
+      security:
+        - UserJWTSecurity: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/APIKeyUpdateSchema'
+      responses:
+        '200':
+          description: API Key updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIKeyResponseSchema'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+        '422':
+          description: Validation Error
+    delete:
+      tags:
+        - API Keys
+      summary: Revoke API Key
+      description: Permanently revokes an API key, making it inactive.
+      operationId: revoke_api_key
+      security:
+        - UserJWTSecurity: []
+      responses:
+        '200':
+          description: API key revoked successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponseSchema'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+  /webhooks:
+    post:
+      tags:
+        - Webhooks
+      summary: Register Webhook
+      description: Registers a new webhook endpoint for receiving event notifications.
+      operationId: register_webhook
+      security:
+        - UserJWTSecurity: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookCreateSchema'
+      responses:
+        '201':
+          description: Webhook registered successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponseSchema'
+        '401':
+          description: Unauthorized
+        '422':
+          description: Validation Error
+    get:
+      tags:
+        - Webhooks
+      summary: List Webhooks
+      description: Retrieves a list of all webhooks belonging to the authenticated user.
+      operationId: list_webhooks
+      security:
+        - UserJWTSecurity: []
+      responses:
+        '200':
+          description: A list of webhooks.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WebhookResponseSchema'
+        '401':
+          description: Unauthorized
+  /usage/summary:
+    get:
+      tags:
+        - API Usage
+      summary: Get API Usage Summary
+      description: Retrieves a summary of API calls for the authenticated API key within a specified date range.
+      operationId: get_api_usage_summary
+      security:
+        - APIKeyAuth: []
+      parameters:
+        - name: start_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: API usage summary.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageSummaryResponseSchema'
+        '401':
+          description: Unauthorized (Invalid API Key)
+  /usage/quota:
+    get:
+      tags:
+        - API Usage
+      summary: Get Current Quota Status
+      description: Retrieves the current quota status for the authenticated API key.
+      operationId: get_current_quota_status
+      security:
+        - APIKeyAuth: []
+      responses:
+        '200':
+          description: Current quota status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotaStatusResponseSchema'
+        '401':
+          description: Unauthorized (Invalid API Key)
+  /proxy/v1/generations:
+    post:
+      tags:
+        - Platform API Proxy
+      summary: Initiate Creative Generation
+      description: Proxies a request to the AI Generation Orchestration service to start a new creative generation task.
+      operationId: initiate_creative_generation_proxy
+      security:
+        - APIKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerationCreateRequestSchema'
+      responses:
+        '202':
+          description: Generation task accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationStatusResponseSchema'
+        '401':
+          description: Unauthorized (Invalid API Key)
+        '429':
+          description: Rate limit or quota exceeded.
+  # Add other proxied endpoints following the same pattern
+components:
+  schemas:
+    StatusResponseSchema:
+      type: object
+      properties:
+        status:
+          type: string
+          default: "success"
+        message:
+          type: string
+    APIKeyCreateSchema:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        permissions:
+          type: object
+          additionalProperties:
+            type: boolean
+    APIKeyUpdateSchema:
+      type: object
+      properties:
+        name:
+          type: string
+        permissions:
+          type: object
+          additionalProperties:
+            type: boolean
+        is_active:
+          type: boolean
+    APIKeyResponseSchema:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        permissions:
+          type: object
+        key_prefix:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        revoked_at:
+          type: string
+          format: date-time
+          nullable: true
+    APIKeyCreateResponseSchema:
+      allOf:
+        - $ref: '#/components/schemas/APIKeyResponseSchema'
+        - type: object
+          properties:
+            api_key:
+              type: string
+              description: "The full API key. This is only shown once."
+    WebhookCreateSchema:
+      type: object
+      required:
+        - target_url
+        - event_types
+      properties:
+        target_url:
+          type: string
+          format: uri
+        event_types:
+          type: array
+          items:
+            type: string
+        secret:
+          type: string
+          description: "Secret for HMAC signature."
+    WebhookResponseSchema:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        target_url:
+          type: string
+          format: uri
+        event_types:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+    UsageSummaryResponseSchema:
+      type: object
+      properties:
+        api_client_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        period_start:
+          type: string
+          format: date
+        period_end:
+          type: string
+          format: date
+        total_calls:
+          type: integer
+        total_cost:
+          type: number
+          format: double
+        detailed_usage:
+          type: array
+          items:
+            type: object
+            properties:
+              endpoint:
+                type: string
+              call_count:
+                type: integer
+              cost:
+                type: number
+                format: double
+    QuotaStatusResponseSchema:
+      type: object
+      properties:
+        api_client_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        quota_type:
+          type: string
+        limit:
+          type: integer
+        remaining:
+          type: integer
+        period:
+          type: string
+        resets_at:
+          type: string
+          format: date-time
+    GenerationCreateRequestSchema:
+      type: object
+      required:
+        - prompt
+      properties:
+        prompt:
+          type: string
+        output_format:
+          type: string
+          default: "png"
+        num_samples:
+          type: integer
+          default: 4
+        project_id:
+          type: string
+          format: uuid
+        style_preferences:
+          type: object
+        custom_dimensions:
+          type: array
+          items:
+            type: integer
+          minItems: 2
+          maxItems: 2
+    GenerationStatusResponseSchema:
+      type: object
+      properties:
+        generation_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        progress:
+          type: integer
+        sample_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+        result_url:
+          type: string
+          format: uri
+        error_message:
+          type: string
+        credits_cost_sample:
+          type: number
+          format: double
+        credits_cost_final:
+          type: number
+          format: double
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+  securitySchemes:
+    APIKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+      description: API Key for authenticating developer requests to the platform proxy and usage endpoints.
+    UserJWTSecurity:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authenticating user actions on the developer portal (e.g., managing their own API keys).

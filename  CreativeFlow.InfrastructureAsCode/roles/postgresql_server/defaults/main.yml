@@ -1,0 +1,22 @@
+---
+# Default variables for postgresql_server role
+postgresql_version: "14"
+pg_port: 5432
+pg_data_dir: "/var/lib/postgresql/{{ postgresql_version }}/main"
+pg_listen_addresses: "*"
+pg_max_connections: 100
+
+# Networks that are allowed to connect to PostgreSQL (e.g., app server subnet)
+pg_allowed_client_nets:
+  - "10.0.0.0/8"
+  - "172.16.0.0/12"
+  - "192.168.0.0/16"
+
+# Replication settings
+pg_replication_user: "replicator"
+
+# PgBouncer settings
+pgbouncer_listen_addr: "*"
+pgbouncer_listen_port: 6432
+pgbouncer_default_pool_size: 20
+pgbouncer_max_client_conn: 500

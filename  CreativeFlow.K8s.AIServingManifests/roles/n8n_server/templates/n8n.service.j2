@@ -1,0 +1,17 @@
+[Unit]
+Description=n8n
+Requires=network.target
+After=network.target
+
+[Service]
+Type=simple
+User={{ n8n_user }}
+Group={{ n8n_user }}
+WorkingDirectory={{ n8n_data_dir }}
+ExecStart=/usr/bin/n8n
+EnvironmentFile=/etc/n8n/n8n.env
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

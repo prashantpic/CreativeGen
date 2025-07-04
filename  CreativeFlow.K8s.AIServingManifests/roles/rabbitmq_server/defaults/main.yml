@@ -1,0 +1,3 @@
+---
+# Default variables for the rabbitmq_server role.
+# Override these in group_vars for specific environments.

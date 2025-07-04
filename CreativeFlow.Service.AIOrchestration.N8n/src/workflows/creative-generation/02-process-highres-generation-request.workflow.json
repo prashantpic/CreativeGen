@@ -1,0 +1,246 @@
+{
+  "name": "02-process-highres-generation-request",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "d0440718-47a3-4b67-8547-06245037ce61",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "queue": "generation.highres.request",
+        "options": {}
+      },
+      "id": "402eb062-8e7c-47b2-841f-8255b9a89c92",
+      "name": "RabbitMQ Trigger",
+      "type": "n8n-nodes-base.rabbitMqTrigger",
+      "typeVersion": 1,
+      "position": [
+        470,
+        300
+      ],
+      "credentials": {
+        "rabbitMq": {
+          "id": "amqp",
+          "name": "RabbitMQ Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "generationData",
+              "value": "={{$json}}"
+            }
+          ]
+        },
+        "options": {
+          "keepSource": true
+        }
+      },
+      "id": "c76f52e5-ed5a-4e28-97c0-d39b852923c8",
+      "name": "Set Initial Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        690,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "workflowTag": "select-ai-model",
+        "source": "json",
+        "inputData": "={{\n{\n  \"strategy\": \"quality\",\n  \"taskType\": \"upscaling\"\n}\n}}",
+        "options": {}
+      },
+      "id": "ab70034a-9391-443b-b657-36e2f111589d",
+      "name": "Select High-Res Model",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        910,
+        300
+      ],
+      "onError": "continue"
+    },
+    {
+      "parameters": {
+        "workflowTag": "invoke-internal-k8s-model",
+        "source": "json",
+        "inputData": "={{\n{\n  \"modelImage\": $json.modelId, \n  \"inputJson\": $node[\"Set Initial Data\"].json.generationData\n}\n}}",
+        "options": {}
+      },
+      "id": "9dd9e8e5-33ee-4f46-953b-f4fd4b15c928",
+      "name": "Invoke High-Res Model",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        1130,
+        300
+      ],
+      "onError": "continue"
+    },
+    {
+      "parameters": {
+        "workflowTag": "store-asset-in-minio",
+        "source": "json",
+        "inputData": "={{\n{\n  \"fileData\": $binary.data,\n  \"filePath\": `${$node[\"Set Initial Data\"].json.generationData.userId}/${$node[\"Set Initial Data\"].json.generationData.projectId}/${$node[\"Set Initial Data\"].json.generationData.generationRequestId}/final.png`,\n  \"contentType\": \"image/png\"\n}\n}}",
+        "options": {}
+      },
+      "id": "89b533a1-799d-4796-9810-743387796d11",
+      "name": "Store Final Asset in MinIO",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        1350,
+        300
+      ],
+      "onError": "continue"
+    },
+    {
+      "parameters": {
+        "workflowTag": "publish-completion-event",
+        "source": "json",
+        "inputData": "={{\n{\n  \"exchangeName\": \"generation.final.complete\",\n  \"routingKey\": \"\",\n  \"payload\": {\n    \"generationRequestId\": $node[\"Set Initial Data\"].json.generationData.generationRequestId,\n    \"userId\": $node[\"Set Initial Data\"].json.generationData.userId,\n    \"asset\": $json\n  }\n}\n}}",
+        "options": {}
+      },
+      "id": "8c35bb5f-14c1-4ca5-9852-658b4f2c88f9",
+      "name": "Publish Final Completion",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        1570,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "workflowTag": "handle-generation-failure",
+        "source": "json",
+        "inputData": "={{\n{\n  \"generationRequestId\": $node[\"Set Initial Data\"].json.generationData.generationRequestId,\n  \"userId\": $node[\"Set Initial Data\"].json.generationData.userId,\n  \"errorDetails\": {\n      \"workflowName\": $execution.workflow.name,\n      \"nodeName\": $execution.error.node.name,\n      \"errorMessage\": $execution.error.message,\n      \"errorData\": $execution.error.stack\n  },\n  \"isSystemError\": true\n}\n}}",
+        "options": {
+          "executeOnWait": true
+        }
+      },
+      "id": "cf6353d2-c439-4fd5-8bb2-984bb3769c27",
+      "name": "Handle Failure",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        1350,
+        500
+      ],
+      "executeOn": "error"
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "id": "402eb062-8e7c-47b2-841f-8255b9a89c92",
+            "name": "RabbitMQ Trigger"
+          }
+        ]
+      ]
+    },
+    "RabbitMQ Trigger": {
+      "main": [
+        [
+          {
+            "id": "c76f52e5-ed5a-4e28-97c0-d39b852923c8",
+            "name": "Set Initial Data"
+          }
+        ]
+      ]
+    },
+    "Set Initial Data": {
+      "main": [
+        [
+          {
+            "id": "ab70034a-9391-443b-b657-36e2f111589d",
+            "name": "Select High-Res Model"
+          }
+        ]
+      ]
+    },
+    "Select High-Res Model": {
+      "main": [
+        [
+          {
+            "id": "9dd9e8e5-33ee-4f46-953b-f4fd4b15c928",
+            "name": "Invoke High-Res Model"
+          }
+        ]
+      ]
+    },
+    "Invoke High-Res Model": {
+      "main": [
+        [
+          {
+            "id": "89b533a1-799d-4796-9810-743387796d11",
+            "name": "Store Final Asset in MinIO"
+          }
+        ]
+      ]
+    },
+    "Store Final Asset in MinIO": {
+      "main": [
+        [
+          {
+            "id": "8c35bb5f-14c1-4ca5-9852-658b4f2c88f9",
+            "name": "Publish Final Completion"
+          }
+        ]
+      ]
+    },
+    "ab70034a-9391-443b-b657-36e2f111589d": {
+      "main": [
+        [
+          {
+            "id": "cf6353d2-c439-4fd5-8bb2-984bb3769c27",
+            "name": "Handle Failure"
+          }
+        ]
+      ]
+    },
+    "9dd9e8e5-33ee-4f46-953b-f4fd4b15c928": {
+      "main": [
+        [
+          {
+            "id": "cf6353d2-c439-4fd5-8bb2-984bb3769c27",
+            "name": "Handle Failure"
+          }
+        ]
+      ]
+    },
+    "89b533a1-799d-4796-9810-743387796d11": {
+      "main": [
+        [
+          {
+            "id": "cf6353d2-c439-4fd5-8bb2-984bb3769c27",
+            "name": "Handle Failure"
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "b1f3b392-f2f6-4903-8884-2e21b8c8d8c9",
+  "triggerCount": 1,
+  "tags": []
+}

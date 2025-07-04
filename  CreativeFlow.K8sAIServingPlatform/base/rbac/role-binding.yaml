@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ai-model-server-rb
+  namespace: creativeflow-ai-serving
+  labels:
+    app.kubernetes.io/name: ai-model-server-rb
+subjects:
+- kind: ServiceAccount
+  name: ai-model-server-sa
+  namespace: creativeflow-ai-serving
+roleRef:
+  kind: Role
+  name: ai-model-server-role
+  apiGroup: rbac.authorization.k8s.io

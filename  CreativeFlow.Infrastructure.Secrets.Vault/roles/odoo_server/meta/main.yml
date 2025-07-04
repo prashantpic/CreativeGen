@@ -1,0 +1,4 @@
+---
+# Placeholder meta for the 'odoo_server' role.
+dependencies:
+  - role: postgresql_server # Odoo depends on a database

@@ -1,0 +1,96 @@
+sequenceDiagram
+    actor "Operations Team" as actoroptsteam
+    participant "Backup Orchestrator" as svcbackuptool
+    participant "PostgreSQL DB" as repodbpostgresql
+    participant "Offsite Backup Storage" as repostorageoffsitebackup
+    participant "DR Kubernetes Cluster" as compk8scluster
+    participant "Odoo Backend (DR)" as svcodoodbackend
+    participant "n8n Engine (DR)" as svcn8nworkflowengine
+    participant "DR Load Balancer/DNS" as comploadbalancernginx
+
+    group Automated Backup Process (Daily)
+        actoroptsteam-svcbackuptool: 1.1 Trigger Daily Backup (Scheduled)
+        activate svcbackuptool
+        note over svcbackuptool: Automated backup typically runs on a daily schedule (e.g., cron job).
+        svcbackuptool-repodbpostgresql: 1.2 Initiate Full Backup (Primary DB)
+        activate repodbpostgresql
+        note left of repodbpostgresql: Primary DB is the live production database.
+        repodbpostgresql--svcbackuptool: Backup Data Stream/File
+        deactivate repodbpostgresql
+        svcbackuptool-svcbackuptool: 1.3 Compress Backup Data
+        svcbackuptool-svcbackuptool: 1.4 Encrypt Backup Data (AES-256)
+        svcbackuptool-repostorageoffsitebackup: 1.5 Store Encrypted Backup File
+        activate repostorageoffsitebackup
+        note right of repostorageoffsitebackup: Offsite Backup Storage ensures geographical separation for DR.
+        repostorageoffsitebackup--svcbackuptool: Storage Confirmation (Path, Timestamp)
+        deactivate repostorageoffsitebackup
+        svcbackuptool-svcbackuptool: 1.6 Log Backup Status (Success, Path, Size)
+        alt Handle Backup Failure
+            svcbackuptool-svcbackuptool: 1.7.1 Log Backup Status (Failure, Error Details)
+            svcbackuptool-actoroptsteam: 1.7.2 Send Backup Failure Alert
+        end
+        deactivate svcbackuptool
+    end
+
+    group Disaster Recovery Test Scenario (Manual Trigger)
+        activate actoroptsteam
+        actoroptsteam-actoroptsteam: 2.1 Simulate Primary DC Failure & Initiate DR Test
+        note over actoroptsteam: DR Test is manually initiated by Operations Team.
+        actoroptsteam-compk8scluster: 2.2 Activate DR Site Infrastructure
+        activate compk8scluster
+        compk8scluster--actoroptsteam: DR Infrastructure Activation Status
+        actoroptsteam-repostorageoffsitebackup: 2.3 Request Latest Valid Backup for Restore
+        activate repostorageoffsitebackup
+        repostorageoffsitebackup--actoroptsteam: Backup File Details & Access Path
+        deactivate repostorageoffsitebackup
+        actoroptsteam-repodbpostgresql: 2.4 Restore Database on DR Instance (from Offsite Backup)
+        activate repodbpostgresql
+        note over repodbpostgresql: DR DB instance is restored using the backup from Offsite Backup Storage. RPO validation happens here by comparing restored data freshness to simulated failure time.
+        repodbpostgresql-repodbpostgresql: 2.4.1 Perform Decryption & Decompression
+        repodbpostgresql-repodbpostgresql: 2.4.2 Execute Restore (e.g., pg_restore)
+        repodbpostgresql--actoroptsteam: Database Restore Status (Success/Failure, RPO Met?)
+        deactivate repodbpostgresql
+        opt Handle DB Restore Failure
+            actoroptsteam-actoroptsteam: 2.5.1 Log DR DB Restore Failure
+            actoroptsteam-actoroptsteam: 2.5.2 [STOP] DR Test Failed due to DB Restore
+        end
+        actoroptsteam-compk8scluster: 2.6 Deploy/Start Critical Services (Odoo, n8n, etc.) with DR Config
+        note over compk8scluster: All services in DR (Odoo, n8n, API GW, Notification Service) are configured to use the restored DR Database and DR MinIO (if applicable).
+        note right of compk8scluster: MinIO object storage data (if not part of Offsite Backup Storage for DR) is assumed to be available in DR via its own replication or restore mechanisms, running in parallel.
+        compk8scluster-svcodoodbackend: 2.6.1 Start Service (Connect to DR DB)
+        activate svcodoodbackend
+        svcodoodbackend-repodbpostgresql: 2.6.1.1 Attempt Connection to DR Database
+        activate repodbpostgresql
+        repodbpostgresql--svcodoodbackend: Connection Status
+        deactivate repodbpostgresql
+        svcodoodbackend--compk8scluster: Odoo Service Ready/Failed
+        deactivate svcodoodbackend
+        compk8scluster-svcn8nworkflowengine: 2.6.2 Start Service (Connect to DR DB)
+        activate svcn8nworkflowengine
+        svcn8nworkflowengine-repodbpostgresql: 2.6.2.1 Attempt Connection to DR Database
+        activate repodbpostgresql
+        repodbpostgresql--svcn8nworkflowengine: Connection Status
+        deactivate repodbpostgresql
+        svcn8nworkflowengine--compk8scluster: n8n Service Ready/Failed
+        deactivate svcn8nworkflowengine
+        compk8scluster--actoroptsteam: Critical Services Start Status
+        deactivate compk8scluster
+        actoroptsteam-comploadbalancernginx: 2.7 Update DNS / Activate DR Traffic Routing
+        activate comploadbalancernginx
+        comploadbalancernginx--actoroptsteam: Traffic Routing Status
+        deactivate comploadbalancernginx
+        loop For each key functionality to test
+            note over actoroptsteam: RTO (Recovery Time Objective, e.g., 4 hours) is validated by measuring total time from DR initiation (2.1) to successful functionality tests (2.8.x).
+            actoroptsteam-svcodoodbackend: 2.8.1 Perform Key Functionality Test (e.g., Odoo Login, View Data)
+            activate svcodoodbackend
+            svcodoodbackend--actoroptsteam: Test Result (Pass/Fail, RTO metric data)
+            deactivate svcodoodbackend
+            actoroptsteam-svcn8nworkflowengine: 2.8.2 Perform Key Functionality Test (e.g., Trigger Dummy Workflow)
+            activate svcn8nworkflowengine
+            svcn8nworkflowengine--actoroptsteam: Test Result (Pass/Fail, RTO metric data)
+            deactivate svcn8nworkflowengine
+        end
+        actoroptsteam-actoroptsteam: 2.9 Document DR Test Results (Overall Pass/Fail, RTO/RPO Achieved, Issues)
+        actoroptsteam-actoroptsteam: 2.10 Refine DR Procedures based on Test Outcome
+        deactivate actoroptsteam
+    end

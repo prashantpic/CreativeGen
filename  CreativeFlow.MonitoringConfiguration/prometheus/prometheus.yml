@@ -1,0 +1,42 @@
+# Main Prometheus server configuration.
+# This file defines global settings, rule file paths, scrape configuration paths,
+# and the connection to Alertmanager. It acts as the central orchestrator for Prometheus.
+# Requirement(s) Addressed: DEP-005, QA-003
+
+global:
+  # Default scrape interval for all targets. Can be overridden per job.
+  scrape_interval: 15s
+  # How often to evaluate rules (recording and alerting).
+  evaluation_interval: 15s
+  # External labels to attach to all time series and alerts.
+  external_labels:
+    monitor: 'creativeflow-main'
+
+# Load rule files from this directory.
+# Separate files for different concerns improve maintainability.
+rule_files:
+  - "/etc/prometheus/rules/recording_rules.yml"
+  - "/etc/prometheus/rules/application_alerts.yml"
+  - "/etc/prometheus/rules/infrastructure_alerts.yml"
+  - "/etc/prometheus/rules/ai_model_alerts.yml"
+  - "/etc/prometheus/rules/business_process_alerts.yml"
+
+# Load scrape configurations from this directory.
+# This modular approach is cleaner than embedding all scrape_configs here.
+scrape_config_files:
+  - "/etc/prometheus/scrape_configs/node_exporter_targets.yml"
+  - "/etc/prometheus/scrape_configs/application_service_targets.yml"
+  - "/etc/prometheus/scrape_configs/database_targets.yml"
+  - "/etc/prometheus/scrape_configs/message_queue_targets.yml"
+  - "/etc/prometheus/scrape_configs/kubernetes_targets.yml"
+  - "/etc/prometheus/scrape_configs/gpu_targets.yml"
+  - "/etc/prometheus/scrape_configs/custom_ai_model_targets.yml"
+
+# Alerting configuration. Specifies Alertmanager instances to send alerts to.
+alerting:
+  alertmanagers:
+    # Use static config for fixed Alertmanager endpoints. For K8s, consider kubernetes_sd_configs.
+    - static_configs:
+        - targets:
+            - "alertmanager:9093" # Assumes a service named 'alertmanager' on port 9093. For HA, add the second instance.
+            # - "alertmanager-2:9093"

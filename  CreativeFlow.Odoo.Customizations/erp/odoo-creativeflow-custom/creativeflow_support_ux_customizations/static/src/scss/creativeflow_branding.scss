@@ -1,0 +1,113 @@
+// CreativeFlow Branding for Odoo Support Portal
+// This file applies the visual identity to Helpdesk and Knowledge portals.
+
+// 1. Brand Variables
+// (Using placeholder values as per SDS)
+$cf-primary-color: #6A1B9A;      // A shade of purple for the brand
+$cf-secondary-color: #FDD835;    // A contrasting yellow
+$cf-text-color: #333333;
+$cf-heading-color: #1a1a1a;
+$cf-link-color: $cf-primary-color;
+$cf-link-hover-color: darken($cf-primary-color, 10%);
+$cf-font-family: 'Poppins', sans-serif; // A modern, friendly font
+$cf-border-radius: 8px;
+
+// 2. Global Portal Overrides
+.o_portal_wrap.cf-support-page {
+    font-family: $cf-font-family;
+    color: $cf-text-color;
+
+    h1, h2, h3, h4, .cf-title {
+        font-family: $cf-font-family;
+        font-weight: 600;
+        color: $cf-heading-color;
+    }
+
+    .btn-primary {
+        background-color: $cf-primary-color;
+        border-color: $cf-primary-color;
+        border-radius: $cf-border-radius;
+        padding: 10px 20px;
+        transition: background-color 0.2s ease-in-out;
+
+        &:hover {
+            background-color: darken($cf-primary-color, 8%);
+            border-color: darken($cf-primary-color, 8%);
+        }
+    }
+
+    a {
+        color: $cf-link-color;
+        &:hover {
+            color: $cf-link-hover-color;
+        }
+    }
+}
+
+// 3. Header Customization
+header {
+    &.o_header_standard nav.navbar.cf-portal-header,
+    &.o_header_affixed nav.navbar.cf-portal-header {
+        background-color: #ffffff;
+        border-bottom: 1px solid #e0e0e0;
+
+        .navbar-brand.logo {
+            // Assumes the logo is an img tag.
+            // You might need to replace it with a background-image.
+            content: url("/creativeflow_support_ux_customizations/static/src/img/logo.svg"); // Placeholder path
+            max-height: 40px;
+        }
+
+        .nav-link {
+            color: $cf-text-color !important;
+            font-weight: 500;
+        }
+    }
+}
+
+
+// 4. Helpdesk Specific Styling
+.o_portal_helpdesk_ticket {
+    .card-header {
+        background-color: lighten($cf-primary-color, 55%);
+        border-bottom: 1px solid lighten($cf-primary-color, 50%);
+    }
+
+    .o_portal_record_sidebar {
+        &.cf-sidebar-branded {
+           .card {
+               border-radius: $cf-border-radius;
+           }
+        }
+    }
+}
+
+// 5. Knowledge Specific Styling
+.o_knowledge_content {
+    &.cf-knowledge-article {
+        .o_knowledge_behavior_anchor {
+            color: $cf-primary-color;
+        }
+        blockquote {
+            border-left: 4px solid $cf-secondary-color;
+            background-color: lighten($cf-secondary-color, 25%);
+            padding: 1rem;
+            border-radius: 0 $cf-border-radius $cf-border-radius 0;
+        }
+    }
+}
+
+// 6. Portal Home Cards
+.cf-portal-home-cards {
+    .card {
+        border-radius: $cf-border-radius;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+        &:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+    }
+}

@@ -1,0 +1,27 @@
+---
+# defaults file for prometheus_exporters
+
+# --- Global Toggles ---
+prometheus_node_exporter_enabled: true
+prometheus_postgres_exporter_enabled: true
+prometheus_rabbitmq_exporter_enabled: true
+
+# --- Node Exporter ---
+node_exporter_version: "1.6.1"
+node_exporter_port: 9100
+node_exporter_user: "node_exporter"
+node_exporter_group: "node_exporter"
+
+# --- PostgreSQL Exporter ---
+postgres_exporter_version: "0.13.2"
+postgres_exporter_port: 9187
+postgres_exporter_user: "postgres_exporter"
+postgres_exporter_group: "postgres_exporter"
+postgres_exporter_db_user: "monitoring"
+# The password should be set in vault, e.g., group_vars/all/secrets.yml
+# vault_postgres_exporter_db_password: "CHANGEME"
+pg_port: 5432 # Should match postgresql_server role
+
+# --- RabbitMQ Exporter (Placeholder) ---
+rabbitmq_exporter_version: "1.0.0"
+rabbitmq_exporter_port: 9419

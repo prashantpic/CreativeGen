@@ -1,0 +1,173 @@
+{
+  "name": "ContentSafety_Moderator",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "76652e75-5282-45e0-b778-98e6c8e87494",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "notes": "Receives contentData and contentType (e.g., 'image_url', 'text')"
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/moderations",
+        "authentication": "predefinedCredential",
+        "credentialType": "openAiApi",
+        "sendBody": true,
+        "body": "={{({ input: $json.contentType === 'text' ? $json.contentData : $json.contentData })}}",
+        "options": {}
+      },
+      "id": "060a775f-2c35-4203-b058-29367d264426",
+      "name": "Call Moderation API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        460,
+        300
+      ],
+      "notes": "Calls OpenAI's moderation endpoint. Assumes image content is passed as a URL."
+    },
+    {
+      "parameters": {
+        "functionCode": "const moderationResult = $json.results[0];\nconst isSafe = !moderationResult.flagged;\nconst flags = [];\n\nif (moderationResult.flagged) {\n  for (const category in moderationResult.categories) {\n    if (moderationResult.categories[category]) {\n      flags.push(category);\n    }\n  }\n}\n\nreturn {\n  isSafe,\n  flags,\n  moderationDetails: moderationResult\n};"
+      },
+      "id": "75c32e92-938e-4a64-ae70-5b5c7379555c",
+      "name": "Parse Moderation Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        680,
+        200
+      ],
+      "notes": "Interprets the flags from the moderation API to determine safety status."
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "json": [
+            {
+              "key": "isSafe",
+              "value": "={{$json.isSafe}}"
+            },
+            {
+              "key": "flags",
+              "value": "={{$json.flags}}"
+            },
+            {
+              "key": "moderationDetails",
+              "value": "={{$json.moderationDetails}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ff9b2a75-1033-4f93-8378-c44d15655787",
+      "name": "Final Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        900,
+        200
+      ],
+      "notes": "Formats the final output with safety status and any flags."
+    },
+    {
+      "parameters": {
+        "values": {
+          "json": [
+            {
+              "key": "isSafe",
+              "value": "=false"
+            },
+            {
+              "key": "flags",
+              "value": "={{ ['moderation_service_error'] }}"
+            },
+            {
+              "key": "moderationDetails",
+              "value": "={{ $json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1c02da14-3a9d-407b-8919-798836528d22",
+      "name": "Handle API Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        680,
+        400
+      ],
+      "notes": "If the moderation API call fails, defaults to unsafe and logs the error."
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Call Moderation API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Moderation API": {
+      "main": [
+        [
+          {
+            "node": "Parse Moderation Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "Handle API Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Moderation Response": {
+      "main": [
+        [
+          {
+            "node": "Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle API Error": {
+      "main": [
+        [
+          {
+            "node": "Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "id": "zxcv987ASDFqwer",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

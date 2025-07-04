@@ -1,0 +1,5 @@
+---
+# Role-specific variables for minio_server.
+# Sensitive values like keys should be defined in vaulted files (e.g., group_vars/all/secrets.yml).
+minio_access_key: "{{ vault_minio_access_key }}"
+minio_secret_key: "{{ vault_minio_secret_key }}"

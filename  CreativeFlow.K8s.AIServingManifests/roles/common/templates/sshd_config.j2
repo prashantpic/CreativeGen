@@ -1,0 +1,35 @@
+# /etc/ssh/sshd_config
+#
+# This file is managed by Ansible. Do not edit manually.
+
+Port {{ ssh_port }}
+
+# Authentication
+LoginGraceTime 2m
+PermitRootLogin no
+StrictModes yes
+MaxAuthTries 3
+MaxSessions 10
+
+PubkeyAuthentication yes
+PasswordAuthentication no
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+
+# Use PAM to check for account validity
+UsePAM yes
+
+X11Forwarding no
+PrintMotd no
+
+# Accept locale-related environment variables
+AcceptEnv LANG LC_*
+
+# override default of no subsystems
+Subsystem sftp /usr/lib/openssh/sftp-server
+
+# Allow client to pass locale environment variables
+AcceptEnv LANG LC_*
+
+# Example of allowing a specific group for SSH access
+# AllowGroups ssh_users {{ ansible_admin_user }}

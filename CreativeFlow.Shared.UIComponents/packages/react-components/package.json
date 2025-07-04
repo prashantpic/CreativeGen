@@ -1,0 +1,34 @@
+```json
+{
+  "name": "@creativeflow/react-ui",
+  "version": "1.0.0",
+  "description": "React component library for the CreativeFlow AI platform.",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "rollup -c",
+    "test": "echo \"No tests specified for react-components\""
+  },
+  "dependencies": {
+    "@creativeflow/design-tokens": "1.0.0"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "styled-components": "^6.1.8"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/react": "^18.2.79",
+    "@types/styled-components": "^5.1.34",
+    "rollup": "^4.14.3",
+    "rollup-plugin-dts": "^6.1.0",
+    "tslib": "^2.6.2",
+    "typescript": "^5.4.5"
+  }
+}
+```

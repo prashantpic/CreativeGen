@@ -1,0 +1,87 @@
+{
+  "name": "handle-generation-failure",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "failure"
+      },
+      "id": "31f4277c-7a91-477d-8121-689b142ef57b",
+      "name": "Workflow Trigger",
+      "type": "n8n-nodes-base.workflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const errorData = $json;\n\nconst logMessage = {\n  log_level: 'error',\n  timestamp: new Date().toISOString(),\n  service: 'AIOrchestration.N8n',\n  generationRequestId: errorData.generationRequestId,\n  userId: errorData.userId,\n  workflowName: errorData.errorDetails.workflowName,\n  nodeName: errorData.errorDetails.nodeName,\n  errorMessage: errorData.errorDetails.errorMessage,\n  isSystemError: errorData.isSystemError\n};\n\n// This payload is sent to RabbitMQ\nconst eventPayload = {\n  generationRequestId: errorData.generationRequestId,\n  userId: errorData.userId,\n  errorMessage: `Failure in ${errorData.errorDetails.workflowName} at node ${errorData.errorDetails.nodeName}: ${errorData.errorDetails.errorMessage}`,\n  isSystemError: errorData.isSystemError\n};\n\nreturn [{ \n  json: eventPayload,\n  logMessage: logMessage\n}];"
+      },
+      "id": "9049962a-84ce-4a7b-8356-91e0a81615d5",
+      "name": "Format Log and Event",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "exchange": "generation.failed",
+        "routingKey": "",
+        "message": "={{$json}}",
+        "options": {}
+      },
+      "id": "d748f933-2882-4467-93aa-26510f2d1e2e",
+      "name": "Publish Failure Event",
+      "type": "n8n-nodes-base.rabbitMqSend",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ],
+      "credentials": {
+        "rabbitMq": {
+          "id": "amqp",
+          "name": "RabbitMQ Account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Workflow Trigger": {
+      "main": [
+        [
+          {
+            "id": "9049962a-84ce-4a7b-8356-91e0a81615d5",
+            "name": "Format Log and Event"
+          }
+        ]
+      ]
+    },
+    "Format Log and Event": {
+      "main": [
+        [
+          {
+            "id": "d748f933-2882-4467-93aa-26510f2d1e2e",
+            "name": "Publish Failure Event"
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "6c2c77f0-264d-4468-b7f9-8178d85f8185",
+  "triggerCount": 0,
+  "tags": [
+    {
+      "id": "6d3b38c2-3e28-485c-a1e4-3c6cf7c7112d",
+      "name": "error-handling"
+    }
+  ]
+}

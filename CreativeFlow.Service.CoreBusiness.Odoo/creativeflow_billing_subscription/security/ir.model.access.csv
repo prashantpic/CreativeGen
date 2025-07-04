@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_creativeflow_credit_transaction_user,creativeflow.credit_transaction for base users,model_creativeflow_credit_transaction,base.group_user,1,0,0,0
+access_creativeflow_credit_transaction_manager,creativeflow.credit_transaction for managers,model_creativeflow_credit_transaction,account.group_account_manager,1,1,1,1

@@ -1,0 +1,4 @@
+---
+# Variables for prometheus exporters.
+# Database and service credentials for exporters should be stored in Vault.
+# DATA_SOURCE_NAME for postgres_exporter would be defined here using vaulted secrets.

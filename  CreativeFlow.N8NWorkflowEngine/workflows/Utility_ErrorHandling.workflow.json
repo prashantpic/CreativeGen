@@ -1,0 +1,181 @@
+{
+  "name": "Utility_ErrorHandling",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const errorObject = items[0].json.errorObject || {};\nconst workflowContext = items[0].json.workflowContext || {};\n\nconst execution = errorObject.execution || {};\nconst workflow = errorObject.workflow || {};\nconst error = errorObject.error || {};\n\nconst logPayload = {\n  level: 'error',\n  message: `Workflow error in '${workflow.name}'`,\n  details: {\n    jobId: workflowContext.jobId,\n    userId: workflowContext.userId,\n    workflowId: workflow.id,\n    workflowName: workflow.name,\n    executionId: execution.id,\n    errorNode: error.node ? error.node.name : 'Unknown',\n    errorMessage: error.message,\n    stack: error.stack,\n    timestamp: new Date().toISOString()\n  }\n};\n\nitems[0].json.logPayload = logPayload;\n\n// Check for criticality\nlet isCritical = false;\nif (error.message && (error.message.includes('503') || error.message.includes('ECONNREFUSED'))) {\n    isCritical = true;\n}\nitems[0].json.isCritical = isCritical;\n\nreturn items;"
+      },
+      "name": "Format Error Log",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        470,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.CENTRAL_LOGGING_ENDPOINT}}",
+        "options": {},
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "log",
+              "value": "={{$json.logPayload}}"
+            }
+          ]
+        },
+        "authentication": "none"
+      },
+      "name": "Log Error (Centrally)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.isCritical}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Is Critical?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        920,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "queue": "admin_alerts_queue",
+        "message": "={{$json.logPayload}}"
+      },
+      "name": "Send Admin Alert",
+      "type": "n8n-nodes-base.rabbitMq",
+      "typeVersion": 1,
+      "position": [
+        1140,
+        200
+      ],
+      "credentials": {
+        "rabbitMq": {
+          "id": "YOUR_RABBITMQ_CREDENTIAL_ID",
+          "name": "RabbitMQ connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "error"
+            },
+            {
+              "name": "message",
+              "value": "={{ 'Processed error: ' + ($json.logPayload.details.errorMessage || 'Unknown error') }}"
+            },
+            {
+              "name": "details",
+              "value": "={{$json.logPayload.details}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Prepare Final Error Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1140,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Format Error Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Error Log": {
+      "main": [
+        [
+          {
+            "node": "Log Error (Centrally)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Error (Centrally)": {
+      "main": [
+        [
+          {
+            "node": "Is Critical?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Critical?": {
+      "main": [
+        [
+          {
+            "node": "Send Admin Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Final Error Output",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Send Admin Alert": {
+      "main": [
+        [
+          {
+            "node": "Prepare Final Error Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {}
+}

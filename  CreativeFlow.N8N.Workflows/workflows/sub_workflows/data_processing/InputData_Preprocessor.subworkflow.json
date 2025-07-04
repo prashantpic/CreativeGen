@@ -1,0 +1,90 @@
+{
+  "name": "InputData_Preprocessor",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "e969d725-b40b-42ea-a4b0-a0357870e632",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const inputs = $json;\nconst output = {};\n\n// 1. Text Preprocessing\nif (inputs.rawTextPrompt) {\n  // Simple cleaning: trim whitespace\n  output.processedTextPrompt = inputs.rawTextPrompt.trim();\n}\n\n// 2. Image Preprocessing (Validation)\nif (inputs.uploadedImageReferences && Array.isArray(inputs.uploadedImageReferences)) {\n  // For this workflow, we just validate the paths are present.\n  // A dedicated microservice would handle actual image manipulation.\n  output.processedImagePaths = inputs.uploadedImageReferences;\n} else {\n  output.processedImagePaths = [];\n}\n\n// 3. Brand Element Extraction\nif (inputs.brandKitData) {\n  const hints = {};\n  if (inputs.brandKitData.colors && inputs.brandKitData.colors.length > 0) {\n    hints.primaryColor = inputs.brandKitData.colors[0].hex;\n  }\n  if (inputs.brandKitData.fonts && inputs.brandKitData.fonts.length > 0) {\n    hints.headingFont = inputs.brandKitData.fonts[0].family;\n  }\n  if (inputs.brandKitData.logos && inputs.brandKitData.logos.length > 0) {\n    hints.logoPath = inputs.brandKitData.logos[0].path;\n  }\n  output.brandStyleHints = hints;\n}\n\nreturn output;"
+      },
+      "id": "01f60f64-d193-4a16-92f7-0d32f14792c3",
+      "name": "Process and Assemble Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "notes": "Processes all inputs and combines them into a structured object for AI model consumption."
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "json": [
+            {
+              "key": "processedTextPrompt",
+              "value": "={{ $json.processedTextPrompt }}"
+            },
+            {
+              "key": "processedImagePaths",
+              "value": "={{ $json.processedImagePaths }}"
+            },
+            {
+              "key": "brandStyleHints",
+              "value": "={{ $json.brandStyleHints }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c7a82c2a-9494-4d82-8224-dd9e31d87cf0",
+      "name": "Final Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ],
+      "notes": "Ensures the output is clean and matches the specified structure."
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Process and Assemble Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process and Assemble Data": {
+      "main": [
+        [
+          {
+            "node": "Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "id": "lskd8fjh34SDfSdf",
+  "meta": {},
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

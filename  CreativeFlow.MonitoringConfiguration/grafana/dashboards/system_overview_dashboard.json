@@ -1,0 +1,164 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS-MAIN",
+      "label": "Prometheus-Main",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "10.4.2"
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "gauge",
+      "name": "Gauge",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "title": "API Gateway Request Rate",
+      "type": "stat",
+      "datasource": "${DS_PROMETHEUS-MAIN}",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+      "options": { "reduceOptions": { "values": false, "calcs": ["last"], "fields": "" }, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "auto" },
+      "targets": [
+        { "expr": "sum(job:http_requests_total:sum_rate5m{job=\"api-gateway\"})", "legendFormat": "Requests/sec", "datasource": "${DS_PROMETHEUS-MAIN}" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "API Gateway Error % (5xx)",
+      "type": "gauge",
+      "datasource": "${DS_PROMETHEUS-MAIN}",
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 0 },
+      "options": { "reduceOptions": { "values": false, "calcs": ["last"], "fields": "" }, "orientation": "auto", "showThresholdLabels": false, "showThresholdMarkers": true },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 2, "color": "orange" }, { "value": 5, "color": "red" }] } } },
+      "targets": [
+        { "expr": "(sum(rate(http_requests_total{job=\"api-gateway\",code=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=\"api-gateway\"}[5m]))) * 100", "legendFormat": "Error %", "datasource": "${DS_PROMETHEUS-MAIN}" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Overall Cluster CPU Usage",
+      "type": "timeseries",
+      "datasource": "${DS_PROMETHEUS-MAIN}",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "options": { "tooltip": { "mode": "multi", "sort": "none" }, "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] } },
+      "fieldConfig": { "defaults": { "unit": "cores", "color": { "mode": "palette-classic" }, "custom": { "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "auto", "spanNulls": false, "stacking": { "mode": "none", "group": "A" }, "thresholdsStyle": { "mode": "off" } } } },
+      "targets": [
+        { "expr": "cluster:cpu_usage:rate5m", "legendFormat": "Total CPU Cores Used", "datasource": "${DS_PROMETHEUS-MAIN}" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Overall Cluster Memory Usage",
+      "type": "timeseries",
+      "datasource": "${DS_PROMETHEUS-MAIN}",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "options": { "tooltip": { "mode": "multi", "sort": "none" }, "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] } },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "color": { "mode": "palette-classic" } } },
+      "targets": [
+        { "expr": "cluster:memory_utilization:ratio * 100", "legendFormat": "Memory Usage %", "datasource": "${DS_PROMETHEUS-MAIN}" }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "PostgreSQL Active Connections",
+      "type": "stat",
+      "datasource": "${DS_PROMETHEUS-MAIN}",
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 0 },
+      "options": { "reduceOptions": { "values": false, "calcs": ["last"], "fields": "" }, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "auto" },
+      "targets": [
+        { "expr": "sum(pg_stat_activity_count{state='active'})", "legendFormat": "Active Connections", "datasource": "${DS_PROMETHEUS-MAIN}" }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "RabbitMQ Ready Messages",
+      "type": "stat",
+      "datasource": "${DS_PROMETHEUS-MAIN}",
+      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 0 },
+      "options": { "reduceOptions": { "values": false, "calcs": ["last"], "fields": "" }, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "auto" },
+      "targets": [
+        { "expr": "sum(rabbitmq_queue_messages_ready)", "legendFormat": "Ready Messages", "datasource": "${DS_PROMETHEUS-MAIN}" }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": false, "text": "production", "value": "production" },
+        "hide": 0,
+        "label": "Environment",
+        "name": "environment",
+        "options": [],
+        "query": "label_values(up, env)",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "query",
+        "datasource": "${DS_PROMETHEUS-MAIN}"
+      }
+    ]
+  },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "System Overview",
+  "uid": "system-overview",
+  "version": 1,
+  "weekStart": ""
+}

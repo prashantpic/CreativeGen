@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- creativeflow.template Tree View -->
+    <record id="view_creativeflow_template_tree" model="ir.ui.view">
+        <field name="name">creativeflow.template.tree</field>
+        <field name="model">creativeflow.template</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="category_id"/>
+                <field name="is_active"/>
+                <field name="is_pro_template"/>
+                <field name="usage_count"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- creativeflow.template Form View -->
+    <record id="view_creativeflow_template_form" model="ir.ui.view">
+        <field name="name">creativeflow.template.form</field>
+        <field name="model">creativeflow.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" attrs="{'invisible': [('is_active', '=', True)]}"/>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="category_id"/>
+                            <field name="tags_ids" widget="many2many_tags"/>
+                        </group>
+                        <group>
+                            <field name="is_active"/>
+                            <field name="is_pro_template"/>
+                            <field name="usage_count"/>
+                             <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Details">
+                            <group>
+                                <field name="description" placeholder="A detailed description of the template..."/>
+                                <field name="platform_suitability"/>
+                                <field name="preview_image_url" widget="url"/>
+                            </group>
+                        </page>
+                        <page string="Template Data">
+                             <field name="template_json_data" placeholder='{ "version": "1.0", "elements": [...] }'/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- creativeflow.template Search View -->
+    <record id="view_creativeflow_template_search" model="ir.ui.view">
+        <field name="name">creativeflow.template.search</field>
+        <field name="model">creativeflow.template</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="category_id"/>
+                <field name="tags_ids"/>
+                <filter string="Active" name="active" domain="[('is_active', '=', True)]"/>
+                <filter string="Archived" name="inactive" domain="[('is_active', '=', False)]"/>
+                <filter string="Pro Templates" name="pro" domain="[('is_pro_template', '=', True)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Category" name="group_by_category" context="{'group_by': 'category_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- creativeflow.template Action Window -->
+    <record id="action_creativeflow_template" model="ir.actions.act_window">
+        <field name="name">Creative Templates</field>
+        <field name="res_model">creativeflow.template</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new creative template.
+            </p><p>
+                Manage the library of templates available to users on the CreativeFlow platform.
+            </p>
+        </field>
+    </record>
+
+</odoo>

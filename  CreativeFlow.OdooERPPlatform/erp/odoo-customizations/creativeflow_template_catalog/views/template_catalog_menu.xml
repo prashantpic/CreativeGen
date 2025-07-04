@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Main Menu -->
+        <menuitem
+            id="menu_template_catalog_root"
+            name="CF Template Catalog"
+            web_icon="creativeflow_template_catalog,static/description/icon.png"
+            sequence="30"
+            groups="base.group_user"/>
+
+        <!-- Templates Menu -->
+        <menuitem
+            id="menu_template_catalog_templates"
+            name="Templates"
+            parent="menu_template_catalog_root"
+            action="action_creativeflow_template"
+            sequence="10"/>
+
+        <!-- Configuration Menu -->
+        <menuitem
+            id="menu_template_catalog_config"
+            name="Configuration"
+            parent="menu_template_catalog_root"
+            sequence="100"
+            groups="base.group_system"/>
+
+        <menuitem
+            id="menu_template_catalog_config_categories"
+            name="Template Categories"
+            parent="menu_template_catalog_config"
+            action="action_creativeflow_template_category"
+            sequence="10"/>
+
+        <menuitem
+            id="menu_template_catalog_config_tags"
+            name="Template Tags"
+            parent="menu_template_catalog_config"
+            action="action_creativeflow_template_tag"
+            sequence="20"/>
+
+    </data>
+</odoo>

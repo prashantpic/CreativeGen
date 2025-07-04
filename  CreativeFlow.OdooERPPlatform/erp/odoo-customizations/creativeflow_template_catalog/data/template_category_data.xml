@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Root Categories -->
+        <record id="template_category_social" model="creativeflow.template.category">
+            <field name="name">Social Media</field>
+        </record>
+        <record id="template_category_marketing" model="creativeflow.template.category">
+            <field name="name">Marketing</field>
+        </record>
+        <record id="template_category_events" model="creativeflow.template.category">
+            <field name="name">Events</field>
+        </record>
+        <record id="template_category_industry" model="creativeflow.template.category">
+            <field name="name">Industry</field>
+        </record>
+
+        <!-- Sub-categories -->
+        <record id="template_category_industry_real_estate" model="creativeflow.template.category">
+            <field name="name">Real Estate</field>
+            <field name="parent_id" ref="template_category_industry"/>
+        </record>
+        <record id="template_category_industry_fashion" model="creativeflow.template.category">
+            <field name="name">Fashion</field>
+            <field name="parent_id" ref="template_category_industry"/>
+        </record>
+        <record id="template_category_industry_restaurant" model="creativeflow.template.category">
+            <field name="name">Restaurant</field>
+            <field name="parent_id" ref="template_category_industry"/>
+        </record>
+    </data>
+</odoo>

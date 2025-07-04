@@ -1,0 +1,46 @@
+---
+title: 'Creative Generation API Reference v1'
+description: 'Explore the endpoints for initiating and managing creative generations through the CreativeFlow API. View schemas, try out API calls, and see example responses.'
+---
+
+import { ApiReference } from '@site/src/components/ApiReference'; // Example import path for a custom component
+
+# Creative Generation API
+
+Welcome to the reference documentation for the CreativeFlow Creative Generation API. This API provides all the necessary endpoints to programmatically initiate new creative generations, check their status, and retrieve the final assets.
+
+All endpoints described here require authentication via an `X-API-KEY` header. You can manage your API keys from the Developer Settings in your CreativeFlow dashboard.
+
+The interactive API explorer below allows you to see all available endpoints, their required parameters, and response schemas. You can also make live API calls directly from this documentation by providing your API key.
+
+<ApiReference 
+  specUrl="/openapi/creative-generation-api.v1.yaml"
+  deepLinking="true"
+/>
+
+## Common Concepts
+
+### Authentication
+All requests to the proxy API must include a valid API key in the `X-API-KEY` header.
+
+```http
+GET /proxy/v1/generations/{generation_id} HTTP/1.1
+Host: api.creativeflow.com
+X-API-KEY: cf_dev_...
+```
+
+### Rate Limiting & Quotas
+Requests are subject to rate limiting and monthly generation quotas based on your subscription plan. Exceeding these limits will result in a `429 Too Many Requests` error. The response headers will contain information about your current rate limit status.
+
+- `X-RateLimit-Limit`: The total number of requests allowed in the current window.
+- `X-RateLimit-Remaining`: The number of requests remaining in the current window.
+- `X-RateLimit-Reset`: The Unix timestamp when the rate limit window resets.
+
+### Error Handling
+The API uses standard HTTP status codes to indicate the success or failure of a request. A `2xx` status indicates success. A `4xx` status indicates a client-side error (e.g., bad input, authentication failure). A `5xx` status indicates a server-side error. Error responses will include a JSON body with a `detail` field explaining the error.
+
+```json
+{
+  "detail": "API quota exceeded."
+}
+```

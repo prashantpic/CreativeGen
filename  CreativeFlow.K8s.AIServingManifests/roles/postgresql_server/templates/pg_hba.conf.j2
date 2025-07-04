@@ -1,0 +1,25 @@
+# This file is managed by Ansible. Do not edit manually.
+#
+# PostgreSQL Client Authentication Configuration File
+# ===================================================
+#
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# "local" is for Unix domain socket connections only
+local   all             postgres                                peer
+local   all             all                                     peer
+
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            scram-sha-256
+host    all             all             {{ ansible_default_ipv4.address }}/32  scram-sha-256
+
+# Allow application servers to connect
+{% for host in pg_allowed_client_hosts %}
+host    all             all             {{ host }}/32           scram-sha-256
+{% endfor %}
+
+# IPv6 local connections:
+host    all             all             ::1/128                 scram-sha-256
+
+# Allow replication connections from replicas. This is also managed in the primary_replication.yml task.
+# host    replication     {{ pg_replication_user }}       <replica_ip>/32         md5

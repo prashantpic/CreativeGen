@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        This template inherits the frontend view for a knowledge article
+        to apply CreativeFlow branding.
+    -->
+    <template id="knowledge_article_view_frontend_creativeflow" inherit_id="knowledge.knowledge_article_view_frontend" name="CreativeFlow Knowledge Article">
+        <xpath expr="//div[hasclass('o_knowledge_body')]" position="attributes">
+            <attribute name="class" separator=" " add="cf-support-page cf-knowledge-article"/>
+        </xpath>
+        <xpath expr="//div[hasclass('o_knowledge_header')]/h1" position="attributes">
+             <attribute name="class" separator=" " add="cf-title"/>
+        </xpath>
+    </template>
+</odoo>

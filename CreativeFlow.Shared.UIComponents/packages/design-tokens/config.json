@@ -1,0 +1,61 @@
+```json
+{
+  "source": [
+    "tokens/**/*.json"
+  ],
+  "platforms": {
+    "css": {
+      "transformGroup": "css",
+      "buildPath": "build/css/",
+      "files": [
+        {
+          "destination": "variables.css",
+          "format": "css/variables",
+          "options": {
+            "outputReferences": true
+          }
+        }
+      ]
+    },
+    "scss": {
+      "transformGroup": "scss",
+      "buildPath": "build/scss/",
+      "files": [
+        {
+          "destination": "_variables.scss",
+          "format": "scss/variables",
+          "options": {
+            "outputReferences": true
+          }
+        }
+      ]
+    },
+    "dart": {
+      "transformGroup": "flutter",
+      "buildPath": "../flutter-components/lib/src/theme/generated/",
+      "files": [
+        {
+          "destination": "color_palette.dart",
+          "format": "flutter/class.dart",
+          "className": "AppColors",
+          "filter": {
+            "attributes": {
+              "type": "color"
+            }
+          }
+        },
+        {
+          "destination": "app_sizes.dart",
+          "format": "flutter/class.dart",
+          "className": "AppSizes",
+          "filter": {
+            "attributes": {
+              "type": "size"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+```

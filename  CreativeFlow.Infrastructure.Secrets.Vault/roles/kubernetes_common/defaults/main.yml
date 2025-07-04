@@ -1,0 +1,20 @@
+---
+# Default variables for the 'kubernetes_common' role
+
+# Pinned Kubernetes version. It's crucial to keep this consistent across all nodes.
+k8s_version: "1.28"
+
+# Kubernetes APT repository details
+k8s_apt_key_url: "https://pkgs.k8s.io/core:/stable:/v{{ k8s_version }}/deb/Release.key"
+k8s_apt_repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ k8s_version }}/deb/ /"
+
+# Kernel modules to load
+k8s_kernel_modules:
+  - overlay
+  - br_netfilter
+
+# Sysctl parameters for Kubernetes networking
+k8s_sysctl_params:
+  - { name: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+  - { name: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+  - { name: 'net.ipv4.ip_forward', value: '1' }

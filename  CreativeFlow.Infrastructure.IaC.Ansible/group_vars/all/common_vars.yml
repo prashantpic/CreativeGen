@@ -1,0 +1,23 @@
+# Global variables applied to all hosts across all environments.
+# Defines system-wide defaults. These can be overridden by environment-specific
+# or host-specific variables.
+---
+# Default admin user to be created on all servers.
+admin_user: 'ansible_admin'
+
+# Public SSH key for the admin user.
+# Consider sourcing this from a secure location or vault for production.
+admin_user_ssh_key: "ssh-rsa AAAA..."
+
+# NTP servers for time synchronization.
+ntp_servers:
+  - '0.pool.ntp.org'
+  - '1.pool.ntp.org'
+  - '2.pool.ntp.org'
+
+# Base domain name for the infrastructure.
+base_domain_name: 'creativeflow.ai'
+
+# Operating system details
+os_distro: 'ubuntu'
+os_version: '22.04'

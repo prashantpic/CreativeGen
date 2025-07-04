@@ -1,0 +1,6 @@
+---
+# Role to install and configure n8n workflow automation tool.
+# This is a placeholder and should be fully implemented.
+- name: Placeholder task for n8n role
+  ansible.builtin.debug:
+    msg: "This role should contain tasks to install Node.js, install n8n via npm, create users, configure environment variables for database/queue connections, and set up a systemd service."

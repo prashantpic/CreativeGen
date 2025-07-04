@@ -1,0 +1,40 @@
+# rabbitmq_policies.yaml
+#
+# Configuration file for the apply_ha_policies.py script.
+# Defines policies for HA, TTL, etc.
+# Based on SDS Section 7.2.
+
+policies:
+  # --- Production Policies ---
+  - vhost: /creativeflow_prod
+    name: ha-all-critical-queues
+    pattern: "^q\\.(ai|odoo|n8n|notifications|collaboration)\\..*"
+    definition:
+      ha-mode: all
+      ha-sync-mode: automatic
+    priority: 0
+    apply-to: queues
+  - vhost: /creativeflow_prod
+    name: default-message-ttl
+    pattern: ".*"
+    definition:
+      message-ttl: 86400000 # 1 day
+    priority: -1 # Low priority so specific queue TTLs override it
+    apply-to: queues
+
+  # --- Staging Policies ---
+  - vhost: /creativeflow_staging
+    name: ha-all-critical-queues-staging
+    pattern: "^q\\.(ai|odoo|n8n|notifications|collaboration)\\..*"
+    definition:
+      ha-mode: all
+      ha-sync-mode: automatic
+    priority: 0
+    apply-to: queues
+  - vhost: /creativeflow_staging
+    name: default-message-ttl-staging
+    pattern: ".*"
+    definition:
+      message-ttl: 86400000 # 1 day
+    priority: -1
+    apply-to: queues

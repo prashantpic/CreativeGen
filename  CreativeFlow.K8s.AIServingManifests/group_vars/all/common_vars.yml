@@ -1,0 +1,24 @@
+---
+# Global variables applicable to all hosts in all environments.
+# These can be overridden in environment-specific or host-specific variable files.
+
+# System Administration
+admin_user: 'ansible_admin'
+ntp_servers:
+  - '0.pool.ntp.org'
+  - '1.pool.ntp.org'
+  - '2.pool.ntp.org'
+  - '3.pool.ntp.org'
+
+# Domain Configuration
+base_domain_name: 'creativeflow.ai'
+
+# Common packages to install on all servers
+common_packages_to_install:
+  - 'vim'
+  - 'curl'
+  - 'htop'
+  - 'ufw'
+  - 'git'
+  - 'unzip'
+  - 'ca-certificates'

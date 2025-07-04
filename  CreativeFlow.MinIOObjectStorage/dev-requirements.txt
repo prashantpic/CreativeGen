@@ -1,0 +1,19 @@
+# Includes production requirements
+-r requirements.txt
+
+# Testing
+pytest==8.2.1
+pytest-asyncio==0.23.6
+httpx==0.27.0 # For test client
+
+# Linting and Formatting
+flake8==7.0.0
+black==24.4.2
+isort==5.13.2
+mypy==1.10.0
+
+# Type stubs for libraries that may need them
+types-python-jose
+types-passlib
+types-requests # even if using httpx, good to have
+types-psycopg2

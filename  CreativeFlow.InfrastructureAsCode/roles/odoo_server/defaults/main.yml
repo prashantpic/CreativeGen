@@ -1,0 +1,8 @@
+---
+# Example role-specific default variables
+odoo_version: "16.0"
+odoo_user: "odoo"
+odoo_path: "/opt/odoo/odoo-server-{{ odoo_version }}"
+odoo_git_repo: "https://github.com/odoo/odoo.git"
+odoo_config_file: "/etc/odoo.conf"
+odoo_workers: 4

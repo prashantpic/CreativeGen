@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "outDir": "./dist",
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "types": [
+      "node",
+      "@playwright/test",
+      "k6"
+    ]
+  },
+  "include": [
+    "web-e2e/**/*.ts",
+    "performance/**/*.ts",
+    "performance/**/*.js"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

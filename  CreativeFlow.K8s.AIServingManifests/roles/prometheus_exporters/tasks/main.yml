@@ -1,0 +1,19 @@
+---
+# tasks file for prometheus_exporters
+
+- name: Deploy Node Exporter
+  ansible.builtin.include_tasks: node_exporter.yml
+  # Node exporter should run on all servers
+  when: prometheus_node_exporter_enabled | bool
+
+- name: Deploy PostgreSQL Exporter
+  ansible.builtin.include_tasks: postgres_exporter.yml
+  when:
+    - prometheus_postgres_exporter_enabled | bool
+    - "'db_primary' in group_names or 'db_replicas' in group_names"
+
+- name: Deploy RabbitMQ Exporter
+  ansible.builtin.include_tasks: rabbitmq_exporter.yml
+  when:
+    - prometheus_rabbitmq_exporter_enabled | bool
+    - "'rabbitmq_servers' in group_names"

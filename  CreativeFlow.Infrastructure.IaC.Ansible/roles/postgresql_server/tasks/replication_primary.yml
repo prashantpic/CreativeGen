@@ -1,0 +1,30 @@
+---
+- name: Create replication user on primary
+  community.postgresql.postgresql_user:
+    name: "{{ pg_replication_user }}"
+    password: "{{ pg_replication_password }}" # From Vault
+    role_attr_flags: "REPLICATION,LOGIN"
+    login_user: postgres
+  become: yes
+  become_user: postgres
+  no_log: true
+
+- name: Add replication entry to pg_hba.conf for replicas
+  community.postgresql.postgresql_pg_hba:
+    dest: "{{ pg_config_path }}/pg_hba.conf"
+    contype: host
+    databases: replication
+    method: md5
+    users: "{{ pg_replication_user }}"
+    address: "{{ hostvars[item].ansible_default_ipv4.address }}/32"
+    state: present
+  loop: "{{ groups['db_replicas'] }}"
+  notify: Restart postgresql
+
+- name: Ensure wal_level is set for replication
+  community.postgresql.postgresql_set:
+    name: wal_level
+    value: replica
+  become: yes
+  become_user: postgres
+  notify: Restart postgresql

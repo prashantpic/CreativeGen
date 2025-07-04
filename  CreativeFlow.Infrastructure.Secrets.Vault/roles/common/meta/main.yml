@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: CreativeFlow AI
+  description: Role to apply a common baseline configuration to all servers.
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - "focal"   # 20.04
+        - "jammy"   # 22.04
+  galaxy_tags:
+    - system
+    - security
+    - hardening
+
+dependencies: []

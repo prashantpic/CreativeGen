@@ -1,0 +1,6 @@
+---
+# Role to install and configure Odoo application server.
+# This is a placeholder and should be fully implemented.
+- name: Placeholder task for Odoo role
+  ansible.builtin.debug:
+    msg: "This role should install Python, PostgreSQL client, wkhtmltopdf, clone Odoo from Git, install Python dependencies via pip, deploy odoo.conf template, and set up a systemd service."

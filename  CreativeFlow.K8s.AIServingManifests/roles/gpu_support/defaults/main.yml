@@ -1,0 +1,15 @@
+---
+# defaults file for gpu_support
+nvidia_driver_version: "535" # Specify a known-good driver version
+nvidia_driver_repo_key_url: "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/3bf863cc.pub"
+nvidia_driver_repo_url: "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/ /"
+
+nvidia_container_toolkit_repo_key_url: "https://nvidia.github.io/libnvidia-container/gpgkey"
+nvidia_container_toolkit_repo_url: "https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list"
+
+# URL for the NVIDIA GPU Operator manifest
+# See: https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/getting-started.html
+nvidia_gpu_operator_manifest_url: "https://raw.githubusercontent.com/NVIDIA/gpu-operator/v23.9.1/deploy/gpu-operator.yaml"
+
+# Controls whether this role attempts to deploy the operator. Set to true on one master node.
+deploy_gpu_operator: true

@@ -1,0 +1,32 @@
+---
+# defaults file for common role
+# Default administrative user created by Ansible
+ansible_admin_user: "{{ admin_user | default('ansible_admin') }}"
+ansible_admin_groups: "sudo"
+ansible_admin_shell: "/bin/bash"
+
+# Common packages to install on all servers
+common_packages:
+  - htop
+  - curl
+  - vim
+  - ufw
+  - unattended-upgrades
+  - apt-transport-https
+  - ca-certificates
+  - gnupg
+  - software-properties-common
+
+# SSH configuration
+ssh_port: 22
+ssh_permit_root_login: "no"
+ssh_password_authentication: "no"
+ssh_pubkey_authentication: "yes"
+
+# UFW (Firewall) configuration
+ufw_default_policy_input: "deny"
+ufw_default_policy_output: "accept"
+ufw_default_policy_forward: "deny"
+# Base rules to apply. Each item is a dictionary that can contain rule, proto, from_port, to_port, from_ip.
+ufw_rules:
+  - { rule: 'allow', to_port: '{{ ssh_port }}', proto: 'tcp' }

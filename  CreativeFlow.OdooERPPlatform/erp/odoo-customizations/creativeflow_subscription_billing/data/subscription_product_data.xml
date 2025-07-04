@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Define default subscription templates and products for CreativeFlow.
+        noupdate="1" is used to prevent overwriting configurations made in the UI.
+    -->
+    <data noupdate="1">
+        <!-- Subscription Templates -->
+        <record id="subscription_template_monthly" model="sale.subscription.template">
+            <field name="name">Monthly</field>
+            <field name="recurring_rule_type">monthly</field>
+            <field name="recurring_interval">1</field>
+        </record>
+
+        <record id="subscription_template_yearly" model="sale.subscription.template">
+            <field name="name">Yearly</field>
+            <field name="recurring_rule_type">yearly</field>
+            <field name="recurring_interval">1</field>
+        </record>
+
+        <!-- Subscription Products -->
+        <record id="product_subscription_pro" model="product.template">
+            <field name="name">CreativeFlow - Pro Tier</field>
+            <field name="detailed_type">service</field>
+            <field name="list_price">19.00</field>
+            <field name="subscription_template_id" ref="subscription_template_monthly"/>
+            <field name="cf_platform_plan_id">PRO_MONTHLY_V1</field>
+            <field name="cf_credit_allotment_per_cycle">1000.0</field>
+            <field name="description">Access to pro features, 1000 monthly credits, and standard support.</field>
+            <field name="invoice_policy">order</field>
+        </record>
+
+        <record id="product_subscription_pro_yearly" model="product.template">
+            <field name="name">CreativeFlow - Pro Tier (Yearly)</field>
+            <field name="detailed_type">service</field>
+            <field name="list_price">190.00</field>
+            <field name="subscription_template_id" ref="subscription_template_yearly"/>
+            <field name="cf_platform_plan_id">PRO_YEARLY_V1</field>
+            <field name="cf_credit_allotment_per_cycle">12000.0</field>
+            <field name="description">Annual access to pro features, 12000 credits, and standard support.</field>
+            <field name="invoice_policy">order</field>
+        </record>
+
+        <record id="product_subscription_team" model="product.template">
+            <field name="name">CreativeFlow - Team Tier</field>
+            <field name="detailed_type">service</field>
+            <field name="list_price">49.00</field>
+            <field name="subscription_template_id" ref="subscription_template_monthly"/>
+            <field name="cf_platform_plan_id">TEAM_MONTHLY_V1</field>
+            <field name="cf_credit_allotment_per_cycle">3000.0</field>
+            <field name="description">Collaboration features for teams, 3000 monthly credits, and priority support.</field>
+            <field name="invoice_policy">order</field>
+        </record>
+
+        <!-- Product for one-time credit purchase -->
+        <record id="product_credit_pack" model="product.template">
+            <field name="name">Credit Pack (1000 credits)</field>
+            <field name="detailed_type">service</field>
+            <field name="list_price">10.00</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="invoice_policy">order</field>
+        </record>
+
+    </data>
+</odoo>

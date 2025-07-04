@@ -1,0 +1,25 @@
+---
+- name: Stop PostgreSQL service on replica
+  ansible.builtin.service:
+    name: "{{ pg_service_name }}"
+    state: stopped
+
+- name: Remove existing data directory on replica
+  ansible.builtin.file:
+    path: "{{ pg_data_dir }}"
+    state: absent
+
+- name: Perform base backup from primary
+  ansible.builtin.command:
+    cmd: "pg_basebackup -h {{ hostvars[groups['db_primary'][0]].inventory_hostname }} -U {{ pg_replication_user }} -p {{ pg_port }} -D {{ pg_data_dir }} -Fp -Xs -P -R"
+  environment:
+    PGPASSWORD: "{{ pg_replication_password }}"
+  become: yes
+  become_user: postgres
+  changed_when: true
+  no_log: true
+
+- name: Start PostgreSQL service on replica
+  ansible.builtin.service:
+    name: "{{ pg_service_name }}"
+    state: started

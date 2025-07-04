@@ -1,0 +1,17 @@
+# This file is managed by Ansible. Do not edit manually.
+[options]
+; This is the password that allows database operations:
+admin_passwd = {{ odoo_admin_password }}
+db_host = {{ odoo_db_host }}
+db_port = {{ odoo_db_port }}
+db_user = {{ odoo_db_user }}
+db_password = {{ odoo_db_password }}
+addons_path = {{ odoo_home }}/odoo-server/addons,{{ odoo_custom_addons_path }}
+data_dir = {{ odoo_data_dir }}
+logfile = {{ odoo_log_dir }}/odoo.log
+xmlrpc_port = {{ odoo_xmlrpc_port }}
+longpolling_port = {{ odoo_longpolling_port }}
+workers = {{ odoo_workers }}
+limit_time_cpu = 600
+limit_time_real = 1200
+proxy_mode = True

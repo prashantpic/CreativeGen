@@ -1,0 +1,20 @@
+# Grafana datasource provisioning file for Prometheus.
+# This file allows Grafana to automatically connect to and query
+# the Prometheus server upon startup, managed as code.
+# Requirement(s) Addressed: DEP-005, QA-003
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus-Main
+    type: prometheus
+    # URL of the Prometheus server. This should be the address of the Prometheus service
+    # from within the Grafana container's perspective (e.g., using Kubernetes service DNS).
+    url: http://prometheus:9090
+    access: server # 'server' means the Grafana backend makes the requests, which is typical.
+    isDefault: true
+    jsonData:
+      # Default time interval for queries, aligns with Prometheus scrape interval.
+      timeInterval: "15s"
+    # Making the datasource non-editable from the UI enforces configuration as code.
+    editable: false

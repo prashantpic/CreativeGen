@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        This template inherits the main portal layout to apply CreativeFlow
+        branding to shared elements like the header and footer.
+    -->
+    <template id="creativeflow_support_portal_layout" inherit_id="portal.portal_layout" name="CreativeFlow Support Portal Layout">
+        <xpath expr="//header//nav[hasclass('navbar')]" position="attributes">
+            <attribute name="class" separator=" " add="cf-portal-header"/>
+        </xpath>
+        <xpath expr="//div[@id='o_portal_wrap']" position="inside">
+            <!-- You can inject a custom footer here if needed -->
+            <!-- <div class="cf-portal-footer"> ... </div> -->
+        </xpath>
+    </template>
+
+    <!-- This is an example of modifying the portal home page -->
+    <template id="portal_my_home_creativeflow" inherit_id="portal.portal_my_home" name="CreativeFlow Portal Home">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="attributes">
+            <attribute name="class" separator=" " add="cf-portal-home-cards"/>
+        </xpath>
+    </template>
+
+</odoo>

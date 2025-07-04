@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_creativeflow_template_user,access.creativeflow.template.user,model_creativeflow_template,base.group_user,1,0,0,0
+access_creativeflow_template_manager,access.creativeflow.template.manager,model_creativeflow_template,base.group_system,1,1,1,1
+access_creativeflow_template_category_user,access.creativeflow.template.category.user,model_creativeflow_template_category,base.group_user,1,0,0,0
+access_creativeflow_template_category_manager,access.creativeflow.template.category.manager,model_creativeflow_template_category,base.group_system,1,1,1,1
+access_creativeflow_template_tag_user,access.creativeflow.template.tag.user,model_creativeflow_template_tag,base.group_user,1,0,0,0
+access_creativeflow_template_tag_manager,access.creativeflow.template.tag.manager,model_creativeflow_template_tag,base.group_system,1,1,1,1

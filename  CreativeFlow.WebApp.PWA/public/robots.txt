@@ -1,0 +1,22 @@
+# See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
+#
+# Allow all friendly crawlers
+User-agent: *
+Disallow: /profile/
+Disallow: /account/
+Disallow: /settings/
+Disallow: /editor/
+Disallow: /workbench/
+Disallow: /project/
+Disallow: /developer/
+Disallow: /admin/
+
+# Allow crawling of public pages
+Allow: /$
+Allow: /login
+Allow: /register
+Allow: /templates
+Allow: /blog
+Allow: /pricing
+
+Sitemap: https://www.creativeflow.ai/sitemap.xml

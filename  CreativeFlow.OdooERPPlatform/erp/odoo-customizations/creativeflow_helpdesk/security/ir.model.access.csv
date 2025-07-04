@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+# This module does not introduce new models, it only extends helpdesk.ticket.
+# Access to helpdesk.ticket is governed by the helpdesk module's ACLs.
+# The new fields' access is implicitly handled by the model's access rights.

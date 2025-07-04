@@ -1,0 +1,18 @@
+---
+# vars file for nginx_lb role.
+# The main variable, `nginx_sites`, should be defined in environment-specific
+# group_vars files (e.g., group_vars/production/main.yml).
+#
+# Example structure for the `nginx_sites` variable:
+#
+# nginx_sites:
+#   - name: "my_app_service"              # A unique name for the config file
+#     server_name: "app.example.com"       # The domain name
+#     upstream_servers:                    # List of backend servers
+#       - "10.0.0.1:8080"
+#       - "10.0.0.2:8080"
+#     listen_port: 443                     # Port to listen on (e.g., 443 for SSL)
+#     ssl: true                            # Boolean to enable/disable SSL
+#     ssl_cert_path: "/path/to/fullchain.pem" # Path to SSL certificate
+#     ssl_key_path: "/path/to/privkey.pem"    # Path to SSL private key
+#

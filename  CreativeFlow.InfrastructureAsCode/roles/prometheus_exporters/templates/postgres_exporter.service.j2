@@ -1,0 +1,17 @@
+# This file is managed by Ansible. Do not edit manually.
+
+[Unit]
+Description=Prometheus PostgreSQL Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User={{ postgres_exporter_user }}
+Group={{ postgres_exporter_group }}
+Type=simple
+Environment="DATA_SOURCE_NAME=postgresql://{{ postgres_exporter_db_user }}:{{ postgres_exporter_db_pass }}@{{ postgres_exporter_db_host }}:{{ postgres_exporter_db_port }}/postgres?sslmode=disable"
+ExecStart=/usr/local/bin/postgres_exporter \
+    --web.listen-address=":{{ postgres_exporter_port }}"
+
+[Install]
+WantedBy=multi-user.target

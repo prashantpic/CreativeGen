@@ -1,0 +1,70 @@
+sequenceDiagram
+    actor "n8n Workflow Engine" as svcn8nworkflowengine
+    participant "OpenAI API" as extaopenai
+    participant "Custom AI Model on K8s" as compk8scluster
+    participant "Odoo Backend Platform" as svcodooobackend
+
+    loop Process AI Generation Job
+        svcn8nworkflowengine-svcn8nworkflowengine: 1. Process AI Generation Job (jobId, userId, prompt, inputAssets)
+        activate svcn8nworkflowengine
+
+        opt Perform pre-generation prompt check
+            note over svcn8nworkflowengine: Pre-generation prompt check by n8n is optional and based on internal rules.
+            svcn8nworkflowengine-svcn8nworkflowengine: 1.1.1. Analyze prompt against deny-list/classifier
+
+            alt Prompt Flagged by Pre-check
+                svcn8nworkflowengine-svcn8nworkflowengine: 1.1.2.1. Log pre-check failure (reason: prompt flagged)
+                svcn8nworkflowengine-svcodooobackend: 1.1.2.2. NotifyPreCheckFailure(jobId, userId, reason='Prompt Violation')
+                activate svcodooobackend
+                svcodooobackend--svcn8nworkflowengine: Ack
+                deactivate svcodooobackend
+                svcn8nworkflowengine-svcn8nworkflowengine: 1.1.2.3. Halt workflow for this job
+            else Prompt Passed Pre-check
+                svcn8nworkflowengine-svcn8nworkflowengine: 1.1.3.1. Log prompt passed pre-check
+            end
+        end
+
+        alt AI Content Generation Path (Assuming prompt passed or no pre-check)
+            svcn8nworkflowengine-extaiopenai: 1.2.1. case: AI Provider is OpenAI \nRequestContentGeneration(prompt, params)
+            activate extaopenai
+            note over extaopenai: OpenAI API response includes content and safety flags. No separate call for safety check needed for OpenAI.
+            extaiopenai--svcn8nworkflowengine: alt: [Prompt Rejected by OpenAI Policy] ErrorResponse(reason='Prompt Violation') \nelse: [Content Generated] GeneratedContentResponse(content, safetyFlags)
+            deactivate extaopenai
+            svcn8nworkflowengine-svcn8nworkflowengine: 1.2.2. Evaluate OpenAI API Response (content, safetyFlags or error)
+        else AI Provider is Custom Model on K8s
+            svcn8nworkflowengine-compk8scluster: 1.3.1. SubmitGenerationJobToCustomModel(prompt, params)
+            activate compk8scluster
+            compk8scluster--svcn8nworkflowengine: GeneratedContentResponse(content)
+            deactivate compk8scluster
+            note over svcn8nworkflowengine: For custom models from K8s, n8n performs/coordinates a content safety check. This might involve an internal n8n module/node, or a call by n8n to an external (unlisted here) Content Safety API.
+            svcn8nworkflowengine-svcn8nworkflowengine: 1.3.2. Perform/Coordinate Content Safety Check on custom content
+        end
+
+        alt Based on ModerationOutcome from step 1.2.2 or 1.3.2
+            svcn8nworkflowengine-svcn8nworkflowengine: 1.4.1. case: Content Flagged (moderationOutcome is 'REJECTED' or ErrorResponse received)
+            svcn8nworkflowengine-svcn8nworkflowengine: 1.4.1.1. Log content moderation failure (reason from outcome)
+            svcn8nworkflowengine-svcn8nworkflowengine: 1.4.1.2. Discard problematic generated content/sample
+            svcn8nworkflowengine-svcodooobackend: 1.4.1.3. ReportContentModerationFailure(jobId, userId, reason, severity)
+            activate svcodooobackend
+            note over svcodooobackend: Odoo Backend handles user notifications (REQ-007.1), account flagging, and triggering manual reviews based on failure reports from n8n.
+            opt [Severe/Repeated Violation] Flag user account for review
+                svcodooobackend-svcodooobackend: 1.4.1.3.1. Flag user account
+            end
+            opt [Borderline Case] Trigger manual content review task
+                svcodooobackend-svcodooobackend: 1.4.1.3.2. Create manual review task
+            end
+            svcodooobackend-svcodooobackend: 1.4.1.3.3. Handle user notification as per REQ-007.1
+            svcodooobackend--svcn8nworkflowengine: Ack
+            deactivate svcodooobackend
+            svcn8nworkflowengine-svcn8nworkflowengine: 1.4.1.4. Halt workflow for problematic item or entire job
+        else Content Passed (moderationOutcome is 'APPROVED')
+            svcn8nworkflowengine-svcn8nworkflowengine: 1.4.2.1. Log content moderation success
+            svcn8nworkflowengine-svcodooobackend: 1.4.2.2. ProcessApprovedContent(jobId, userId, approvedContentDetails)
+            activate svcodooobackend
+            svcodooobackend--svcn8nworkflowengine: Ack
+            deactivate svcodooobackend
+        end
+    deactivate svcn8nworkflowengine
+    end
+
+    note over svcn8nworkflowengine,svcodooobackend: This diagram focuses on the content moderation aspect within the AI generation workflow. User notification (REQ-007.1) is handled by Odoo based on reports from n8n.

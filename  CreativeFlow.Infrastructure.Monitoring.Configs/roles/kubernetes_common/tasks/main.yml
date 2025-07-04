@@ -1,0 +1,101 @@
+---
+- name: Ensure legacy iptables are used
+  ansible.builtin.command:
+    cmd: "{{ item }}"
+  loop:
+    - update-alternatives --set iptables /usr/sbin/iptables-legacy
+    - update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+  changed_when: false
+
+- name: Ensure br_netfilter module is loaded
+  community.general.modprobe:
+    name: br_netfilter
+    state: present
+
+- name: Set kernel parameters for Kubernetes networking
+  ansible.builtin.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    sysctl_file: /etc/sysctl.d/99-kubernetes-cri.conf
+    state: present
+    reload: true
+  loop: "{{ k8s_sysctl_settings | dict2items }}"
+  notify: reload sysctl
+
+- name: Disable swap
+  ansible.builtin.command:
+    cmd: swapoff -a
+  when: ansible_swaptotal_mb > 0
+  changed_when: true
+
+- name: Remove swap from fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    state: absent
+    regexp: '^\S+\s+\S+\s+swap\s+'
+
+- name: Install containerd dependencies
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+    state: present
+
+- name: Install containerd
+  ansible.builtin.apt:
+    name: containerd.io
+    state: present
+    update_cache: yes
+  
+- name: Create containerd config directory
+  ansible.builtin.file:
+    path: /etc/containerd
+    state: directory
+    mode: '0755'
+
+- name: Configure containerd to use systemd cgroup driver
+  ansible.builtin.copy:
+    dest: /etc/containerd/config.toml
+    content: |
+      version = 2
+      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+          SystemdCgroup = true
+  notify: restart containerd
+
+- name: Ensure containerd service is started and enabled
+  ansible.builtin.service:
+    name: containerd
+    state: started
+    enabled: true
+
+- name: Add Kubernetes APT keyring
+  ansible.builtin.get_url:
+    url: "{{ kubernetes_apt_key_url }}"
+    dest: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    mode: '0644'
+
+- name: Add Kubernetes APT repository
+  ansible.builtin.apt_repository:
+    repo: "{{ kubernetes_apt_repo }}"
+    state: present
+    filename: kubernetes
+
+- name: Install kubelet, kubeadm, and kubectl
+  ansible.builtin.apt:
+    name:
+      - kubelet={{ kubernetes_version }}
+      - kubeadm={{ kubernetes_version }}
+      - kubectl={{ kubernetes_version }}
+    state: present
+    update_cache: true
+
+- name: Hold kubelet, kubeadm, and kubectl versions
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - kubelet
+    - kubeadm
+    - kubectl

@@ -1,0 +1,8 @@
+---
+nvidia_repo_key_url: "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/3bf863cc.pub"
+nvidia_repo_url: "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/ /"
+nvidia_driver_packages:
+  - "cuda-drivers"
+  - "nvidia-driver-535" # Specify a known good version
+
+nvidia_gpu_operator_manifest_url: "https://raw.githubusercontent.com/NVIDIA/gpu-operator/v23.9.1/deploy/gpu-operator.yaml"

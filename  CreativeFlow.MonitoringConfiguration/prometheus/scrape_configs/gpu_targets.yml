@@ -1,0 +1,31 @@
+# Prometheus scrape configuration for NVIDIA DCGM exporter to collect GPU metrics.
+# This config uses Kubernetes Service Discovery to find dcgm-exporter pods.
+# Requirement(s) Addressed: DEP-005, QA-003, INT-007
+
+- job_name: 'dcgm_exporter'
+  kubernetes_sd_configs:
+    - role: pod
+      namespaces:
+        names:
+          - '<GPU_OPERATOR_NAMESPACE>'
+  relabel_configs:
+    # Target pods with the label indicating they are dcgm-exporter pods.
+    - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+      action: keep
+      regex: dcgm-exporter
+
+    # Ensure the correct port is scraped.
+    - source_labels: [__address__]
+      target_label: __address__
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}:9400
+
+    # Add the node name as the instance label for clarity.
+    - source_labels: [__meta_kubernetes_pod_node_name]
+      target_label: instance
+
+    # Add other useful labels from the pod.
+    - source_labels: [__meta_kubernetes_namespace]
+      target_label: namespace
+    - source_labels: [__meta_kubernetes_pod_name]
+      target_label: pod

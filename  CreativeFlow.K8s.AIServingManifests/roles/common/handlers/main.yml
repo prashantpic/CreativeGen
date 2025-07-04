@@ -1,0 +1,11 @@
+---
+# handlers file for common
+- name: Restart ssh
+  ansible.builtin.service:
+    name: sshd
+    state: restarted
+
+- name: Restart timesyncd
+  ansible.builtin.service:
+    name: systemd-timesyncd
+    state: restarted

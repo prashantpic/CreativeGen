@@ -1,0 +1,62 @@
+# Master playbook for configuring the entire infrastructure.
+# Applies all relevant roles to host groups defined in the inventory.
+# This is the main entry point for `ansible-playbook`.
+
+- name: Apply common baseline configuration to all servers
+  hosts: all
+  become: true
+  roles:
+    - role: common
+
+- name: Configure Nginx Load Balancers
+  hosts: web_servers
+  become: true
+  roles:
+    - role: nginx_lb
+
+- name: Configure PostgreSQL Servers (Primary and Replicas)
+  hosts: db_primary, db_replicas
+  become: true
+  roles:
+    - role: postgresql_server
+
+- name: Configure Redis Caching Servers
+  hosts: redis_servers
+  become: true
+  roles:
+    - role: redis_server
+
+- name: Configure RabbitMQ Message Queue Servers
+  hosts: rabbitmq_servers
+  become: true
+  roles:
+    - role: rabbitmq_server
+
+- name: Configure MinIO Object Storage Servers
+  hosts: minio_servers
+  become: true
+  roles:
+    - role: minio_server
+
+- name: Configure Odoo Application Servers
+  hosts: odoo_servers
+  become: true
+  roles:
+    - role: odoo_server
+
+- name: Configure n8n Workflow Servers
+  hosts: n8n_servers
+  become: true
+  roles:
+    - role: n8n_server
+
+- name: Configure Kubernetes Cluster
+  # This playbook orchestrates the roles required to provision the K8s cluster
+  # in the correct sequence.
+  import_playbook: playbooks/provision_kubernetes_cluster.yml
+
+- name: Deploy Monitoring Exporters
+  hosts: all
+  become: true
+  roles:
+    - role: prometheus_exporters

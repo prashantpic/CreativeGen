@@ -1,0 +1,15 @@
+```json
+{
+  "name": "@creativeflow/design-tokens",
+  "version": "1.0.0",
+  "description": "Single source of truth for design tokens (colors, spacing, typography) for the CreativeFlow platform.",
+  "scripts": {
+    "build": "style-dictionary build --config ./config.json",
+    "clean": "rm -rf build",
+    "test": "echo \"No tests specified for design-tokens\""
+  },
+  "devDependencies": {
+    "style-dictionary": "^3.9.2"
+  }
+}
+```

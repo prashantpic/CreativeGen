@@ -1,0 +1,73 @@
+sequenceDiagram
+    actor "CreativeFlow WebApp (PWA)" as repowebapppwa
+    participant "API Gateway" as compapigatewaynginx
+    participant "Odoo Backend" as svcodoobackend
+    participant "PostgreSQL Database" as repodbpostgresql
+    participant "MinIO Object Storage" as repostorageminio
+    participant "RabbitMQ" as compmessagequeuerabbitmq
+    participant "Notification Service" as svcnotificationservice
+
+    note over repowebapppwa, svcnotificationservice: User is authenticated prior to this flow (e.g., via JWT).
+
+    repowebapppwa-compapigatewaynginx: 1. POST /user/account/delete-request (Initiate Data Deletion)
+    activate repowebapppwa
+    activate compapigatewaynginx
+
+    compapigatewaynginx-svcodoobackend: 2. Forward: POST /user/account/delete-request (Authenticated User)
+    activate svcodoobackend
+
+    svcodoobackend-svcodoobackend: 2.1. Verify User Identity and Authority (using JWT context)
+
+    svcodoobackend-repodbpostgresql: 2.2. Log Deletion Request (userId, timestamp, status='pendingverification')
+    activate repodbpostgresql
+    repodbpostgresql--svcodoobackend: Return: Log Entry ID
+    deactivate repodbpostgresql
+
+    alt User Verification Successful
+        svcodoobackend-repodbpostgresql: 2.3.1. Mark User Account for Deletion (status='pendingdeletion', effectivedate as per policy Section 7.5)
+        activate repodbpostgresql
+        repodbpostgresql--svcodoobackend: Return: User Update OK
+        deactivate repodbpostgresql
+
+        svcodoobackend-repodbpostgresql: 2.3.2. Mark/Anonymize Associated Personal Data (profiles, brandkits, non-essential logs)
+        activate repodbpostgresql
+        repodbpostgresql--svcodoobackend: Return: Associated Data Update OK
+        deactivate repodbpostgresql
+
+        svcodoobackend-repostorageminio: 2.3.3. Schedule Deletion of User-Uploaded Assets (as per Section 7.5)
+        activate repostorageminio
+        repostorageminio--svcodoobackend: Return: Scheduling ACK
+        deactivate repostorageminio
+
+        svcodoobackend-repostorageminio: 2.3.4. Schedule Deletion of AI-Generated Creatives (linked to user, as per Section 7.5)
+        activate repostorageminio
+        repostorageminio--svcodoobackend: Return: Scheduling ACK
+        deactivate repostorageminio
+
+        svcodoobackend-compmessagequeuerabbitmq: 2.3.5. Publish: UserDeletionRequestedEvent (userId, effectivedeletiondate)
+        note right of compmessagequeuerabbitmq: Other microservices (not explicitly shown as consumers here) would subscribe to the 'UserDeletionRequestedEvent' from RabbitMQ to perform their respective user data cleanup tasks asynchronously.
+
+        svcodoobackend-svcnotificationservice: 2.3.6. POST /notifications (userid, message='Data deletion process initiated')
+        activate svcnotificationservice
+        svcnotificationservice--svcodoobackend: Return: Notification Queued
+
+    else User Verification Failed or Other Error
+        svcodoobackend-repodbpostgresql: 2.4.1. Update Log (status='verificationfailed' or error details)
+        activate repodbpostgresql
+        repodbpostgresql--svcodoobackend: Return: Log Update OK
+        deactivate repodbpostgresql
+    end
+
+    svcnotificationservice-repowebapppwa: 3. SEND [WebSocket] UserDeletionInitiatedNotification (If verification successful in 2.3.6)
+    deactivate svcnotificationservice
+
+    note over svcodoobackend: Odoo Backend orchestrates the initial phase of the deletion request. Actual permanent deletion/anonymization of data occurs asynchronously via scheduled jobs or processes after a defined grace period (e.g., 30 days), respecting legal holds and data retention policies (as detailed in SRS Section 7.5).
+
+    svcodoobackend--compapigatewaynginx: 4. Return: HTTP 202 Accepted (Deletion process initiated) / HTTP 401 Unauthorized (Verification failed) / HTTP 500 (Internal Error)
+    deactivate svcodoobackend
+
+    compapigatewaynginx--repowebapppwa: 5. Return: HTTP 202 Accepted / HTTP 401 Unauthorized / HTTP 500
+    deactivate compapigatewaynginx
+    deactivate repowebapppwa
+
+    note over repowebapppwa, svcnotificationservice: The specific grace period for permanent deletion and rules for legal holds (e.g., financial transaction data) are defined in SRS Section 7.5.

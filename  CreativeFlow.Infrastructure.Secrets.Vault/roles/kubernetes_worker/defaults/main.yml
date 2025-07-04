@@ -1,0 +1,5 @@
+---
+# Default variables for the 'kubernetes_worker' role
+
+# Extra arguments for 'kubeadm join'
+kubeadm_join_extra_args: ""

@@ -1,0 +1,5 @@
+---
+# Placeholder tasks for postgres_exporter
+- name: Placeholder task for postgres_exporter
+  ansible.builtin.debug:
+    msg: "TODO: Install postgres_exporter, configure it with DB credentials from Vault, and set up a systemd service."

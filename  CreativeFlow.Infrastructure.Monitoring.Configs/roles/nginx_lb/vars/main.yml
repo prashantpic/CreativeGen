@@ -1,0 +1,4 @@
+---
+# The nginx_sites variable structure should be defined here or, more commonly,
+# in environment-specific group variables (e.g., group_vars/staging/main.yml)
+# to describe the websites/services to be proxied in that environment.

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sale_subscription_view_form_creativeflow" model="ir.ui.view">
+        <field name="name">sale.subscription.form.creativeflow</field>
+        <field name="model">sale.subscription</field>
+        <field name="inherit_id" ref="sale_subscription.sale_subscription_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="CreativeFlow" name="creativeflow_billing">
+                    <group>
+                        <group string="Platform Integration">
+                            <field name="cf_linked_user_id"/>
+                            <field name="cf_subscription_tier_product"/>
+                            <field name="cf_initial_credits_on_period_start"/>
+                        </group>
+                        <group string="Payment Provider">
+                            <field name="cf_payment_provider_subscription_id"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

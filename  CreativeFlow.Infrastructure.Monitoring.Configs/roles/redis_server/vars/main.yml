@@ -1,0 +1,4 @@
+---
+# Role-specific variables for Redis.
+# Define bind address, port, password, etc.
+# The `requirepass` password should be defined in a vaulted secrets file.

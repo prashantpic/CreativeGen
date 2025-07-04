@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit Form View to add CreativeFlow Details Tab -->
+    <record id="view_users_form_creativeflow" model="ir.ui.view">
+        <field name="name">res.users.form.creativeflow</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="CreativeFlow Details" name="creativeflow_details">
+                    <group>
+                        <group string="Platform Data">
+                            <field name="credit_balance"/>
+                            <field name="cf_subscription_tier"/>
+                            <field name="cf_external_user_id"/>
+                        </group>
+                        <group string="Preferences">
+                            <field name="cf_language_preference"/>
+                            <field name="cf_timezone"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Inherit Tree View to add quick overview columns -->
+    <record id="view_users_tree_creativeflow" model="ir.ui.view">
+        <field name="name">res.users.tree.creativeflow</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="cf_subscription_tier" optional="show"/>
+                <field name="credit_balance" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

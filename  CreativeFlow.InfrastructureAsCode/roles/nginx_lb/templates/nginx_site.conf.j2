@@ -1,0 +1,48 @@
+# This file is managed by Ansible. Do not edit manually.
+
+# Upstream for {{ item.name }}
+upstream {{ item.name }}_backend {
+    # least_conn; # Uncomment for least connections load balancing
+    {% for server in item.upstream_servers %}
+    server {{ server.host }}:{{ server.port }};
+    {% endfor %}
+}
+
+server {
+    listen {{ item.listen_port | default(80) }};
+    {% if item.listen_ssl_port is defined %}
+    listen {{ item.listen_ssl_port }} ssl http2;
+    {% endif %}
+
+    server_name {{ item.server_names | join(' ') }};
+
+    {% if item.listen_ssl_port is defined %}
+    ssl_certificate {{ item.ssl_cert_path }};
+    ssl_certificate_key {{ item.ssl_key_path }};
+    {% endif %}
+
+    # Redirect http to https
+    {% if item.force_ssl | default(false) %}
+    if ($scheme != "https") {
+        return 301 https://$host$request_uri;
+    }
+    {% endif %}
+
+    location / {
+        proxy_pass http://{{ item.name }}_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # WebSocket support
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+    # Add any other custom locations or configurations below
+    {% if item.extra_config is defined %}
+    {{ item.extra_config | indent(4) }}
+    {% endif %}
+}

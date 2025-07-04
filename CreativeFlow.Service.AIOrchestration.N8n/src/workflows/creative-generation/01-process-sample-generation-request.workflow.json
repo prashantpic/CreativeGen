@@ -1,0 +1,393 @@
+{
+  "name": "01-process-sample-generation-request",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "27d00f68-7c8a-4c2f-b430-22c62c2f2167",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        -20,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "queue": "generation.sample.request",
+        "options": {}
+      },
+      "id": "e3a89073-1f19-45e0-b6f1-a1288c5efb01",
+      "name": "RabbitMQ Trigger",
+      "type": "n8n-nodes-base.rabbitMqTrigger",
+      "typeVersion": 1,
+      "position": [
+        180,
+        280
+      ],
+      "credentials": {
+        "rabbitMq": {
+          "id": "amqp",
+          "name": "RabbitMQ Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "generationData",
+              "value": "={{$json}}"
+            }
+          ]
+        },
+        "options": {
+          "keepSource": true
+        }
+      },
+      "id": "9ac5e353-841f-442b-91d1-4e78f9f6e520",
+      "name": "Set Initial Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        400,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {
+          "noOfBatches": 4
+        }
+      },
+      "id": "e6f98751-6671-4770-b747-d5872195f2e8",
+      "name": "Loop 4 Times",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 2,
+      "position": [
+        620,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "workflowTag": "select-ai-model",
+        "source": "json",
+        "inputData": "={{\n{\n  \"strategy\": $node[\"Set Initial Data\"].json.generationData.inputParameters.modelSelectionStrategy,\n  \"taskType\": \"image_generation\"\n}\n}}",
+        "options": {}
+      },
+      "id": "23769c81-8fd7-4f64-9149-a6873528b86d",
+      "name": "Select AI Model",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        840,
+        280
+      ],
+      "onError": "continue"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.provider}}",
+              "operation": "equal",
+              "value2": "OpenAI"
+            },
+            {
+              "value1": "={{$json.provider}}",
+              "operation": "equal",
+              "value2": "StabilityAI"
+            },
+            {
+              "value1": "={{$json.provider}}",
+              "operation": "equal",
+              "value2": "Internal"
+            }
+          ]
+        }
+      },
+      "id": "7dd052eb-34f7-46ef-b7c1-229e0b83b485",
+      "name": "Route by Provider",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 2,
+      "position": [
+        1060,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "workflowTag": "invoke-internal-k8s-model",
+        "source": "json",
+        "inputData": "={{\n{\n  \"modelImage\": $json.modelId, \n  \"inputJson\": $node[\"Set Initial Data\"].json.generationData\n}\n}}",
+        "options": {}
+      },
+      "id": "7f0985c4-722a-4363-ac38-c0b79cc01a2f",
+      "name": "Invoke Internal Model",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        480
+      ],
+      "onError": "continue"
+    },
+    {
+      "parameters": {
+        "mode": "append"
+      },
+      "id": "bfd99432-6a7e-40aa-9a99-0a6a2dae72ba",
+      "name": "Merge AI Paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        1500,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "workflowTag": "store-asset-in-minio",
+        "source": "json",
+        "inputData": "={{\n{\n  \"fileData\": $binary.data,\n  \"filePath\": `${$node[\"Set Initial Data\"].json.generationData.userId}/${$node[\"Set Initial Data\"].json.generationData.projectId}/${$node[\"Set Initial Data\"].json.generationData.generationRequestId}/sample_${$item.index}.png`,\n  \"contentType\": \"image/png\"\n}\n}}",
+        "options": {}
+      },
+      "id": "3e9b1399-6f96-4191-8d2a-c21e6498877e",
+      "name": "Store Asset in MinIO",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        1720,
+        280
+      ],
+      "onError": "continue"
+    },
+    {
+      "parameters": {
+        "mode": "mergeByIndex"
+      },
+      "id": "584982bb-23d2-491c-99d8-900331498188",
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        1940,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "workflowTag": "publish-completion-event",
+        "source": "json",
+        "inputData": "={{\n{\n  \"exchangeName\": \"generation.sample.complete\",\n  \"routingKey\": \"\",\n  \"payload\": {\n    \"generationRequestId\": $node[\"Set Initial Data\"].json.generationData.generationRequestId,\n    \"userId\": $node[\"Set Initial Data\"].json.generationData.userId,\n    \"assets\": $items().map(item => item.json) \n  }\n}\n}}",
+        "options": {}
+      },
+      "id": "bb657577-4b71-477c-a49e-d71d373303c7",
+      "name": "Publish Completion Event",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "workflowTag": "handle-generation-failure",
+        "source": "json",
+        "inputData": "={{\n{\n  \"generationRequestId\": $node[\"Set Initial Data\"].json.generationData.generationRequestId,\n  \"userId\": $node[\"Set Initial Data\"].json.generationData.userId,\n  \"errorDetails\": {\n      \"workflowName\": $execution.workflow.name,\n      \"nodeName\": $execution.error.node.name,\n      \"errorMessage\": $execution.error.message,\n      \"errorData\": $execution.error.stack\n  },\n  \"isSystemError\": true\n}\n}}",
+        "options": {
+          "executeOnWait": true
+        }
+      },
+      "id": "909787ff-2a1e-451e-8e8e-c5ac98f5a65c",
+      "name": "Handle Failure",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        1720,
+        640
+      ],
+      "executeOn": "error"
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "id": "e3a89073-1f19-45e0-b6f1-a1288c5efb01",
+            "name": "RabbitMQ Trigger",
+            "type": "n8n-nodes-base.rabbitMqTrigger"
+          }
+        ]
+      ]
+    },
+    "RabbitMQ Trigger": {
+      "main": [
+        [
+          {
+            "id": "9ac5e353-841f-442b-91d1-4e78f9f6e520",
+            "name": "Set Initial Data",
+            "type": "n8n-nodes-base.set"
+          }
+        ]
+      ]
+    },
+    "Set Initial Data": {
+      "main": [
+        [
+          {
+            "id": "e6f98751-6671-4770-b747-d5872195f2e8",
+            "name": "Loop 4 Times",
+            "type": "n8n-nodes-base.splitInBatches"
+          }
+        ]
+      ]
+    },
+    "Loop 4 Times": {
+      "main": [
+        [
+          {
+            "id": "23769c81-8fd7-4f64-9149-a6873528b86d",
+            "name": "Select AI Model",
+            "type": "n8n-nodes-base.executeWorkflow"
+          }
+        ],
+        [
+          {
+            "id": "584982bb-23d2-491c-99d8-900331498188",
+            "name": "Aggregate Results",
+            "type": "n8n-nodes-base.merge"
+          }
+        ]
+      ]
+    },
+    "Select AI Model": {
+      "main": [
+        [
+          {
+            "id": "7dd052eb-34f7-46ef-b7c1-229e0b83b485",
+            "name": "Route by Provider",
+            "type": "n8n-nodes-base.switch"
+          }
+        ]
+      ]
+    },
+    "Route by Provider": {
+      "main": [
+        [
+          {
+            "id": "bfd99432-6a7e-40aa-9a99-0a6a2dae72ba",
+            "name": "Merge AI Paths",
+            "type": "n8n-nodes-base.merge"
+          }
+        ],
+        [
+          {
+            "id": "bfd99432-6a7e-40aa-9a99-0a6a2dae72ba",
+            "name": "Merge AI Paths",
+            "type": "n8n-nodes-base.merge"
+          }
+        ],
+        [
+          {
+            "id": "7f0985c4-722a-4363-ac38-c0b79cc01a2f",
+            "name": "Invoke Internal Model",
+            "type": "n8n-nodes-base.executeWorkflow"
+          }
+        ]
+      ]
+    },
+    "Invoke Internal Model": {
+      "main": [
+        [
+          {
+            "id": "bfd99432-6a7e-40aa-9a99-0a6a2dae72ba",
+            "name": "Merge AI Paths",
+            "type": "n8n-nodes-base.merge"
+          }
+        ]
+      ]
+    },
+    "Merge AI Paths": {
+      "main": [
+        [
+          {
+            "id": "3e9b1399-6f96-4191-8d2a-c21e6498877e",
+            "name": "Store Asset in MinIO",
+            "type": "n8n-nodes-base.executeWorkflow"
+          }
+        ]
+      ]
+    },
+    "Store Asset in MinIO": {
+      "main": [
+        [
+          {
+            "id": "584982bb-23d2-491c-99d8-900331498188",
+            "name": "Aggregate Results",
+            "type": "n8n-nodes-base.merge"
+          }
+        ]
+      ]
+    },
+    "Aggregate Results": {
+      "main": [
+        [
+          {
+            "id": "bb657577-4b71-477c-a49e-d71d373303c7",
+            "name": "Publish Completion Event",
+            "type": "n8n-nodes-base.executeWorkflow"
+          }
+        ]
+      ]
+    },
+    "23769c81-8fd7-4f64-9149-a6873528b86d": {
+      "main": [
+        [
+          {
+            "id": "909787ff-2a1e-451e-8e8e-c5ac98f5a65c",
+            "name": "Handle Failure",
+            "type": "n8n-nodes-base.executeWorkflow"
+          }
+        ]
+      ]
+    },
+    "7f0985c4-722a-4363-ac38-c0b79cc01a2f": {
+      "main": [
+        [
+          {
+            "id": "909787ff-2a1e-451e-8e8e-c5ac98f5a65c",
+            "name": "Handle Failure",
+            "type": "n8n-nodes-base.executeWorkflow"
+          }
+        ]
+      ]
+    },
+    "3e9b1399-6f96-4191-8d2a-c21e6498877e": {
+      "main": [
+        [
+          {
+            "id": "909787ff-2a1e-451e-8e8e-c5ac98f5a65c",
+            "name": "Handle Failure",
+            "type": "n8n-nodes-base.executeWorkflow"
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "65b7f1e5-8a2b-4355-8d59-2e061730d95d",
+  "triggerCount": 1,
+  "tags": []
+}

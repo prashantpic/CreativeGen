@@ -1,0 +1,72 @@
+---
+# Role to install and configure an Odoo application server.
+# This is a placeholder structure, a real implementation would be more complex.
+
+- name: Install Odoo system dependencies
+  ansible.builtin.apt:
+    name:
+      - python3-pip
+      - python3-dev
+      - build-essential
+      - libxslt-dev
+      - libzip-dev
+      - libldap2-dev
+      - libsasl2-dev
+      - postgresql-client
+    state: present
+
+- name: Create Odoo system user
+  ansible.builtin.user:
+    name: "{{ odoo_user }}"
+    system: yes
+    home: "{{ odoo_home }}"
+    shell: /bin/bash
+
+- name: Clone Odoo source code from repository
+  ansible.builtin.git:
+    repo: "{{ odoo_repo_url }}"
+    dest: "{{ odoo_home }}/odoo-server"
+    version: "{{ odoo_version }}"
+    depth: 1
+  become_user: "{{ odoo_user }}"
+
+- name: Install Python dependencies using pip
+  ansible.builtin.pip:
+    requirements: "{{ odoo_home }}/odoo-server/requirements.txt"
+    executable: pip3
+
+- name: Create Odoo log and data directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ odoo_user }}"
+    group: "{{ odoo_user }}"
+    mode: '0750'
+  loop:
+    - "{{ odoo_data_dir }}"
+    - "{{ odoo_log_dir }}"
+
+- name: Deploy Odoo configuration file
+  ansible.builtin.template:
+    src: odoo.conf.j2
+    dest: "/etc/odoo/odoo.conf"
+    owner: "{{ odoo_user }}"
+    group: "{{ odoo_user }}"
+    mode: '0640'
+  notify: Restart odoo
+
+- name: Deploy systemd service for Odoo
+  ansible.builtin.template:
+    src: odoo.service.j2
+    dest: /etc/systemd/system/odoo.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart odoo
+
+- name: Enable and start Odoo service
+  ansible.builtin.systemd:
+    name: odoo
+    state: started
+    enabled: yes
+    daemon_reload: yes

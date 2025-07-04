@@ -1,0 +1,29 @@
+---
+# Default variables for the common role
+
+# User management
+ansible_admin_user: "{{ admin_user | default('ansible_admin') }}"
+ansible_admin_groups: "sudo,adm"
+
+# SSH settings
+ssh_port: 22
+
+# Default packages to install on all servers
+common_packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - htop
+  - iotop
+  - nfs-common
+  - python3-pip
+  - software-properties-common
+  - ufw
+  - unzip
+  - vim
+  - wget
+
+# Firewall settings
+ufw_rules:
+  - { rule: 'allow', port: '22', proto: 'tcp' } # SSH

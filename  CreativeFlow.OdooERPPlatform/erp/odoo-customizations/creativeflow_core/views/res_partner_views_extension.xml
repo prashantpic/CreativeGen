@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Extend the partner form view to add a 'CreativeFlow' tab
+        for platform-specific synced data.
+    -->
+    <record id="view_partner_form_creativeflow_core_inherit" model="ir.ui.view">
+        <field name="name">res.partner.form.creativeflow.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='internal_notes']" position="before">
+                <page string="CreativeFlow" name="creativeflow">
+                    <group name="creativeflow_info">
+                        <group string="Synced Platform Data" name="creativeflow_synced_data">
+                            <field name="cf_synced_subscription_tier"/>
+                            <field name="cf_synced_credit_balance"/>
+                        </group>
+                        <group string="Actions" name="creativeflow_actions">
+                            <button name="action_sync_with_platform"
+                                    type="object"
+                                    string="Sync with Platform"
+                                    help="Manually trigger a data sync with the CreativeFlow platform."
+                                    groups="base.group_system"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!--
+        Optional: Extend the partner tree view to show the subscription tier.
+    -->
+    <record id="view_partner_tree_creativeflow_core_inherit" model="ir.ui.view">
+        <field name="name">res.partner.tree.creativeflow.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='email']" position="after">
+                <field name="cf_synced_subscription_tier" optional="show"/>
+                <field name="cf_synced_credit_balance" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,13 @@
+---
+# Role to install and configure MinIO server cluster.
+# This is a placeholder and should be fully implemented.
+- name: Placeholder task for MinIO role
+  ansible.builtin.debug:
+    msg: "This role should contain tasks to download the MinIO binary, create users, configure data directories, deploy a systemd service, and configure access keys (from vault)."
+
+- name: Download MinIO binary
+  ansible.builtin.get_url:
+    url: "{{ minio_binary_url }}"
+    dest: "/usr/local/bin/minio"
+    mode: '0755'
+  # Add more tasks here

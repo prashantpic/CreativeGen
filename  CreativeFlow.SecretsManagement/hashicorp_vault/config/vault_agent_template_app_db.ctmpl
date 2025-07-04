@@ -1,0 +1,23 @@
+# Database Configuration for CreativeFlow Application
+# This file is dynamically rendered by Vault Agent.
+# Last updated: {{ timestamp }}
+
+{{- with secret "database/creds/webapp-readwrite" }}
+DB_USERNAME="{{ .Data.username }}"
+DB_PASSWORD="{{ .Data.password }}"
+DB_LEASE_DURATION="{{ .LeaseDuration }}"
+{{- else }}
+# Fallback values if the secret cannot be retrieved.
+# This can help prevent application startup failure, but the app should handle it.
+DB_USERNAME=""
+DB_PASSWORD=""
+DB_LEASE_DURATION="0"
+{{- end }}
+
+
+# --- Example for rendering a secret from KV-V2 Engine ---
+#
+# {{ with secret "secret/data/apps/webapp/production/api_keys" }}
+# OPENAI_API_KEY="{{ .Data.data.openai_key }}"
+# STRIPE_API_KEY="{{ .Data.data.stripe_key }}"
+# {{ end }}

@@ -1,0 +1,4 @@
+# This file is managed by Ansible. Do not edit manually.
+[Time]
+NTP={{ ntp_servers | join(' ') }}
+FallbackNTP=ntp.ubuntu.com

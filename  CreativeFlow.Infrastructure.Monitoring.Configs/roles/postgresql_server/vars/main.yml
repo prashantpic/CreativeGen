@@ -1,0 +1,18 @@
+---
+# vars file for postgresql_server
+# Define databases and users to be created.
+# Passwords should be defined in a vaulted file and referenced here.
+# Example:
+# db_databases:
+#   - name: odoo_db
+#   - name: n8n_db
+#
+# db_users:
+#   - name: odoo_user
+#     password: "{{ odoo_db_password }}" # This var should come from vault
+#     priv: "ALL"
+#     db: "odoo_db"
+#   - name: n8n_user
+#     password: "{{ n8n_db_password }}" # This var should come from vault
+#     priv: "ALL"
+#     db: "n8n_db"

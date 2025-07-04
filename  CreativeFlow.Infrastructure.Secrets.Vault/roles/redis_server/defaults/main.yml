@@ -1,0 +1,4 @@
+---
+# Placeholder defaults for the 'redis_server' role.
+redis_port: 6379
+redis_bind_interface: "127.0.0.1" # Change to '0.0.0.0' or specific IP for remote access

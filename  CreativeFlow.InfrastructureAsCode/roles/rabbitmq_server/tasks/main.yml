@@ -1,0 +1,32 @@
+---
+# Role to install and configure RabbitMQ server cluster.
+# This is a placeholder. A full implementation would include:
+# 1. Adding Erlang and RabbitMQ package repositories.
+# 2. Installing rabbitmq-server package.
+# 3. Starting and enabling the rabbitmq-server service.
+# 4. For clustering:
+#    a. Ensuring all nodes share the same Erlang cookie (from vault).
+#    b. Stopping the app, joining the cluster, and starting the app on peer nodes.
+# 5. Enabling the RabbitMQ management plugin.
+# 6. Creating users, vhosts, and setting permissions.
+
+- name: (Placeholder) Install Erlang and RabbitMQ
+  ansible.builtin.debug:
+    msg: "TODO: Add repositories and install erlang and rabbitmq-server packages."
+
+- name: (Placeholder) Deploy Erlang cookie for clustering
+  ansible.builtin.debug:
+    msg: "TODO: Copy the .erlang.cookie file from a template. The cookie content MUST come from vault."
+
+- name: (Placeholder) Join RabbitMQ cluster
+  ansible.builtin.debug:
+    msg: "TODO: Logic to join peer nodes to the first node in the group."
+  when: "inventory_hostname != groups['rabbitmq_servers'][0]"
+
+- name: (Placeholder) Enable RabbitMQ management plugin
+  ansible.builtin.debug:
+    msg: "TODO: Run 'rabbitmq-plugins enable rabbitmq_management'"
+
+- name: (Placeholder) Create RabbitMQ users and vhosts
+  ansible.builtin.debug:
+    msg: "TODO: Use rabbitmq_user and rabbitmq_vhost modules to configure the broker."

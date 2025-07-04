@@ -1,0 +1,7 @@
+---
+# defaults file for gpu_support
+nvidia_driver_version: "535"
+nvidia_container_toolkit_repo_url: "https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list"
+nvidia_gpu_operator_chart_url: "https://helm.ngc.nvidia.com/nvidia/gpu-operator"
+nvidia_gpu_operator_chart_version: "v23.9.1"
+nvidia_gpu_operator_namespace: "gpu-operator"

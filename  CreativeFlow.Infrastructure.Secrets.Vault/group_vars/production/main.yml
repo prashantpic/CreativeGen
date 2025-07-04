@@ -1,0 +1,14 @@
+---
+# Variables specific to the Production environment.
+# These will override variables defined in group_vars/all/common_vars.yml.
+
+environment: 'production'
+
+# Production API server URL used by front-end applications
+api_server_url: 'https://api.creativeflow.ai'
+
+# Enable stricter host key checking for production
+host_key_checking: True
+
+# Example of production-specific tuning
+# postgresql_shared_buffers: "8GB"

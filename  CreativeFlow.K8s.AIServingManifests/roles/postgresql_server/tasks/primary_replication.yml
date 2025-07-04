@@ -1,0 +1,19 @@
+---
+# Tasks to configure the primary for streaming replication
+
+- name: Create replication user on primary
+  community.postgresql.postgresql_user:
+    name: "{{ pg_replication_user }}"
+    password: "{{ pg_replication_password }}" # From vault
+    role_attr_flags: REPLICATION,LOGIN
+    state: present
+  become_user: postgres
+  no_log: true
+
+- name: Add replication entry to pg_hba.conf for replicas
+  ansible.builtin.lineinfile:
+    path: "{{ pg_config_path }}/pg_hba.conf"
+    line: "host replication {{ pg_replication_user }} {{ item }}/32 md5"
+    regexp: "^host replication {{ pg_replication_user }} {{ item }}/32"
+  loop: "{{ groups['db_replicas'] | map('extract', hostvars, 'ansible_host') | list }}"
+  notify: Reload postgresql

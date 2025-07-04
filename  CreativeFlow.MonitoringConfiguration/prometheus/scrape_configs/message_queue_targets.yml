@@ -1,0 +1,11 @@
+# Prometheus scrape configuration for the RabbitMQ exporter.
+# This uses a static configuration for an exporter running at a fixed address.
+# If the exporter runs in Kubernetes, kubernetes_sd_configs would be more appropriate.
+# Requirement(s) Addressed: DEP-005, QA-003
+
+- job_name: 'rabbitmq_exporter'
+  static_configs:
+    - targets: ['<RABBITMQ_EXPORTER_HOST_1>:9419']
+      labels:
+        env: 'production'
+        cluster: 'main-cluster'

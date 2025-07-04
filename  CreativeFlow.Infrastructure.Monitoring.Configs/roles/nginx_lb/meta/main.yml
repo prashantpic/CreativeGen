@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  author: CreativeFlow
+  description: A role to install and configure Nginx as a reverse proxy and load balancer.
+  company: CreativeFlow AI
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy (22.04)
+dependencies: []

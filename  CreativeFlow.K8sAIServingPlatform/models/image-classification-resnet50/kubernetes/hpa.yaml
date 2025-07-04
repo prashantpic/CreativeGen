@@ -1,0 +1,47 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: resnet50-tfserving-hpa
+  namespace: creativeflow-ai-serving
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: resnet50-tfserving
+  minReplicas: 1
+  maxReplicas: 5 # Adjust based on capacity and cost
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  # To scale based on GPU utilization, a custom metrics setup is usually needed.
+  # This requires deploying nvidia-dcgm-exporter and a custom metrics adapter
+  # like prometheus-adapter to expose GPU metrics to the HPA.
+  # Example with custom metric:
+  # - type: Pods
+  #   pods:
+  #     metric:
+  #       name: dcgm_gpu_utilization # The metric exposed by DCGM exporter
+  #     target:
+  #       type: AverageValue
+  #       averageValue: "75" # Target 75% average GPU utilization per pod
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 180
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60
+      - type: Pods
+        value: 1
+        periodSeconds: 60
+      selectPolicy: Max

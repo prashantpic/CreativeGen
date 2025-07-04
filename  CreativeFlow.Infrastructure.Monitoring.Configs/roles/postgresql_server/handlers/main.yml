@@ -1,0 +1,11 @@
+---
+# handlers file for postgresql_server
+- name: restart postgresql
+  ansible.builtin.service:
+    name: "{{ pg_service_name }}"
+    state: restarted
+
+- name: restart pgbouncer
+  ansible.builtin.service:
+    name: pgbouncer
+    state: restarted

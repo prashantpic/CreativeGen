@@ -1,0 +1,32 @@
+---
+# Default variables for the nginx_lb role
+nginx_package: "nginx"
+nginx_service_name: "nginx"
+
+# Default worker processes. 'auto' is usually a good choice.
+nginx_worker_processes: "auto"
+nginx_worker_connections: 768
+
+# The 'nginx_sites' variable should be defined in environment or group variables.
+# It is a list of dictionaries, where each dictionary defines a website.
+#
+# Example structure for a site:
+# nginx_sites:
+#   - name: creativeflow_app  # Used for filename and upstream name
+#     server_names:
+#       - app.creativeflow.ai
+#       - www.app.creativeflow.ai
+#     listen_port: 80
+#     listen_ssl_port: 443
+#     force_ssl: true
+#     ssl_cert_path: "/etc/letsencrypt/live/app.creativeflow.ai/fullchain.pem"
+#     ssl_key_path: "/etc/letsencrypt/live/app.creativeflow.ai/privkey.pem"
+#     upstream_servers:
+#       - { host: '10.0.1.100', port: 8069 } # Odoo server 1
+#       - { host: '10.0.1.101', port: 8069 } # Odoo server 2
+#     extra_config: |
+#       location /long_polling {
+#           proxy_pass http://{{ name }}_backend;
+#       }
+
+nginx_sites: []

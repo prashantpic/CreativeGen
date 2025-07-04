@@ -1,0 +1,49 @@
+# This is the master playbook for the CreativeFlow infrastructure.
+# It orchestrates the configuration of all servers by applying roles to host groups.
+# To run for a specific environment, use the -i flag:
+# ansible-playbook site.yml -i environments/staging/inventory.ini
+---
+- name: Apply common configuration to all servers
+  hosts: all_servers
+  roles:
+    - role: common
+
+- name: Configure Nginx Load Balancers
+  hosts: web_servers
+  roles:
+    - role: nginx_lb
+
+- name: Configure PostgreSQL Servers
+  hosts: db_primary, db_replicas
+  roles:
+    - role: postgresql_server
+
+- name: Configure Redis Servers
+  hosts: redis_servers # Assumes a 'redis_servers' group exists in inventory
+  roles:
+    - role: redis_server
+
+- name: Configure RabbitMQ Servers
+  hosts: rabbitmq_servers # Assumes a 'rabbitmq_servers' group exists
+  roles:
+    - role: rabbitmq_server
+    
+- name: Configure Odoo Application Servers
+  hosts: odoo_servers # Assumes an 'odoo_servers' group exists
+  roles:
+    - role: odoo_server
+    
+- name: Configure n8n Application Servers
+  hosts: n8n_servers # Assumes an 'n8n_servers' group exists
+  roles:
+    - role: n8n_server
+
+# The Kubernetes cluster is provisioned via a dedicated playbook for better control and modularity.
+- name: Configure Kubernetes Cluster
+  import_playbook: playbooks/provision_kubernetes_cluster.yml
+  when: (groups['k8s_masters'] | length > 0) or (groups['k8s_workers'] | length > 0)
+
+- name: Deploy Monitoring Agents (Prometheus Exporters)
+  hosts: all_servers
+  roles:
+    - role: prometheus_exporters

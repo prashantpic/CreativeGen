@@ -1,0 +1,41 @@
+---
+# Tasks specific to the PostgreSQL Replica server
+
+- name: Stop PostgreSQL service to take base backup
+  ansible.builtin.service:
+    name: postgresql
+    state: stopped
+
+- name: Clean out existing data directory on replica
+  ansible.builtin.file:
+    path: "{{ pg_data_dir }}/"
+    state: absent
+  become: true
+  become_user: postgres
+
+- name: Recreate data directory on replica
+  ansible.builtin.file:
+    path: "{{ pg_data_dir }}"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: '0700'
+  become: true
+  become_user: postgres
+
+- name: Take base backup from primary server
+  ansible.builtin.command: >
+    pg_basebackup -h {{ groups['db_primary'][0] }} -p {{ pg_port }}
+    -U {{ pg_replication_user }} -D {{ pg_data_dir }}
+    -Fp -Xs -P -R
+  environment:
+    PGPASSWORD: "{{ pg_replication_password }}" # From vault
+  become: true
+  become_user: postgres
+  changed_when: true
+  no_log: true
+
+- name: Start PostgreSQL service on replica
+  ansible.builtin.service:
+    name: postgresql
+    state: started

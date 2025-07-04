@@ -1,0 +1,32 @@
+<odoo>
+    <data>
+        <record id="view_helpdesk_ticket_form_inherit_creativeflow" model="ir.ui.view">
+            <field name="name">helpdesk.ticket.form.inherit.creativeflow</field>
+            <field name="model">helpdesk.ticket</field>
+            <field name="inherit_id" ref="helpdesk.helpdesk_ticket_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group[@name='description']" position="after">
+                    <group string="CreativeFlow Context" name="creativeflow_context">
+                        <field name="project_id"
+                            domain="[('user_id', '=', partner_id.user_ids and partner_id.user_ids[0] or False)]"
+                            options="{'no_create': True}"/>
+                        <field name="generation_request_id"
+                            domain="[('user_id', '=', partner_id.user_ids and partner_id.user_ids[0] or False)]"
+                            options="{'no_create': True}"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+         <record id="view_helpdesk_ticket_tree_inherit_creativeflow" model="ir.ui.view">
+            <field name="name">helpdesk.ticket.tree.inherit.creativeflow</field>
+            <field name="model">helpdesk.ticket</field>
+            <field name="inherit_id" ref="helpdesk.helpdesk_ticket_view_tree"/>
+            <field name="arch" type="xml">
+                <field name="partner_id" position="after">
+                    <field name="project_id" optional="show"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>

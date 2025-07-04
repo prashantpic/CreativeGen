@@ -1,0 +1,7 @@
+---
+# Handlers for the odoo_server role
+
+- name: Restart odoo
+  ansible.builtin.service:
+    name: odoo
+    state: restarted

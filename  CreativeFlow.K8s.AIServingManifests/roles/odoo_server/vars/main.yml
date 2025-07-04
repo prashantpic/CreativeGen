@@ -1,0 +1,5 @@
+---
+# Role-specific variables for odoo_server.
+# Sensitive values should be defined in vaulted files.
+odoo_admin_password: "{{ vault_odoo_admin_password }}"
+odoo_db_password: "{{ vault_odoo_db_password }}"

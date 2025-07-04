@@ -1,0 +1,133 @@
+# rabbitmq_topology.yaml
+#
+# Configuration file for the declare_entities.py script.
+# Defines the complete topology for RabbitMQ environments.
+# Based on SDS Section 11.
+
+vhosts:
+  - name: /creativeflow_prod
+    description: "Production virtual host for CreativeFlow AI"
+  - name: /creativeflow_staging
+    description: "Staging virtual host for CreativeFlow AI"
+
+exchanges:
+  # --- Production Exchanges ---
+  - vhost: /creativeflow_prod
+    name: ex.creativeflow.direct
+    type: direct
+    durable: true
+    auto_delete: false
+  - vhost: /creativeflow_prod
+    name: ex.creativeflow.topic
+    type: topic
+    durable: true
+    auto_delete: false
+  - vhost: /creativeflow_prod
+    name: ex.dead_letter
+    type: direct
+    durable: true
+    auto_delete: false
+  # --- Staging Exchanges ---
+  - vhost: /creativeflow_staging
+    name: ex.creativeflow.direct
+    type: direct
+    durable: true
+    auto_delete: false
+  - vhost: /creativeflow_staging
+    name: ex.creativeflow.topic
+    type: topic
+    durable: true
+    auto_delete: false
+  - vhost: /creativeflow_staging
+    name: ex.dead_letter
+    type: direct
+    durable: true
+    auto_delete: false
+
+queues:
+  # --- Production Queues ---
+  - vhost: /creativeflow_prod
+    name: q.ai_generation.pending
+    durable: true
+    auto_delete: false
+    arguments:
+      x-dead-letter-exchange: "ex.dead_letter"
+      x-dead-letter-routing-key: "dlq.ai_generation.pending"
+      x-message-ttl: 3600000
+  - vhost: /creativeflow_prod
+    name: q.odoo.events
+    durable: true
+    auto_delete: false
+    arguments:
+      x-dead-letter-exchange: "ex.dead_letter"
+  - vhost: /creativeflow_prod
+    name: q.n8n.task_results
+    durable: true
+    auto_delete: false
+    arguments:
+      x-dead-letter-exchange: "ex.dead_letter"
+  - vhost: /creativeflow_prod
+    name: q.dead_letter
+    durable: true
+    auto_delete: false
+    arguments: {}
+  # --- Staging Queues ---
+  - vhost: /creativeflow_staging
+    name: q.ai_generation.pending
+    durable: true
+    auto_delete: false
+    arguments:
+      x-dead-letter-exchange: "ex.dead_letter"
+      x-dead-letter-routing-key: "dlq.ai_generation.pending"
+      x-message-ttl: 3600000
+  - vhost: /creativeflow_staging
+    name: q.odoo.events
+    durable: true
+    auto_delete: false
+    arguments:
+      x-dead-letter-exchange: "ex.dead_letter"
+  - vhost: /creativeflow_staging
+    name: q.n8n.task_results
+    durable: true
+    auto_delete: false
+    arguments:
+      x-dead-letter-exchange: "ex.dead_letter"
+  - vhost: /creativeflow_staging
+    name: q.dead_letter
+    durable: true
+    auto_delete: false
+    arguments: {}
+
+bindings:
+  # --- Production Bindings ---
+  - vhost: /creativeflow_prod
+    source_exchange: ex.creativeflow.direct
+    destination_type: queue
+    destination_name: q.ai_generation.pending
+    routing_key: ai.generation.request
+  - vhost: /creativeflow_prod
+    source_exchange: ex.creativeflow.topic
+    destination_type: queue
+    destination_name: q.odoo.events
+    routing_key: "odoo.event.#"
+  - vhost: /creativeflow_prod
+    source_exchange: ex.dead_letter
+    destination_type: queue
+    destination_name: q.dead_letter
+    routing_key: "#"
+  # --- Staging Bindings ---
+  - vhost: /creativeflow_staging
+    source_exchange: ex.creativeflow.direct
+    destination_type: queue
+    destination_name: q.ai_generation.pending
+    routing_key: ai.generation.request
+  - vhost: /creativeflow_staging
+    source_exchange: ex.creativeflow.topic
+    destination_type: queue
+    destination_name: q.odoo.events
+    routing_key: "odoo.event.#"
+  - vhost: /creativeflow_staging
+    source_exchange: ex.dead_letter
+    destination_type: queue
+    destination_name: q.dead_letter
+    routing_key: "#"

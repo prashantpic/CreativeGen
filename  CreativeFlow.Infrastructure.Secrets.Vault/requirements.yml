@@ -1,0 +1,25 @@
+---
+# This file defines external dependencies from Ansible Galaxy.
+# Install them using: ansible-galaxy install -r requirements.yml
+
+collections:
+  # Collection for general purpose modules
+  - name: community.general
+    version: ">=6.0.0"
+
+  # Collection for managing Docker containers and services
+  - name: community.docker
+    version: ">=3.0.0"
+
+  # Collection for interacting with Kubernetes API
+  - name: community.kubernetes
+    version: ">=2.0.0"
+
+  # Collection for advanced PostgreSQL management
+  - name: community.postgresql
+    version: ">=2.5.0"
+
+# roles:
+#   # Example of adding a role from Ansible Galaxy
+#   # - name: geerlingguy.nginx
+#   #   version: 3.2.0

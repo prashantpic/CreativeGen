@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  author: CreativeFlow
+  description: Role to install and configure MinIO Object Storage.
+  license: proprietary
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+  galaxy_tags:
+    - storage
+    - s3
+    - minio
+
+dependencies: []

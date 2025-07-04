@@ -1,0 +1,3 @@
+---
+# Variables for the redis_server role.
+# The 'redis_password' should be defined in a vaulted file.

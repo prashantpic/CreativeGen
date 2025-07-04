@@ -1,0 +1,33 @@
+---
+# Tasks to install and configure MinIO server cluster.
+# This is a placeholder. A full implementation would include:
+# 1. Downloading the MinIO binary.
+# 2. Creating a dedicated user and group for MinIO.
+# 3. Creating data directories on specified disks.
+# 4. Creating a configuration file in /etc/default/minio.
+# 5. Deploying a systemd service file.
+# 6. Starting and enabling the MinIO service.
+
+- name: (Placeholder) Download MinIO binary
+  ansible.builtin.debug:
+    msg: "TODO: Download MinIO binary from {{ minio_binary_url }}"
+
+- name: (Placeholder) Create MinIO user and group
+  ansible.builtin.debug:
+    msg: "TODO: Create user and group '{{ minio_user }}'"
+
+- name: (Placeholder) Create MinIO data directories
+  ansible.builtin.debug:
+    msg: "TODO: Create directories specified in '{{ minio_volumes }}'"
+
+- name: (Placeholder) Deploy MinIO environment/config file
+  ansible.builtin.debug:
+    msg: "TODO: Template out /etc/default/minio with secrets like MINIO_ROOT_USER and MINIO_ROOT_PASSWORD from vault."
+
+- name: (Placeholder) Deploy MinIO systemd service file
+  ansible.builtin.debug:
+    msg: "TODO: Template out /etc/systemd/system/minio.service"
+
+- name: (Placeholder) Ensure MinIO service is started and enabled
+  ansible.builtin.debug:
+    msg: "TODO: Start and enable the minio.service"

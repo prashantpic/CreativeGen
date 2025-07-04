@@ -1,0 +1,261 @@
+{
+  "rabbit_version": "3.13.2",
+  "users": [
+    {
+      "name": "cf_admin",
+      "password_hash": "b2fLdROBUVvjJ2gVBTbHztgophgT1vDITLgYPLtWbATfJAbS",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "administrator,management,policymaker"
+    },
+    {
+      "name": "odoo_service",
+      "password_hash": "gSj9KkLwT6bCqVbZzFpXn3mRrCcYy7wGgJjHhDdFfEaA9s8d",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": ""
+    },
+    {
+      "name": "n8n_service",
+      "password_hash": "a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": ""
+    },
+    {
+      "name": "notification_service",
+      "password_hash": "zYxWvUtSrQpOnMlKjIhGfEdCbA0z9Y8x7W6v5U4t3S2r1Q0p",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": ""
+    },
+    {
+      "name": "collaboration_service",
+      "password_hash": "kL9mN8oP7qR6sT5uV4wX3yZ2aB1cD0eF9gH8iJ7kL6mN5oP4",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": ""
+    },
+    {
+      "name": "monitoring_user",
+      "password_hash": "rS9tU8vW7xY6zZ5aB4c3D2e1F0g9H8i7J6k5L4m3N2o1P0q",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "monitoring"
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "creativeflow_vhost"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "cf_admin",
+      "vhost": "creativeflow_vhost",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "monitoring_user",
+      "vhost": "creativeflow_vhost",
+      "configure": "^$",
+      "write": "^$",
+      "read": ".*"
+    },
+    {
+      "user": "odoo_service",
+      "vhost": "creativeflow_vhost",
+      "configure": "^(q\\.ai\\.generation\\.tasks|q\\.ai\\.generation\\.updates)$",
+      "write": "^(ex\\.direct\\.tasks|ex\\.topic\\.platform_events)$",
+      "read": "^(q\\.ai\\.generation\\.updates)$"
+    },
+    {
+      "user": "n8n_service",
+      "vhost": "creativeflow_vhost",
+      "configure": "^q\\..*",
+      "write": "^ex\\..*",
+      "read": ".*"
+    },
+    {
+      "user": "notification_service",
+      "vhost": "creativeflow_vhost",
+      "configure": "^q\\.notifications\\..*",
+      "write": "^(ex\\.fanout\\.notifications|ex\\.topic\\.platform_events)$",
+      "read": "^(q\\.notifications\\.email|q\\.notifications\\.websocket)$"
+    },
+    {
+      "user": "collaboration_service",
+      "vhost": "creativeflow_vhost",
+      "configure": "^q\\.collaboration\\..*",
+      "write": "^ex\\.topic\\.platform_events$",
+      "read": "^q\\.collaboration\\.events$"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "ex.direct.tasks",
+      "vhost": "creativeflow_vhost",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "ex.topic.platform_events",
+      "vhost": "creativeflow_vhost",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "ex.fanout.notifications",
+      "vhost": "creativeflow_vhost",
+      "type": "fanout",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "ex.dlx",
+      "vhost": "creativeflow_vhost",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "q.ai.generation.tasks",
+      "vhost": "creativeflow_vhost",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": { "x-queue-type": "quorum" }
+    },
+    {
+      "name": "q.ai.generation.updates",
+      "vhost": "creativeflow_vhost",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": { "x-queue-type": "quorum" }
+    },
+    {
+      "name": "q.notifications.email",
+      "vhost": "creativeflow_vhost",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": { "x-queue-type": "quorum" }
+    },
+    {
+      "name": "q.notifications.websocket",
+      "vhost": "creativeflow_vhost",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": { "x-queue-type": "quorum" }
+    },
+    {
+      "name": "q.collaboration.events",
+      "vhost": "creativeflow_vhost",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": { "x-queue-type": "quorum" }
+    },
+    {
+      "name": "q.dlx.common",
+      "vhost": "creativeflow_vhost",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "q.dlx.ai.generation",
+      "vhost": "creativeflow_vhost",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "ex.direct.tasks",
+      "vhost": "creativeflow_vhost",
+      "destination": "q.ai.generation.tasks",
+      "destination_type": "queue",
+      "routing_key": "ai.job.request",
+      "arguments": {}
+    },
+    {
+      "source": "ex.topic.platform_events",
+      "vhost": "creativeflow_vhost",
+      "destination": "q.ai.generation.updates",
+      "destination_type": "queue",
+      "routing_key": "ai.job.update.#",
+      "arguments": {}
+    },
+    {
+      "source": "ex.topic.platform_events",
+      "vhost": "creativeflow_vhost",
+      "destination": "q.notifications.email",
+      "destination_type": "queue",
+      "routing_key": "notification.email.#",
+      "arguments": {}
+    },
+    {
+      "source": "ex.topic.platform_events",
+      "vhost": "creativeflow_vhost",
+      "destination": "q.notifications.websocket",
+      "destination_type": "queue",
+      "routing_key": "notification.websocket.#",
+      "arguments": {}
+    },
+    {
+      "source": "ex.topic.platform_events",
+      "vhost": "creativeflow_vhost",
+      "destination": "q.collaboration.events",
+      "destination_type": "queue",
+      "routing_key": "collaboration.event.#",
+      "arguments": {}
+    },
+    {
+      "source": "ex.dlx",
+      "vhost": "creativeflow_vhost",
+      "destination": "q.dlx.common",
+      "destination_type": "queue",
+      "routing_key": "dlx.common",
+      "arguments": {}
+    },
+    {
+      "source": "ex.dlx",
+      "vhost": "creativeflow_vhost",
+      "destination": "q.dlx.ai.generation",
+      "destination_type": "queue",
+      "routing_key": "dlx.ai.generation",
+      "arguments": {}
+    }
+  ],
+  "policies": [
+    {
+      "vhost": "creativeflow_vhost",
+      "name": "dlx-ai-generation-tasks",
+      "pattern": "^q\\.ai\\.generation\\.tasks$",
+      "apply-to": "queues",
+      "definition": {
+        "dead-letter-exchange": "ex.dlx",
+        "dead-letter-routing-key": "dlx.ai.generation"
+      },
+      "priority": 0
+    },
+    {
+      "vhost": "creativeflow_vhost",
+      "name": "dlx-other-queues",
+      "pattern": "^(q\\.notifications\\..*|q\\.collaboration\\..*)$",
+      "apply-to": "queues",
+      "definition": {
+        "dead-letter-exchange": "ex.dlx",
+        "dead-letter-routing-key": "dlx.common"
+      },
+      "priority": 0
+    }
+  ]
+}

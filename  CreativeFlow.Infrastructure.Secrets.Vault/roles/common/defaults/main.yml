@@ -1,0 +1,37 @@
+---
+# Default variables for the 'common' role.
+# These have the lowest precedence and can be easily overridden.
+
+# List of common packages to install on all servers.
+common_packages:
+  - htop
+  - curl
+  - vim
+  - ufw
+  - unattended-upgrades
+  - apt-transport-https
+  - ca-certificates
+  - gnupg
+  - software-properties-common
+
+# Default SSH port to allow through the firewall.
+ssh_port: 22
+
+# Default admin user to be created by Ansible.
+ansible_admin_user: "{{ admin_user | default('ansible_admin') }}"
+ansible_admin_groups: "sudo"
+
+# Default UFW (firewall) policies.
+ufw_default_policy_input: "deny"
+ufw_default_policy_output: "accept"
+ufw_default_policy_forward: "deny"
+
+# SSHD configuration settings
+sshd_permit_root_login: "no"
+sshd_password_authentication: "no"
+sshd_challenge_response_authentication: "no"
+sshd_use_pam: "yes"
+sshd_x11_forwarding: "yes"
+sshd_print_motd: "no"
+sshd_accept_env: "LANG LC_*"
+sshd_subsystem: "sftp /usr/lib/openssh/sftp-server"

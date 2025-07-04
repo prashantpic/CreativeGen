@@ -1,0 +1,19 @@
+<LifecycleConfiguration>
+    <Rule>
+        <ID>ExpireOldSamplesRule</ID>
+        <Status>Enabled</Status>
+        <Filter>
+            <Prefix>samples/</Prefix>
+        </Filter>
+        <Expiration>
+            <Days>30</Days>
+        </Expiration>
+    </Rule>
+    <Rule>
+        <ID>DeleteIncompleteUploadsAfter7Days</ID>
+        <Status>Enabled</Status>
+        <AbortIncompleteMultipartUpload>
+            <DaysAfterInitiation>7</DaysAfterInitiation>
+        </AbortIncompleteMultipartUpload>
+    </Rule>
+</LifecycleConfiguration>

@@ -1,0 +1,5 @@
+---
+# Placeholder defaults for the 'n8n_server' role.
+n8n_version: "latest"
+n8n_user: "n8n"
+n8n_install_dir: "/opt/n8n"

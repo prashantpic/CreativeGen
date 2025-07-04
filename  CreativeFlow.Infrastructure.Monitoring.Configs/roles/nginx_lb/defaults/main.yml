@@ -1,0 +1,26 @@
+---
+# defaults file for nginx_lb
+nginx_package: "nginx"
+nginx_service_name: "nginx"
+nginx_user: "www-data"
+
+# This variable holds the configuration for all nginx sites.
+# It should be defined in environment-specific group_vars (e.g., group_vars/staging/main.yml).
+#
+# Example structure:
+# nginx_sites:
+#   - name: "creativeflow_api"
+#     server_name: "api.creativeflow.ai"
+#     listen_port: 443
+#     ssl: true
+#     ssl_cert_path: "/etc/ssl/certs/creativeflow.ai.crt"
+#     ssl_key_path: "/etc/ssl/private/creativeflow.ai.key"
+#     locations:
+#       - path: "/"
+#         proxy_pass: "http://backend_api_servers"
+#     upstreams:
+#       - name: "backend_api_servers"
+#         servers:
+#           - "10.0.0.1:8080"
+#           - "10.0.0.2:8080"
+nginx_sites: []

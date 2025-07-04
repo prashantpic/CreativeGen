@@ -1,0 +1,58 @@
+erDiagram
+
+    User {
+        UUID id PK
+        VARCHAR email
+        VARCHAR username
+        VARCHAR subscriptionTier
+        DECIMAL creditBalance
+        DateTime createdAt
+    }
+
+    Session {
+        UUID id PK
+        UUID userId FK
+        VARCHAR deviceInfo
+        DateTime expiresAt
+        DateTime createdAt
+    }
+
+    SocialMediaConnection {
+        UUID id PK
+        UUID userId FK
+        VARCHAR platform
+        VARCHAR externalUserId
+        DateTime expiresAt
+    }
+
+    APIClient {
+        UUID id PK
+        UUID userId FK
+        VARCHAR name
+        VARCHAR apiKey
+        BOOLEAN isActive
+    }
+
+    Subscription {
+        UUID id PK
+        UUID userId FK
+        VARCHAR odooSaleOrderId
+        VARCHAR planId
+        VARCHAR status
+        DateTime currentPeriodEnd
+    }
+
+    Notification {
+        UUID id PK
+        UUID userId FK
+        VARCHAR type
+        TEXT message
+        BOOLEAN isRead
+        DateTime createdAt
+    }
+
+    User ||--o{ Session : "has"
+    User ||--o{ SocialMediaConnection : "connected to"
+    User ||--o{ APIClient : "manages"
+    User ||--o{ Subscription : "has"
+    User ||--o{ Notification : "receives"

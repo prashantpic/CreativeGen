@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: CreativeFlow
+  description: Role to join a Kubernetes worker node to a cluster.
+  license: proprietary
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+  galaxy_tags:
+    - kubernetes
+    - worker
+    - node
+
+dependencies:
+  - role: kubernetes_common

@@ -1,0 +1,187 @@
+{
+  "name": "SecureApiKey_Manager",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "9d901f4c-f166-417c-a4c3-b78b6717a1a4",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "notes": "Receives serviceName (e.g., 'OpenAI', 'StabilityAI')"
+    },
+    {
+      "parameters": {
+        "functionCode": "const serviceName = $json.serviceName.toLowerCase();\nlet secretPath = '';\n\nswitch (serviceName) {\n  case 'openai':\n    secretPath = 'kv/data/creativeflow/ai_services/openai';\n    break;\n  case 'stabilityai':\n    secretPath = 'kv/data/creativeflow/ai_services/stabilityai';\n    break;\n  default:\n    throw new Error(`Unknown service name: ${$json.serviceName}`);\n}\n\nreturn { secretPath };"
+      },
+      "id": "893d5a49-9f5b-4860-93a0-f865f3d537f3",
+      "name": "Determine Secret Path",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "notes": "Maps the service name to a specific path in HashiCorp Vault."
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.VAULT_ADDR }}/v1/{{$json.secretPath}}",
+        "options": {},
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Vault-Token",
+              "value": "={{ $credentials.vaultApi.token }}"
+            }
+          ]
+        }
+      },
+      "id": "673f3c3a-eb84-4848-96f7-b2803859600a",
+      "name": "Fetch Secret from Vault",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        720,
+        300
+      ],
+      "notes": "Uses HTTP Request node to interact with Vault API. Assumes Vault address is an environment variable and the token is in an n8n credential.",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "your-vault-credential-id",
+          "name": "Vault API Token Credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const vaultResponse = $json.data.data;\n// The actual secret is nested under 'data' for KV v2 engines\nconst apiKey = vaultResponse.apiKey;\n\nif (!apiKey) {\n  throw new Error('API key not found in Vault secret');\n}\n\nreturn { apiKey };"
+      },
+      "id": "6240d0f0-c529-417d-8153-f77e2315d048",
+      "name": "Extract API Key",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        940,
+        200
+      ],
+      "notes": "Parses the JSON response from Vault to extract the API key."
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "json": [
+            {
+              "key": "apiKey",
+              "value": "={{$json.apiKey}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "18f0a30b-0447-4185-bc59-dd55fae2f073",
+      "name": "Success Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        1140,
+        200
+      ],
+      "notes": "Outputs the fetched API key."
+    },
+    {
+      "parameters": {
+        "values": {
+          "json": [
+            {
+              "key": "success",
+              "value": "=false"
+            },
+            {
+              "key": "error",
+              "value": "={{ $json.message || 'Failed to fetch secret from Vault' }}"
+            },
+            {
+              "key": "details",
+              "value": "={{ $json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3196c80c-c6f9-4676-a05e-855c4d375371",
+      "name": "Failure Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        940,
+        400
+      ],
+      "notes": "Handles errors during the secret fetching process."
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Determine Secret Path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine Secret Path": {
+      "main": [
+        [
+          {
+            "node": "Fetch Secret from Vault",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Secret from Vault": {
+      "main": [
+        [
+          {
+            "node": "Extract API Key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "Failure Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract API Key": {
+      "main": [
+        [
+          {
+            "node": "Success Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "id": "kjh34SDfghCVBwer",
+  "meta": {},
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

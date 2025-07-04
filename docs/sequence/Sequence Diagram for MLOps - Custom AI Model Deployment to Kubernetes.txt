@@ -1,0 +1,159 @@
+sequenceDiagram
+    actor "Admin (User)" as Admin
+    participant "CreativeFlow WebApp (PWA)" as repowebapppwa
+    participant "API Gateway (Nginx)" as compapigatewaynginx
+    participant "Odoo Backend (MLOps Orchestrator)" as svcodoobackend
+    participant "MinIO Object Storage" as repostorageminio
+    participant "PostgreSQL Database" as repodbpostgresql
+    participant "CI/CD Pipeline" as svccicdpipeline
+    participant "Kubernetes GPU Cluster" as compk8scluster
+
+    note over Admin: Admin authentication and authorization are assumed to be handled by the API Gateway and Odoo Backend (MLOps Service) prior to these interactions.
+
+    Admin-repowebapppwa: 1. Upload Model Artifacts & Metadata (e.g., model file, Dockerfile, name, version, params)
+    activate repowebapppwa
+
+    repowebapppwa-compapigatewaynginx: 2. POST /mlops/models/upload (modelFile, metadata)
+    activate compapigatewaynginx
+
+    compapigatewaynginx-svcodoobackend: 2.1. processModelUpload(modelFile, metadata)
+    activate svcodoobackend
+
+    svcodoobackend-repostorageminio: 2.1.1. storeArtifact(modelId, versionId, modelFile)
+    activate repostorageminio
+    repostorageminio--svcodoobackend: artifactPath
+    deactivate repostorageminio
+
+    svcodoobackend-repodbpostgresql: 2.1.2. registerModelVersion(modelId, versionId, metadata, artifactPath, status='Validating')
+    activate repodbpostgresql
+    repodbpostgresql--svcodoobackend: Success
+    deactivate repodbpostgresql
+
+    loop 2.1.3. [Internal] Trigger Validation & Security Scan
+        note over svcodoobackend: This is an asynchronous internal process. Can involve fetching from MinIO, running linters, security scanners (e.g., Snyk on Dockerfile/container layers if applicable), format checks.
+        svcodoobackend-repostorageminio: 2.1.3.1. Fetch model for validation
+        activate repostorageminio
+        repostorageminio--svcodoobackend: Model data
+        deactivate repostorageminio
+        svcodoobackend-svcodoobackend: 2.1.3.2. Perform scans & validation
+        svcodoobackend-repodbpostgresql: 2.1.3.3. updateModelVersionStatus(modelId, versionId, status, validationDetails)
+        activate repodbpostgresql
+        repodbpostgresql--svcodoobackend: Success
+        deactivate repodbpostgresql
+    end
+
+    svcodoobackend--compapigatewaynginx: modelId, versionId, initialStatus
+    deactivate svcodoobackend
+
+    compapigatewaynginx--repowebapppwa: HTTP 202 Accepted (or initial status)
+    deactivate compapigatewaynginx
+    deactivate repowebapppwa
+
+    note over svcodoobackend: Could be via WebSockets or client polling.
+    svcodoobackend--compapigatewaynginx: 3. [Async Update] modelRegistrationStatus(modelId, status, details)
+    activate compapigatewaynginx
+    compapigatewaynginx--repowebapppwa: 3.1. Notify Validation Status
+    deactivate compapigatewaynginx
+
+    alt 4. Approve Deployment to Staging (Condition: Model status is 'Validated')
+        Admin-repowebapppwa: 4. Approve Deployment to Staging
+        activate repowebapppwa
+        repowebapppwa-compapigatewaynginx: 5. POST /mlops/models/.../deploy (target='staging')
+        activate compapigatewaynginx
+        compapigatewaynginx-svcodoobackend: 5.1. approveDeployment(modelId, versionId, target='staging')
+        activate svcodoobackend
+        svcodoobackend-repodbpostgresql: 5.1.1. updateModelVersionStatus(modelId, versionId, status='PendingStagingDeployment')
+        activate repodbpostgresql
+        repodbpostgresql--svcodoobackend: Success
+        deactivate repodbpostgresql
+        note right of svcodoobackend: Asynchronous trigger to CI/CD pipeline.
+        svcodoobackend--svccicdpipeline: 5.1.2. triggerDeployment(modelId, versionId, target='staging', artifactPath)
+        activate svccicdpipeline
+        svcodoobackend--compapigatewaynginx: DeploymentTriggered
+        deactivate svcodoobackend
+        compapigatewaynginx--repowebapppwa: HTTP 202 Accepted
+        deactivate compapigatewaynginx
+        deactivate repowebapppwa
+    end
+
+    loop 6. Staging Deployment Process
+        note over svccicdpipeline: CI/CD Pipeline executes staging deployment.
+        svccicdpipeline-repostorageminio: 6.1. fetchArtifact(artifactPath)
+        activate repostorageminio
+        repostorageminio--svccicdpipeline: ModelArtifact
+        deactivate repostorageminio
+        svccicdpipeline-svccicdpipeline: 6.2. Build model serving container image
+        note right of svccicdpipeline: Interaction with a Private Container Registry (not an explicit participant in this diagram).
+        svccicdpipeline-svccicdpipeline: 6.3. Push image to Private Container Registry
+        svccicdpipeline-compk8scluster: 6.4. applyManifests(target='staging', modelId, versionId, imageName)
+        activate compk8scluster
+        compk8scluster--svccicdpipeline: K8sDeploymentStatus (async actualization)
+        deactivate compk8scluster
+    end
+
+    svccicdpipeline--svcodoobackend: 7. [Async Update] updateDeploymentStatus(modelId, target='staging', status, endpoint?)
+    deactivate svccicdpipeline
+    activate svcodoobackend
+    svcodoobackend-repodbpostgresql: 7.1. updateModelVersionStatus(status, stagingEndpointUrl?)
+    activate repodbpostgresql
+    repodbpostgresql--svcodoobackend: Success
+    deactivate repodbpostgresql
+    deactivate svcodoobackend
+
+    svcodoobackend--compapigatewaynginx: 8. [Async Update] stagingDeploymentUpdate(modelId, status, stagingEndpoint?)
+    activate compapigatewaynginx
+    compapigatewaynginx--repowebapppwa: 8.1. Notify Staging Deployment Status
+    deactivate compapigatewaynginx
+
+    note over Admin: External to this sequence; assumed successful for promotion.
+    Admin-Admin: 9. Performs Tests on Staging Environment
+
+    alt 10. Promote to Production (Condition: Staging deployment successful and tests passed.)
+        Admin-repowebapppwa: 10. Promote to Production (e.g., strategy: blue-green)
+        activate repowebapppwa
+        repowebapppwa-compapigatewaynginx: 11. POST /mlops/models/.../promote (target='production', strategy)
+        activate compapigatewaynginx
+        compapigatewaynginx-svcodoobackend: 11.1. approvePromotion(modelId, versionId, target='production', strategy)
+        activate svcodoobackend
+        svcodoobackend-repodbpostgresql: 11.1.1. updateModelVersionStatus(modelId, versionId, status='PendingProdDeployment')
+        activate repodbpostgresql
+        repodbpostgresql--svcodoobackend: Success
+        deactivate repodbpostgresql
+        note right of svcodoobackend: Asynchronous trigger to CI/CD pipeline.
+        svcodoobackend--svccicdpipeline: 11.1.2. triggerDeployment(modelId, versionId, target='production', strategy, imageName)
+        activate svccicdpipeline
+        svcodoobackend--compapigatewaynginx: PromotionTriggered
+        deactivate svcodoobackend
+        compapigatewaynginx--repowebapppwa: HTTP 202 Accepted
+        deactivate compapigatewaynginx
+        deactivate repowebapppwa
+    end
+
+    loop 12. Production Deployment Process
+        note over svccicdpipeline: CI/CD Pipeline executes production deployment.
+        svccicdpipeline-compk8scluster: 12.1. applyManifests(target='production', modelId, ..., strategy)
+        note right of compk8scluster: Uses specified deployment strategy (e.g., blue-green, canary).
+        activate compk8scluster
+        compk8scluster--svccicdpipeline: K8sDeploymentStatus (async actualization)
+        deactivate compk8scluster
+    end
+
+    svccicdpipeline--svcodoobackend: 13. [Async Update] updateDeploymentStatus(modelId, target='production', status, endpointUrl)
+    deactivate svccicdpipeline
+    activate svcodoobackend
+    svcodoobackend-repodbpostgresql: 13.1. updateModelVersionStatus(status='Live', prodEndpointUrl, isAvailable=true)
+    activate repodbpostgresql
+    repodbpostgresql--svcodoobackend: Success
+    deactivate repodbpostgresql
+    deactivate svcodoobackend
+
+    svcodoobackend--compapigatewaynginx: 14. [Async Update] productionDeploymentUpdate(modelId, status, prodEndpointUrl)
+    activate compapigatewaynginx
+    compapigatewaynginx--repowebapppwa: 14.1. Notify Production Deployment Status
+    deactivate compapigatewaynginx
+
+    note over svcodoobackend: Optional: Update configuration accessible by n8n with the new model's endpoint.
+    svcodoobackend-svcodoobackend: 15. [Internal] Register Model Endpoint for n8n consumption
+
+    note over svccicdpipeline: The CI/CD pipeline interacts with a private container registry to push and pull images, which is not an explicit participant in this diagram for brevity but is a critical step.
+    note over svcodoo_backend: Error handling (e.g., validation failure, deployment failure) would involve updating status in PostgreSQL and notifying Admin via WebApp. These alternative flows are implied.

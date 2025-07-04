@@ -1,0 +1,6 @@
+---
+# Handlers for minio_server role
+- name: Restart minio
+  ansible.builtin.service:
+    name: minio
+    state: restarted

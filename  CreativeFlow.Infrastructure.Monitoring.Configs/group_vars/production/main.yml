@@ -1,0 +1,10 @@
+# This file contains variables that are specific to the Production environment.
+# They will override any variables with the same name from group_vars/all/*.
+---
+environment: 'production'
+api_server_url: 'https://api.creativeflow.ai'
+
+# Example of overriding a common variable for production
+# ntp_servers:
+#   - 'prod-ntp1.internal'
+#   - 'prod-ntp2.internal'

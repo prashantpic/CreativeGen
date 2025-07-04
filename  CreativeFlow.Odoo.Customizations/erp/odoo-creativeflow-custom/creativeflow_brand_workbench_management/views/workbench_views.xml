@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Workbench Tree View -->
+    <record id="creativeflow_workbench_view_tree" model="ir.ui.view">
+        <field name="name">creativeflow.workbench.tree</field>
+        <field name="model">creativeflow.workbench</field>
+        <field name="arch" type="xml">
+            <tree string="Workbenches">
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="default_brand_kit_id"/>
+                <field name="cf_external_workbench_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Workbench Form View -->
+    <record id="creativeflow_workbench_view_form" model="ir.ui.view">
+        <field name="name">creativeflow.workbench.form</field>
+        <field name="model">creativeflow.workbench</field>
+        <field name="arch" type="xml">
+            <form string="Workbench">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="e.g. Q4 Marketing Campaign"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="default_brand_kit_id"/>
+                        </group>
+                        <group>
+                            <field name="cf_external_workbench_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="External Project References">
+                        <field name="cf_project_ids_external" nolabel="1" placeholder="[&quot;proj_123&quot;, &quot;proj_456&quot;]"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Workbench Search View -->
+    <record id="creativeflow_workbench_view_search" model="ir.ui.view">
+        <field name="name">creativeflow.workbench.search</field>
+        <field name="model">creativeflow.workbench</field>
+        <field name="arch" type="xml">
+            <search string="Search Workbenches">
+                <field name="name"/>
+                <field name="user_id"/>
+                <group expand="0" string="Group By">
+                    <filter string="Owner" name="group_by_user" context="{'group_by': 'user_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action for Workbenches -->
+    <record id="creativeflow_workbench_action" model="ir.actions.act_window">
+        <field name="name">Workbenches</field>
+        <field name="res_model">creativeflow.workbench</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Workbench.
+            </p><p>
+                Workbenches help you organize your creative projects.
+            </p>
+        </field>
+    </record>
+</odoo>

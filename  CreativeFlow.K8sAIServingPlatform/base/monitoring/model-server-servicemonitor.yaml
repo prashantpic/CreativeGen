@@ -1,0 +1,26 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: model-server-servicemonitor
+  namespace: creativeflow-ai-serving # Or the namespace where Prometheus Operator looks for ServiceMonitors
+  labels:
+    app.kubernetes.io/name: model-server-servicemonitor
+    # Add labels that Prometheus Operator uses to discover ServiceMonitors, e.g.:
+    # release: prometheus 
+spec:
+  namespaceSelector:
+    matchNames:
+    - creativeflow-ai-serving # Scrape services only in this namespace
+  selector:
+    matchLabels:
+      # Services must have this label to be scraped
+      creativeflow.ai/scrape-metrics: "true" 
+  endpoints:
+  - port: metrics # Assumes services expose metrics on a port named 'metrics'
+    interval: 30s
+    path: /metrics # Default metrics path, can be overridden per service
+  # Example for Triton, which exposes metrics on a different default port
+  - port: http-metrics 
+    interval: 30s
+    path: /metrics
+    honorLabels: true # Retain labels from the target

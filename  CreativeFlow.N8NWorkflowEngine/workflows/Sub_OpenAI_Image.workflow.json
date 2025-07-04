@@ -1,0 +1,119 @@
+{
+  "name": "Sub_OpenAI_Image",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const params = items[0].json.parameters;\n\nconst body = {\n  prompt: items[0].json.prompt,\n  model: \"dall-e-3\",\n  n: params.n_samples || 1,\n  quality: params.quality || \"standard\",\n  response_format: \"b64_json\",\n  size: params.size || \"1024x1024\",\n  style: params.style || \"vivid\"\n};\n\nitems[0].json.requestBody = body;\n\nreturn items;"
+      },
+      "name": "Prepare API Request",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        470,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "vaultSecretPath": "secret/creativeflow/ai_providers/openai/api_key",
+        "vaultSecretKey": "api_key",
+        "apiUrl": "https://api.openai.com/v1/images/generations",
+        "httpMethod": "POST",
+        "body": "={{$json.requestBody}}",
+        "apiKeyHeaderName": "Authorization",
+        "apiKeyPrefix": "Bearer ",
+        "options": {
+          "retries": 2,
+          "retryDelayMs": 500
+        }
+      },
+      "name": "Call OpenAI API (Secure)",
+      "type": "n8n-nodes-base.secureVaultApiCaller",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const response = items[0].json;\n\nif (response.error) {\n  throw new Error(response.error.message);\n}\n\n// Assuming response_format is b64_json\nconst result = {\n  status: 'success',\n  data: response.data.map(item => ({ b64_json: item.b64_json }))\n}\n\nreturn result;"
+      },
+      "name": "Parse Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        920,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const error = items[0].json;\n\nconst result = {\n  status: 'error',\n  errorMessage: error.message || 'An unknown error occurred during OpenAI API call.'\n}\n\nreturn result;"
+      },
+      "name": "Format Error",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        920,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Prepare API Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare API Request": {
+      "main": [
+        [
+          {
+            "node": "Call OpenAI API (Secure)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call OpenAI API (Secure)": {
+      "main": [
+        [
+          {
+            "node": "Parse Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "Format Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {}
+}

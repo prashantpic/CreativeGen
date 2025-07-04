@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: CreativeFlow
+  description: Role for common server configuration and hardening.
+  license: proprietary
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+  galaxy_tags:
+    - system
+    - security
+    - hardening
+
+dependencies: []

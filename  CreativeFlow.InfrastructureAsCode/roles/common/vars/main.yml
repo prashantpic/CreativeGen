@@ -1,0 +1,3 @@
+---
+# Variables for the common role
+# These have higher precedence than defaults/main.yml

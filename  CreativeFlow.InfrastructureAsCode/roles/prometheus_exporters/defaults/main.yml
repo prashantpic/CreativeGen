@@ -1,0 +1,18 @@
+---
+# Default variables for prometheus_exporters role
+
+# Node Exporter
+node_exporter_version: "1.7.0"
+node_exporter_user: "node_exporter"
+node_exporter_group: "node_exporter"
+node_exporter_port: 9100
+
+# PostgreSQL Exporter
+postgres_exporter_version: "0.15.0"
+postgres_exporter_user: "postgres_exporter"
+postgres_exporter_group: "postgres_exporter"
+postgres_exporter_port: 9187
+postgres_exporter_db_host: "localhost"
+postgres_exporter_db_port: 5432
+postgres_exporter_db_user: "monitoring"
+# postgres_exporter_db_pass MUST be defined in a vaulted file

@@ -1,0 +1,75 @@
+sequenceDiagram
+    actor "External Developer App" as extdeveloperapp
+    participant "API Gateway" as compapigatewaynginx
+    participant "Odoo Backend" as svcodooobackend
+    participant "RabbitMQ" as compmessagequeuerabbitmq
+    participant "n8n Workflow Engine" as svcn8nworkflowengine
+    participant "AI Model Serving (K8s)" as compk8scluster
+    participant "OpenAI Service" as extaiopenai
+    participant "MinIO Object Storage" as repostorageminio
+    participant "Notification Service" as svcnotificationservice
+
+    extdeveloperapp-compapigatewaynginx: 1. POST /v1/generate (APIKey, parameters)
+    activate compapigatewaynginx
+
+    compapigatewaynginx-compapigatewaynginx: 2. Validate API Key, Check Rate Limits/Quotas (REQ-018, SEC-005)
+    note over compapigatewaynginx: API Gateway handles API key validation, rate limiting, and quota checks as per REQ-018 and SEC-005. This may involve calls to an internal auth/quota service, abstracted here.
+
+    alt If API Key invalid / Quota exceeded (Step 2 Failure)
+        compapigatewaynginx--extdeveloperapp: 17. HTTP 400/401/403/429 (Error Response)
+    else API Key & Quota Valid
+        compapigatewaynginx-svcodooobackend: 3. Forward Validated Request (parameters)
+        activate svcodooobackend
+        note over svcodooobackend: Odoo Backend handles business logic, including deducting API usage costs from the API User's account or credits (REQ-018).
+        svcodooobackend-svcodooobackend: 4. Validate Request, Deduct API Usage Cost (REQ-018), Record Request, Generate JobID
+        svcodooobackend--compapigatewaynginx: 5. HTTP 202 Accepted (JobID)
+        compapigatewaynginx--extdeveloperapp: 6. HTTP 202 Accepted (JobID, status: pending)
+        
+        svcodooobackend-compmessagequeuerabbitmq: 7. Publish AIGenerationJobRequested (JobID, params)
+        deactivate svcodooobackend
+    end
+    deactivate compapigatewaynginx
+
+    compmessagequeuerabbitmq-svcn8nworkflowengine: 8. Consume AIGenerationJobRequested (JobID, params)
+    activate svcn8nworkflowengine
+    
+    svcn8nworkflowengine-svcn8nworkflowengine: 9. Orchestrate AI Generation Workflow
+    
+    svcn8nworkflowengine-compk8scluster: 9.1. Submit AI Processing Task (JobID, inputs)
+    activate compk8scluster
+    
+    compk8scluster-compk8scluster: 9.2. Schedule Pod & Run AI Model
+    compk8scluster-extaiopenai: 9.2.1. Request AI Generation (prompt, params)
+    activate extaiopenai
+    extaiopenai--compk8scluster: 9.2.2. Raw AI Generation Result
+    deactivate extaiopenai
+    
+    compk8scluster--svcn8nworkflowengine: 9.3. AI Task Result (raw asset data/temp path)
+    deactivate compk8scluster
+
+    svcn8nworkflowengine-repostorageminio: 9.4. Store Final Asset (raw asset data)
+    activate repostorageminio
+    repostorageminio--svcn8nworkflowengine: 9.5. Asset URL/Path
+    deactivate repostorageminio
+    
+    svcn8nworkflowengine-compmessagequeuerabbitmq: 10. Publish AIGenerationJobCompleted (JobID, assetURL, status: 'completed')
+    deactivate svcn8nworkflowengine
+    
+    compmessagequeuerabbitmq-svcodooobackend: 11. Consume AIGenerationJobCompleted
+    activate svcodooobackend
+    svcodooobackend-svcodooobackend: 12. Update Job Status & Asset Link in DB
+    deactivate svcodooobackend
+
+    alt Webhook configured for API User
+        compmessagequeuerabbitmq-svcnotificationservice: 13. Consume AIGenerationJobCompleted (if webhook configured)
+        activate svcnotificationservice
+        svcnotificationservice-svcnotificationservice: 14. Retrieve Webhook Configuration for API User
+        svcnotificationservice-extdeveloperapp: 15. POST Webhook (JobID, status: 'completed', assetURL) (REQ-017)
+        activate extdeveloperapp
+        extdeveloperapp--svcnotificationservice: 16. HTTP 200 OK (Webhook Acknowledged)
+        deactivate extdeveloperapp
+        deactivate svcnotificationservice
+    end
+
+    note over extdeveloperapp, svcnotificationservice: This sequence assumes a webhook is configured for completion notification. Alternatively, the Developer App can poll a status endpoint for the JobID (e.g., GET /v1/generate/{jobId}/status) as mentioned in REQ-017.
+    note over svcn8nworkflowengine, compmessagequeuerabbitmq: Error handling within n8n workflow (e.g., AI model failure) would result in an AIGenerationJobFailed event being published, leading to a different webhook payload or status update.

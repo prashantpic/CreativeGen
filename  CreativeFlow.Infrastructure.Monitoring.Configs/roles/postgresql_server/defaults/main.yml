@@ -1,0 +1,16 @@
+---
+# defaults file for postgresql_server
+pg_version: "15"
+pg_port: 5432
+pg_data_dir: "/var/lib/postgresql/{{ pg_version }}/main"
+pg_service_name: "postgresql"
+
+# Replication settings
+pg_replication_user: "replicator"
+pg_wal_level: "replica"
+pg_max_wal_senders: 10
+pg_wal_keep_segments: 32
+
+# PgBouncer settings
+pgbouncer_port: 6432
+pgbouncer_pool_mode: "session"

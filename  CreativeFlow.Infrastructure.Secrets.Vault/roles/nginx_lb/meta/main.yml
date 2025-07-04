@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  author: CreativeFlow AI
+  description: Role to configure Nginx as a reverse proxy and load balancer.
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - "jammy" # 22.04
+  galaxy_tags:
+    - web
+    - nginx
+    - proxy
+    - loadbalancer
+
+dependencies:
+  - role: common

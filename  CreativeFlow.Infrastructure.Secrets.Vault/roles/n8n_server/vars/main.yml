@@ -1,0 +1,8 @@
+---
+# Placeholder vars for the 'n8n_server' role.
+# Connection details to PostgreSQL, Redis, etc. should be defined here or in group_vars.
+# These should source secrets from Vault.
+# N8N_DB_POSTGRESDB_DATABASE: "n8n"
+# N8N_DB_POSTGRESDB_HOST: "prod-db-01.prod.creativeflow.ai"
+# N8N_DB_POSTGRESDB_USER: "n8n_user"
+# N8N_DB_POSTGRESDB_PASSWORD: "{{ n8n_db_password }}" # from vault

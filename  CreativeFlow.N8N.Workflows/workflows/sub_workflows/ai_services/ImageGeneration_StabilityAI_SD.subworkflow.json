@@ -1,0 +1,177 @@
+{
+  "name": "ImageGeneration_StabilityAI_SD",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "76d8b9b6-8a56-4b5c-b5f7-64cd778d91f8",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const inputs = $json;\n\n// Construct the request body for Stability AI API\nconst body = {\n  text_prompts: [\n    {\n      text: inputs.prompt,\n      weight: 1\n    }\n  ],\n  cfg_scale: inputs.cfg_scale || 7,\n  height: inputs.height || 1024,\n  width: inputs.width || 1024,\n  steps: inputs.steps || 30,\n  samples: inputs.samples || 1,\n  style_preset: inputs.style_preset || 'enhance'\n};\n\n// Add negative prompt if provided\nif (inputs.negative_prompt) {\n  body.text_prompts.push({\n    text: inputs.negative_prompt,\n    weight: -1\n  });\n}\n\nreturn { body };"
+      },
+      "id": "e7c10b7f-1d8f-495c-973e-3294317f227e",
+      "name": "Format API Request",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "notes": "Prepares the request body for the Stability AI API based on input parameters."
+    },
+    {
+      "parameters": {
+        "url": "=https://api.stability.ai/v1/generation/stable-diffusion-v1-6/text-to-image",
+        "authentication": "predefinedCredential",
+        "credentialType": "stabilityAiApi",
+        "sendBody": true,
+        "body": "={{$json.body}}",
+        "options": {}
+      },
+      "id": "b1b747d9-6c38-4e89-a29d-473d092d6e45",
+      "name": "Call StabilityAI SD API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        680,
+        300
+      ],
+      "notes": "Makes the POST request to the Stability AI API endpoint."
+    },
+    {
+      "parameters": {
+        "functionCode": "const responseData = $json.artifacts;\n\n// Extract image data from the response\nconst imageData = responseData.map(item => ({\n  b64_json: item.base64,\n  seed: item.seed,\n  finishReason: item.finishReason\n}));\n\nreturn { imageData };"
+      },
+      "id": "d80b7494-b778-4357-9d7a-75b2241d7d56",
+      "name": "Parse Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        900,
+        200
+      ],
+      "notes": "Extracts the generated image data (base64) from the successful API response."
+    },
+    {
+      "parameters": {
+        "values": {
+          "json": [
+            {
+              "key": "success",
+              "value": "=true"
+            },
+            {
+              "key": "imageData",
+              "value": "={{ $('Parse Response').item.json.imageData }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "22ff6739-16ac-40df-8b77-d77908b9845d",
+      "name": "Format Success Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        200
+      ],
+      "notes": "Structures the final output for a successful generation."
+    },
+    {
+      "parameters": {
+        "values": {
+          "json": [
+            {
+              "key": "success",
+              "value": "=false"
+            },
+            {
+              "key": "error",
+              "value": "={{ $json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c62f27a6-455b-43a1-9a4f-5dd5451a5c18",
+      "name": "Format Failure Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        900,
+        400
+      ],
+      "notes": "Structures the final output for a failed API call."
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Format API Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format API Request": {
+      "main": [
+        [
+          {
+            "node": "Call StabilityAI SD API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call StabilityAI SD API": {
+      "main": [
+        [
+          {
+            "node": "Parse Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "Format Failure Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Response": {
+      "main": [
+        [
+          {
+            "node": "Format Success Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "id": "klM89jkl21Lksd34",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

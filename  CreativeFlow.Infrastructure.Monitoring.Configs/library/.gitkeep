@@ -1,0 +1,3 @@
+# This directory is for custom Ansible modules.
+# Any Python scripts placed here can be used as modules in your playbooks.
+# This allows extending Ansible's core functionality for bespoke requirements.

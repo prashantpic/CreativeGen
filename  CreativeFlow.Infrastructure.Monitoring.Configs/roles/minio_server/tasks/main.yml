@@ -1,0 +1,17 @@
+---
+# Tasks to install and configure MinIO server cluster.
+# This is a placeholder implementation. A full implementation would handle:
+# - Downloading the MinIO binary.
+# - Creating a dedicated system user for MinIO.
+# - Creating data directories.
+# - Generating a systemd service file from a template.
+# - Configuring environment variables for access/secret keys and cluster endpoints.
+# - Starting and enabling the MinIO service.
+
+- name: Placeholder task for MinIO installation
+  ansible.builtin.debug:
+    msg: "This task would download and install the MinIO binary."
+
+- name: Placeholder task for MinIO configuration
+  ansible.builtin.debug:
+    msg: "This task would create configuration files and systemd services for MinIO."

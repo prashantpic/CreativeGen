@@ -1,0 +1,76 @@
+sequenceDiagram
+    actor "User" as User
+    participant "CreativeFlow.WebApp.PWA" as repowebapppwa
+    participant "API Gateway" as compapigatewaynginx
+    participant "Odoo Backend" as svcodoobackend
+
+    note over User,svcodoobackend: REQ-022: Interactive tutorials are initiated based on user's state (new user or new feature access). Progress and completion status are saved.
+
+    User-repowebapppwa: 1. Logs in for the first time or navigates to a new major feature area.
+    activate repowebapppwa
+    repowebapppwa--User: Displays initial page/feature view.
+
+    repowebapppwa-compapigatewaynginx: 2. Request: GET /api/v1/user/onboarding-status?featureId={featureid}
+    activate compapigatewaynginx
+    compapigatewaynginx-svcodoobackend: 2.1. Forward Request: GET /user/onboarding-status?featureId={featureid}
+    activate svcodoobackend
+    svcodoobackend--compapigatewaynginx: Response: OnboardingStatusResponse { onboardingNeeded: true/false, tutorialId: 'TUTID', lastCompletedStep: N }
+    deactivate svcodoobackend
+    compapigatewaynginx--repowebapppwa: Forward Response: OnboardingStatusResponse
+    deactivate compapigatewaynginx
+
+    alt onboardingStatus.onboardingNeeded is true
+        repowebapppwa-repowebapppwa: 3.1. Self: Initiate tutorial (tutorialId, lastCompletedStep)
+        repowebapppwa--User: 3.2. UI Update: Show tutorial overlay, highlight element for current step, display guidance.
+
+        loop While there are more tutorial steps AND user has not skipped
+            User-repowebapppwa: 3.3.1. Action: Interacts with current tutorial step (e.g., clicks button, enters text in guided field).
+            activate repowebapppwa
+            note right of repowebapppwa: The tutorial guides the user through core tasks. For example, 'first creative generation' would involve the tutorial highlighting the prompt input field, style selectors, and generation button within the WebApp UI.
+            repowebapppwa-repowebapppwa: 3.3.2. Self: Track step completion.
+            repowebapppwa-compapigatewaynginx: 3.3.3. Request: POST /api/v1/user/tutorial-progress (Payload: { tutorialId, completedStep, status: 'inprogress' })
+            activate compapigatewaynginx
+            compapigatewaynginx-svcodoobackend: 3.3.3.1. Forward Request: POST /user/tutorial-progress
+            activate svcodoobackend
+            svcodoobackend--compapigatewaynginx: Response: { success: true } (Progress saved)
+            deactivate svcodoobackend
+            compapigatewaynginx--repowebapppwa: Forward Response: { success: true }
+            deactivate compapigatewaynginx
+
+            opt User clicks "Skip Tutorial" during step guidance
+                User-repowebapppwa: 3.3.4.1. Action: Clicks 'Skip Tutorial' button.
+                activate repowebapppwa
+                repowebapppwa-compapigatewaynginx: 3.3.4.2. Request: POST /api/v1/user/tutorial-progress (Payload: { tutorialId, status: 'skipped' })
+                activate compapigatewaynginx
+                compapigatewaynginx-svcodoobackend: 3.3.4.2.1. Forward Request: POST /user/tutorial-progress
+                activate svcodoobackend
+                svcodoobackend--compapigatewaynginx: Response: { success: true } (Skipped status saved)
+                deactivate svcodoobackend
+                compapigatewaynginx--repowebapppwa: Forward Response: { success: true }
+                deactivate compapigatewaynginx
+                repowebapppwa--User: 3.3.4.3. UI Update: Hide tutorial overlay.
+                deactivate repowebapppwa
+                break BREAK LOOP
+            end
+
+            repowebapppwa--User: 3.3.5. UI Update: Show tutorial overlay for NEXT step, highlight UI, display guidance.
+            deactivate repowebapppwa
+        end
+
+        opt All tutorial steps completed successfully (not skipped)
+            repowebapppwa-compapigatewaynginx: 3.4.1. Request: POST /api/v1/user/tutorial-progress (Payload: { tutorialId, status: 'completed' })
+            activate compapigatewaynginx
+            compapigatewaynginx-svcodoobackend: 3.4.1.1. Forward Request: POST /user/tutorial-progress
+            activate svcodoobackend
+            svcodoobackend--compapigatewaynginx: Response: { success: true } (Completed status saved)
+            deactivate svcodoobackend
+            compapigatewaynginx--repowebapppwa: Forward Response: { success: true }
+            deactivate compapigatewaynginx
+            repowebapppwa--User: 3.4.2. UI Update: Tutorial complete message. Hide tutorial overlay.
+        end
+    end
+
+    User-repowebapppwa: 4. Action: Proceeds with normal platform usage.
+    note right of repowebapppwa: REQ-022: Users can also revisit tutorials from a dedicated help section. This would trigger a similar tutorial display flow, possibly without progress saving or by fetching tutorial content definitions.
+
+    deactivate repowebapppwa

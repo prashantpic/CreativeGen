@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "creativeflow_shared"
+version = "0.1.0"
+description = "Shared libraries for the CreativeFlow AI platform."
+authors = [
+  { name = "CreativeFlow AI Team", email = "dev@creativeflow.ai" },
+]
+license = { file = "LICENSE" }
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "pydantic>=2.7.4,<3.0.0",
+    "pydantic-settings>=2.0.0,<3.0.0",
+    "python-dotenv>=1.0.0,<2.0.0",
+    "python-json-logger>=2.0.0,<3.0.0",
+    "bleach>=6.0.0,<7.0.0",
+    "babel>=2.9.0,<3.0.0",
+    "sentry-sdk>=1.0.0,<2.0.0"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0", 
+    "pytest-cov>=4.0.0", 
+    "unittest-mock>=1.0.1"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["creativeflow_shared*"]
+exclude = ["tests*"]

@@ -1,0 +1,20 @@
+---
+# Role to install and configure Redis server.
+# This is a placeholder. A full implementation would include:
+# 1. Installing the redis-server package.
+# 2. Templating the redis.conf configuration file to set bind address,
+#    port, password (from vault), persistence options, etc.
+# 3. Ensuring the Redis service is started and enabled.
+# 4. (Optional) For clustering/sentinel setup, additional configuration would be needed.
+
+- name: (Placeholder) Install Redis server
+  ansible.builtin.debug:
+    msg: "TODO: Install the redis-server package."
+
+- name: (Placeholder) Deploy Redis configuration
+  ansible.builtin.debug:
+    msg: "TODO: Template out /etc/redis/redis.conf with settings like bind, port, and requirepass (from vault)."
+
+- name: (Placeholder) Ensure Redis service is started and enabled
+  ansible.builtin.debug:
+    msg: "TODO: Start and enable the redis-server service."

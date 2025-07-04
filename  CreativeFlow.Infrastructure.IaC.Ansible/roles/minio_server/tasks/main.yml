@@ -1,0 +1,25 @@
+# Role to install and configure MinIO server cluster.
+---
+- name: Placeholder task for downloading MinIO binary
+  ansible.builtin.debug:
+    msg: "TODO: Download MinIO binary from {{ minio_binary_url }}"
+
+- name: Placeholder task for creating MinIO user and group
+  ansible.builtin.debug:
+    msg: "TODO: Create user and group '{{ minio_user }}'"
+
+- name: Placeholder task for creating MinIO data and config directories
+  ansible.builtin.debug:
+    msg: "TODO: Create directories {{ minio_data_dirs }} and {{ minio_config_dir }}"
+
+- name: Placeholder task for deploying MinIO environment file
+  ansible.builtin.debug:
+    msg: "TODO: Template out /etc/default/minio with secrets from Vault"
+
+- name: Placeholder task for deploying MinIO systemd service
+  ansible.builtin.debug:
+    msg: "TODO: Template out systemd service file for MinIO"
+
+- name: Placeholder task for starting and enabling MinIO service
+  ansible.builtin.debug:
+    msg: "TODO: Start and enable the minio.service"

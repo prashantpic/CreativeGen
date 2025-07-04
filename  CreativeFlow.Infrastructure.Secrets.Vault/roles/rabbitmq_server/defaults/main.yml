@@ -1,0 +1,5 @@
+---
+# Placeholder defaults for the 'rabbitmq_server' role.
+rabbitmq_version: "3.12"
+rabbitmq_user: "rabbitmq"
+rabbitmq_erlang_cookie: "THIS_MUST_BE_A_SECRET_FROM_VAULT" # IMPORTANT: Must be identical across all cluster nodes

@@ -1,0 +1,5 @@
+---
+# Placeholder vars for 'minio_server' role.
+# Access and secret keys must be defined in ansible-vault encrypted files.
+# minio_root_user: "defined_in_vault"
+# minio_root_password: "defined_in_vault"

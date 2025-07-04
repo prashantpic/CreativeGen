@@ -1,0 +1,6 @@
+---
+# Placeholder handler for the 'odoo_server' role.
+- name: restart odoo
+  ansible.builtin.service:
+    name: odoo
+    state: restarted

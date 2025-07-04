@@ -1,0 +1,3 @@
+# Variables for RabbitMQ. Sensitive data like the Erlang cookie and user passwords
+# should be defined in ansible-vault encrypted files.
+---

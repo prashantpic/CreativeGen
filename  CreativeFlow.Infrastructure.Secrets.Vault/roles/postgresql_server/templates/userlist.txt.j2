@@ -1,0 +1,6 @@
+# This file is managed by Ansible. Do not edit manually.
+# userlist.txt for PgBouncer
+# "username" "password"
+{% for user in pg_users | default([]) %}
+"{{ user.name }}" "{{ user.password }}"
+{% endfor %}

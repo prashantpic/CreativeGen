@@ -1,0 +1,23 @@
+---
+# Role to install and configure a Redis server.
+
+- name: Install Redis server package
+  ansible.builtin.apt:
+    name: redis-server
+    state: present
+    update_cache: yes
+
+- name: Deploy Redis configuration file
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: /etc/redis/redis.conf
+    owner: redis
+    group: redis
+    mode: '0644'
+  notify: Restart redis
+
+- name: Ensure Redis service is started and enabled
+  ansible.builtin.service:
+    name: redis-server
+    state: started
+    enabled: yes

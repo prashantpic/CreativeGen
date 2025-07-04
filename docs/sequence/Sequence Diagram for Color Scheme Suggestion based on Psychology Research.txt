@@ -1,0 +1,42 @@
+sequenceDiagram
+    actor "CreativeFlow WebApp" as repowebapppwa
+    participant "API Gateway" as compapigatewaynginx
+    participant "Odoo Backend" as svcodoodbackend
+    participant "n8n Workflow Engine" as svcn8nworkflowengine
+    participant "PostgreSQL DB (Knowledge Base)" as repodbpostgresql
+    participant "AI Model Serving Platform (K8s)" as compk8scluster
+
+    note over repowebapppwa: User initiates color scheme suggestion from the creative editor (REQ-006, UI-002), providing parameters like industry, target emotion, or brand guidelines.
+    repowebapppwa--compapigatewaynginx: 1. POST /api/v1/ai/color-suggestions (params: industry, emotion, brandGuidelines)
+    activate compapigatewaynginx
+
+    compapigatewaynginx--svcodoodbackend: 2. RequestColorSuggestions(params)
+    activate svcodoodbackend
+
+    note right of svcodoodbackend: Odoo Backend orchestrates the suggestion generation. The call to n8n (step 3) is internally asynchronous (e.g., via RabbitMQ job queue). Odoo awaits completion or callback from n8n before responding to the initial request for this simplified flow. For long operations, a full async pattern with WebSockets/polling would be used for WebApp updates.
+    svcodoodbackend--svcn8nworkflowengine: 3. ExecuteColorSuggestionWorkflow(params, requestId)
+    activate svcn8nworkflowengine
+
+    svcn8nworkflowengine--repodbpostgresql: 3.1. QueryKnowledgeBase(industry, emotion, brandContext)
+    activate repodbpostgresql
+    repodbpostgresql--svcn8nworkflowengine: [KnowledgeBaseResults (rules/palettes)]
+    deactivate repodbpostgresql
+
+    svcn8nworkflowengine--compk8scluster: 3.2. InvokeColorMLModel(MLinputparams)
+    activate compk8scluster
+    compk8scluster--svcn8nworkflowengine: [MLModelResults (palettes)]
+    deactivate compk8scluster
+
+    note right of svcn8nworkflowengine: n8n combines results from its knowledge base query and the ML model output to form the final suggestions.
+    svcn8nworkflowengine--svcn8nworkflowengine: 3.3. Combine KB and ML results to generate final palette suggestions
+
+    svcn8nworkflowengine--svcodoodbackend: 4. ReturnCombinedPaletteSuggestions(finalPalettes, requestId)
+    deactivate svcn8nworkflowengine
+
+    svcodoodbackend--compapigatewaynginx: 5. 200 OK (suggestedPalettes)
+    deactivate svcodoodbackend
+
+    compapigatewaynginx--repowebapppwa: 6. 200 OK (suggestedPalettes)
+    deactivate compapigatewaynginx
+
+    repowebapppwa--repowebapppwa: 7. Display palette suggestions to user; user applies or customizes.

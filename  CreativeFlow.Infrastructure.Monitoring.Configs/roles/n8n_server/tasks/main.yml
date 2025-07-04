@@ -1,0 +1,21 @@
+---
+# Role to install and configure n8n application and dependencies.
+# This is a placeholder implementation. A full implementation would handle:
+# - Installing Node.js.
+# - Installing n8n using npm.
+# - Creating a dedicated system user.
+# - Creating configuration files/environment variables for database connections, etc.
+# - Setting up a systemd service to run n8n.
+# - Configuring a reverse proxy (likely in the nginx_lb role).
+
+- name: Placeholder task for Node.js installation
+  ansible.builtin.debug:
+    msg: "This task would install the required version of Node.js."
+
+- name: Placeholder task for n8n installation
+  ansible.builtin.debug:
+    msg: "This task would install n8n via npm."
+
+- name: Placeholder task for n8n configuration
+  ansible.builtin.debug:
+    msg: "This task would set up systemd services and configure n8n."

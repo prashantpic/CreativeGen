@@ -1,0 +1,4 @@
+---
+# Role-specific variables for n8n.
+# Define database connection details and other configurations here.
+# Sensitive values (like DB passwords or encryption keys) should be in vaulted files.

@@ -1,0 +1,12 @@
+---
+- name: Deploy Node Exporter
+  ansible.builtin.include_tasks: node_exporter.yml
+
+- name: Deploy PostgreSQL Exporter
+  ansible.builtin.include_tasks: postgres_exporter.yml
+  when: "'db_servers' in group_names"
+
+# Add includes for other exporters here, e.g.:
+# - name: Deploy RabbitMQ Exporter
+#   ansible.builtin.include_tasks: rabbitmq_exporter.yml
+#   when: "'rabbitmq_servers' in group_names"

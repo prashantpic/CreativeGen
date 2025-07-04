@@ -1,0 +1,33 @@
+# Role to deploy and configure an Odoo application server.
+---
+- name: Placeholder task for installing Odoo dependencies
+  ansible.builtin.debug:
+    msg: "TODO: Install Python, pip, PostgreSQL client, wkhtmltopdf, and other system libraries required by Odoo"
+
+- name: Placeholder task for creating Odoo user
+  ansible.builtin.debug:
+    msg: "TODO: Create system user '{{ odoo_user }}'"
+
+- name: Placeholder task for deploying Odoo source code
+  ansible.builtin.debug:
+    msg: "TODO: Clone Odoo from Git repository at version {{ odoo_version }} into {{ odoo_home }}"
+
+- name: Placeholder task for installing Python dependencies
+  ansible.builtin.debug:
+    msg: "TODO: Run 'pip install -r requirements.txt' in a Python virtual environment"
+
+- name: Placeholder task for deploying Odoo configuration file
+  ansible.builtin.debug:
+    msg: "TODO: Template out odoo.conf with database credentials and other settings from Vault"
+
+- name: Placeholder task for creating log and data directories
+  ansible.builtin.debug:
+    msg: "TODO: Create log directory and ensure filestore path is writeable by odoo user"
+
+- name: Placeholder task for deploying Odoo systemd service
+  ansible.builtin.debug:
+    msg: "TODO: Template out systemd service file for Odoo"
+
+- name: Placeholder task for starting and enabling Odoo service
+  ansible.builtin.debug:
+    msg: "TODO: Start and enable the odoo.service"

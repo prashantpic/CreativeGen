@@ -1,0 +1,31 @@
+---
+pg_version: "15"
+pg_packages:
+  - "postgresql-{{ pg_version }}"
+  - "postgresql-client-{{ pg_version }}"
+pg_service_name: "postgresql"
+pg_port: 5432
+pg_data_dir: "/var/lib/postgresql/{{ pg_version }}/main"
+pg_config_path: "/etc/postgresql/{{ pg_version }}/main"
+
+pg_default_db_owner: "postgres"
+pg_databases: []
+# Example:
+# pg_databases:
+#   - { name: 'odoo_db', owner: 'odoo_user' }
+#   - { name: 'n8n_db', owner: 'n8n_user' }
+
+pg_users: []
+# Example (passwords should be in Vault):
+# pg_users:
+#  - { name: 'odoo_user', password: '{{ odoo_db_password }}' }
+#  - { name: 'n8n_user', password: '{{ n8n_db_password }}' }
+
+# Replication settings
+pg_replication_user: "replicator"
+
+# PgBouncer settings
+pgbouncer_listen_port: 6432
+pgbouncer_pool_mode: session
+pgbouncer_max_client_conn: 100
+pgbouncer_default_pool_size: 20

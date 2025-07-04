@@ -1,0 +1,3 @@
+# Variables for Odoo server. Sensitive data like the master password and
+# database password should be defined in ansible-vault encrypted files.
+---

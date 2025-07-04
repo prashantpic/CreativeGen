@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  author: CreativeFlow AI
+  description: Role to install and configure PostgreSQL servers, including replication.
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - "jammy" # 22.04
+  galaxy_tags:
+    - database
+    - postgresql
+    - sql
+    - replication
+
+dependencies:
+  - role: common

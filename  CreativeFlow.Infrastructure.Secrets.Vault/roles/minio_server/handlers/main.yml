@@ -1,0 +1,6 @@
+---
+# Placeholder handler for the 'minio_server' role.
+- name: restart minio
+  ansible.builtin.service:
+    name: minio
+    state: restarted

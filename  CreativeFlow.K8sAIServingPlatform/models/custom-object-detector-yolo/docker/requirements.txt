@@ -1,0 +1,21 @@
+# This file lists Python dependencies required specifically for the YOLO model,
+# on top of the base FastAPI requirements.
+
+# Core ML/DL framework
+torch>=2.0.0,<2.3.0
+torchvision>=0.15.0,<0.18.0
+
+# Library for easy use of YOLO models.
+# This single package is often sufficient for recent YOLO versions (v8+).
+# For older versions (like v5), you might need to install from a git repo
+# or a different set of packages.
+ultralytics>=8.0.0,<8.2.0
+
+# Required for image processing (reading, resizing, etc.)
+opencv-python-headless>=4.5.0,<4.10.0
+Pillow>=9.0.0,<10.4.0
+
+# Note: Review dependencies based on the exact YOLO version and how it's loaded.
+# If using `torch.hub.load('ultralytics/yolov5', ...)` you might need additional
+# dependencies like `pyyaml` and `pandas`. The `ultralytics` package usually
+# handles these dependencies itself.

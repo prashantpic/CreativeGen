@@ -1,0 +1,59 @@
+# Defines Prometheus alerting rules based on key business process metrics and KPIs.
+# These alerts are intended to notify business and product stakeholders of issues.
+# Requirement(s) Addressed: DEP-005, QA-003, QA-003.1
+
+groups:
+  - name: business_process_alerts
+    rules:
+      - alert: LowRegistrationSuccessRate
+        expr: sum(rate(user_registration_success_total[1h])) / sum(rate(user_registration_attempts_total[1h])) < 0.95
+        for: 30m
+        labels:
+          severity: critical
+          business_process: user_registration
+        annotations:
+          summary: "Low User Registration Success Rate"
+          description: "User registration success rate has fallen below 95% in the last hour. Current rate is {{ $value | humanizePercentage }}. This could indicate a problem with the sign-up form or backend service."
+          runbook_url: "<RUNBOOK_URL_REGISTRATION_ISSUES>"
+
+      - alert: HighPaymentFailureRate
+        expr: sum(rate(payment_failure_total[1h])) / sum(rate(payment_attempts_total[1h])) > 0.10
+        for: 1h
+        labels:
+          severity: critical
+          business_process: payment_processing
+        annotations:
+          summary: "High Payment Failure Rate"
+          description: "Payment failure rate is above 10% in the last hour. Current rate is {{ $value | humanizePercentage }}. This may indicate an issue with the payment provider or our integration."
+          runbook_url: "<RUNBOOK_URL_PAYMENT_ISSUES>"
+
+      - alert: AIGenerationSuccessRateLow
+        expr: sum(rate(ai_generation_completed_total{status="success"}[5m])) / sum(rate(ai_generation_attempted_total[5m])) < 0.98
+        for: 15m
+        labels:
+          severity: warning
+          business_process: ai_generation
+          kpi_id: "KPI-004"
+        annotations:
+          summary: "AI Generation Success Rate Below Target"
+          description: "The success rate for AI creative generation has dropped below the 98% target (KPI-004). Current rate is {{ $value | humanizePercentage }}. This could impact user experience."
+          runbook_url: "<RUNBOOK_URL_AI_GENERATION_FAILURES>"
+
+      - alert: AnomalousCreditConsumption
+        expr: |
+          sum(rate(user_credits_consumed_total[1h])) by (user_id)
+          >
+          (
+            avg_over_time(sum(rate(user_credits_consumed_total[1h])) by (user_id) [1w:1h])
+            + 2 * stddev_over_time(sum(rate(user_credits_consumed_total[1h])) by (user_id) [1w:1h])
+          )
+          and
+          sum(rate(user_credits_consumed_total[1h])) by (user_id) > 100 # Avoid alerts for very low usage
+        for: 1h
+        labels:
+          severity: warning
+          business_process: credit_consumption
+        annotations:
+          summary: "Anomalous credit consumption for user {{ $labels.user_id }}"
+          description: "User {{ $labels.user_id }} is consuming credits at a rate that is more than 2 standard deviations above their weekly average. This could indicate a runaway script or abuse."
+          runbook_url: "<RUNBOOK_URL_CREDIT_ANOMALY>"

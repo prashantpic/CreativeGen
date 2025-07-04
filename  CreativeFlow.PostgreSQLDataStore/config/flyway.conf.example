@@ -1,0 +1,41 @@
+# ------------------------------------------------------------------------------------
+# CreativeFlow.PostgreSQLDataStore - Flyway Configuration Example
+#
+# This file provides a template for configuring the Flyway database migration tool.
+# In a real environment, sensitive values like passwords should be supplied via
+# environment variables or a secrets management system, not stored in this file.
+# ------------------------------------------------------------------------------------
+
+# flyway.url: The JDBC URL to connect to the database.
+# Format: jdbc:postgresql://<host>:<port>/<database>
+flyway.url=jdbc:postgresql://localhost:5432/creativeflow_db
+
+# flyway.user: The user to connect to the database.
+# This user needs permissions to create/alter schemas, tables, and other objects.
+flyway.user=flyway_user
+
+# flyway.password: The password for the database user.
+# IMPORTANT: DO NOT COMMIT REAL PASSWORDS. Use a placeholder and inject the actual
+# password at runtime from a secure source (e.g., environment variable, Vault).
+flyway.password=__FLYWAY_PASSWORD_PLACEHOLDER__
+
+# flyway.schemas: Comma-separated list of schemas managed by Flyway.
+flyway.schemas=public
+
+# flyway.locations: The locations to scan for migration scripts.
+# Can be on the filesystem or classpath.
+flyway.locations=filesystem:src/migrations
+
+# flyway.baselineOnMigrate: If set to true, Flyway will automatically 'baseline'
+# an existing database (create the schema history table and mark it with the
+# baseline version) if it's not empty. This is useful for applying Flyway to
+# pre-existing databases.
+flyway.baselineOnMigrate=true
+
+# flyway.baselineVersion: The version to tag an existing schema with when executing
+# a baseline. '0' is a safe default to ensure all V1+ migrations are applied.
+flyway.baselineVersion=0
+
+# flyway.baselineDescription: The description to tag an existing schema with when
+# executing a baseline.
+flyway.baselineDescription=Baseline existing schema

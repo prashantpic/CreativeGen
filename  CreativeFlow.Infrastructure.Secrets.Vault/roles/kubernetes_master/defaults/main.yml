@@ -1,0 +1,16 @@
+---
+# Default variables for the 'kubernetes_master' role
+
+# Extra arguments for 'kubeadm init'
+kubeadm_init_extra_args: ""
+
+# CNI (Container Network Interface) manifest URL. Calico is a common choice.
+cni_manifest_url: "https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml"
+
+# Kubernetes API server advertise address.
+# Defaults to the host's default IPv4 address.
+k8s_api_advertise_address: "{{ ansible_default_ipv4.address }}"
+
+# The virtual IP for the control plane for HA setups.
+# This should be set in group_vars for the k8s_masters group.
+# k8s_control_plane_endpoint: "vip.k8s.prod.creativeflow.ai:6443"

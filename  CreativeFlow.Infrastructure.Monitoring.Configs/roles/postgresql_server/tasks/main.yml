@@ -1,0 +1,126 @@
+---
+- name: Install PostgreSQL packages
+  ansible.builtin.apt:
+    name:
+      - "postgresql-{{ pg_version }}"
+      - "postgresql-client-{{ pg_version }}"
+      - "pgbouncer"
+    state: present
+    update_cache: true
+
+- name: Install Python dependencies for PostgreSQL modules
+  ansible.builtin.apt:
+    name: python3-psycopg2
+    state: present
+
+- name: Configure postgresql.conf
+  ansible.builtin.template:
+    src: postgresql.conf.j2
+    dest: "/etc/postgresql/{{ pg_version }}/main/postgresql.conf"
+    owner: postgres
+    group: postgres
+    mode: '0644'
+  notify: restart postgresql
+
+- name: Configure pg_hba.conf for client authentication
+  ansible.builtin.template:
+    src: pg_hba.conf.j2
+    dest: "/etc/postgresql/{{ pg_version }}/main/pg_hba.conf"
+    owner: postgres
+    group: postgres
+    mode: '0640'
+  notify: restart postgresql
+
+- name: Ensure PostgreSQL service is running and enabled
+  ansible.builtin.service:
+    name: "{{ pg_service_name }}"
+    state: started
+    enabled: true
+
+- name: Create PostgreSQL databases
+  community.postgresql.postgresql_db:
+    name: "{{ item.name }}"
+    state: present
+  loop: "{{ db_databases | default([]) }}"
+  become: true
+  become_user: postgres
+  when: "'db_primary' in group_names"
+
+- name: Create PostgreSQL users
+  community.postgresql.postgresql_user:
+    name: "{{ item.name }}"
+    password: "{{ item.password }}" # Note: password should be vaulted
+    state: present
+    db: "{{ item.db | default(omit) }}"
+    priv: "{{ item.priv | default(omit) }}"
+  loop: "{{ db_users | default([]) }}"
+  become: true
+  become_user: postgres
+  when: "'db_primary' in group_names"
+  no_log: true
+
+- name: Create replication user on primary
+  community.postgresql.postgresql_user:
+    name: "{{ pg_replication_user }}"
+    password: "{{ pg_replication_password }}" # This must be in a vaulted file
+    role_attr_flags: "REPLICATION,LOGIN"
+    state: present
+  become: true
+  become_user: postgres
+  when: "'db_primary' in group_names"
+  no_log: true
+
+- name: Configure replica server
+  ansible.builtin.block:
+    - name: Stop PostgreSQL on replica to configure
+      ansible.builtin.service:
+        name: "{{ pg_service_name }}"
+        state: stopped
+
+    - name: Remove existing data directory on replica
+      ansible.builtin.file:
+        path: "{{ pg_data_dir }}"
+        state: absent
+
+    - name: Base backup from primary to replica
+      ansible.builtin.command: >
+        pg_basebackup -h {{ hostvars[groups['db_primary'][0]].inventory_hostname }} -D {{ pg_data_dir }} -U {{ pg_replication_user }} -vP --wal-method=stream
+      environment:
+        PGPASSWORD: "{{ pg_replication_password }}"
+      become: true
+      become_user: postgres
+      changed_when: true
+
+    - name: Create standby.signal file on replica
+      ansible.builtin.file:
+        path: "{{ pg_data_dir }}/standby.signal"
+        state: touch
+        owner: postgres
+        group: postgres
+        mode: '0640'
+
+    - name: Update primary_conninfo in postgresql.auto.conf
+      ansible.builtin.lineinfile:
+        path: "{{ pg_data_dir }}/postgresql.auto.conf"
+        line: "primary_conninfo = 'host={{ hostvars[groups['db_primary'][0]].inventory_hostname }} port={{ pg_port }} user={{ pg_replication_user }} password={{ pg_replication_password }}'"
+        create: true
+        owner: postgres
+        group: postgres
+        mode: '0600'
+  when: "'db_replicas' in group_names"
+  no_log: true
+
+- name: Configure PgBouncer
+  ansible.builtin.template:
+    src: pgbouncer.ini.j2
+    dest: /etc/pgbouncer/pgbouncer.ini
+    owner: postgres
+    group: postgres
+    mode: '0644'
+  notify: restart pgbouncer
+
+- name: Ensure PgBouncer service is started and enabled
+  ansible.builtin.service:
+    name: pgbouncer
+    state: started
+    enabled: true

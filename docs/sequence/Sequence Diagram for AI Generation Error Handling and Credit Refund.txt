@@ -1,0 +1,89 @@
+sequenceDiagram
+    actor "WebApp (PWA)" as repowebapppwa
+    participant "API Gateway" as compapigatewaynginx
+    participant "Odoo Backend" as svcodoobackend
+    participant "n8n Workflow Engine" as svcn8nworkflowengine
+    participant "External AI Service (e.g., OpenAI)" as extaiopenai
+    participant "K8s AI Cluster (Custom Model)" as compk8scluster
+    participant "Notification Service" as svcnotificationservice
+    participant "Alertmanager" as svcalertmanager
+
+    repowebapppwa-compapigatewaynginx: 1. POST /api/v1/generations (Initiate AI Generation)
+    activate compapigatewaynginx
+    compapigatewaynginx-svcodoobackend: 2. Forward POST /generations
+    activate svcodoobackend
+    svcodoobackend--compapigatewaynginx: 2. 202 Accepted (RequestID)
+    compapigatewaynginx--repowebapppwa: 1. 202 Accepted (RequestID)
+    deactivate compapigatewaynginx
+
+    note over svcodoobackend: User initiates generation. Odoo validates and dispatches job to n8n via RabbitMQ.
+    note over svcodoobackend: Odoo validates request and publishes job to n8n (REQ-3-010).
+    svcodoobackend-svcn8nworkflowengine: 3. [Async via RabbitMQ] Publish AIGenerationJobRequested (jobDetails, generationRequestId)
+    activate svcn8nworkflowengine
+    deactivate svcodoobackend
+
+    svcn8nworkflowengine-svcn8nworkflowengine: 4. Consume AIGenerationJobRequested
+
+    alt AI Call to External Service
+        note over svcn8nworkflowengine: n8n attempts to call an AI service (external or internal K8s model) which returns an error.
+        note over svcn8nworkflowengine: This is one path for AI processing. Internal K8s model is another.
+        svcn8nworkflowengine-extaiopenai: 5.1 POST /ai/model/invoke (prompt, params)
+        activate extaiopenai
+        extaiopenai--svcn8nworkflowengine: 5.1 [Error Response] e.g., 503 Service Unavailable, 400 Invalid Input
+        deactivate extaiopenai
+    else AI Call to Internal K8s Model
+        note over svcn8nworkflowengine: Alternative AI processing path.
+        svcn8nworkflowengine-compk8scluster: 5.2 POST /k8s/job/submit (prompt, params)
+        activate compk8scluster
+        compk8scluster--svcn8nworkflowengine: 5.2 [Error Response] e.g., Model Timeout, Pod Error
+        deactivate compk8scluster
+    end
+
+    note over svcn8nworkflowengine: Error received from either 5.1 or 5.2
+    svcn8nworkflowengine-svcn8nworkflowengine: 6. Catch AI Processing Error (REQ-007.1)
+    svcn8nworkflowengine-svcn8nworkflowengine: 7. Log detailed error information
+
+    opt Determine Error Type: System-side/Transient AI Model Error
+        note over svcn8nworkflowengine: Conditional logic based on error type determines credit deduction and user notification message.
+        note over svcn8nworkflowengine: n8n informs Odoo about the system-side failure.
+        svcn8nworkflowengine-svcodoobackend: 8.1 [Async] POST /ai/generation/failure (errorType, generationRequestId, isSystemError=true)
+        activate svcodoobackend
+        note right of svcodoobackend: If generation failed due to system-side issues or transient AI model problems, credits are NOT deducted.
+        note over svcodoobackend: Critical step for fair credit management.
+        svcodoobackend-svcodoobackend: 8.2 Process AI Failure: Ensure NO credit deduction for this attempt (REQ-007.1)
+        svcodoobackend-svcodoobackend: 8.3 Log credit non-deduction details
+        deactivate svcodoobackend
+        note over svcn8nworkflowengine: REQ-007.1: Inform user, suggest retry.
+        svcn8nworkflowengine-svcnotificationservice: 8.4 [Async] POST /notify/generation-error (userMsg, generationRequestId, retrySuggestion=true)
+        activate svcnotificationservice
+        svcnotificationservice-repowebapppwa: 8.5 [WebSocket] sendGenerationErrorUpdate (friendlyMessage: "AI processing failed. Please try again or adjust your parameters.")
+        deactivate svcnotificationservice
+    end
+
+    opt Determine Error Type: Invalid User Input (after warnings)
+        note over svcn8nworkflowengine: n8n informs Odoo about the user input error.
+        svcn8nworkflowengine-svcodoobackend: 9.1 [Async] POST /ai/generation/failure (errorType, generationRequestId, isUserError=true)
+        activate svcodoobackend
+        note right of svcodoobackend: If generation failed due to clearly invalid user input (after warnings), credit policy applies.
+        note over svcodoobackend: Credit deduction might occur as per platform policy for invalid inputs.
+        svcodoobackend-svcodoobackend: 9.2 Process AI Failure: Apply credit deduction policy (REQ-016) if defined for user errors.
+        svcodoobackend-svcodoobackend: 9.3 Log credit deduction (if applicable)
+        deactivate svcodoobackend
+        note over svcn8nworkflowengine: REQ-007.1: Inform user with specific guidance.
+        svcn8nworkflowengine-svcnotificationservice: 9.4 [Async] POST /notify/generation-error (userMsg, generationRequestId, specificGuidance=true)
+        activate svcnotificationservice
+        svcnotificationservice-repowebapppwa: 9.5 [WebSocket] sendGenerationErrorUpdate (friendlyMessage: "Invalid input detected. Please review your prompt/parameters.")
+        deactivate svcnotificationservice
+    end
+
+    opt Persistent / High-Frequency Error Detected
+        note over svcn8nworkflowengine: REQ-007.1, QA-003.1: Alerting admins to systemic issues.
+        note over svcn8nworkflowengine: n8n or Odoo can trigger this based on their observation scope.
+        svcn8nworkflowengine-svcalertmanager: 10.1 POST /api/v1/alerts (alertDetails: errorType, frequency, service)
+        activate svcalertmanager
+        note over svcalertmanager: Persistent or high-frequency AI errors trigger alerts to administrators for investigation.
+        svcalertmanager-svcalertmanager: 10.2 Process alert and notify administrators
+        deactivate svcalertmanager
+    end
+
+    deactivate svcn8nworkflow_engine

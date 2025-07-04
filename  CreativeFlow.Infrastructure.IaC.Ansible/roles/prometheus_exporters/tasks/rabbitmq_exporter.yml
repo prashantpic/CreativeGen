@@ -1,0 +1,5 @@
+---
+# Placeholder tasks for rabbitmq_exporter
+- name: Placeholder task for rabbitmq_exporter
+  ansible.builtin.debug:
+    msg: "TODO: Install rabbitmq_exporter, configure it with RabbitMQ credentials from Vault, and set up a systemd service."

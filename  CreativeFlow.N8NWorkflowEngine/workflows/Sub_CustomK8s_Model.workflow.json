@@ -1,0 +1,115 @@
+{
+  "name": "Sub_CustomK8s_Model",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const modelId = items[0].json.modelId; // e.g., 'my-custom-sd:v1.2'\nconst inputData = items[0].json.inputData; // e.g., { prompt: 'a cat' }\nconst jobName = `creative-gen-${modelId.split(':')[0]}-${Date.now()}`.toLowerCase().replace(/[^a-z0-9-]/g, '');\n\nconst jobManifest = {\n    \"apiVersion\": \"batch/v1\",\n    \"kind\": \"Job\",\n    \"metadata\": {\n        \"name\": jobName,\n        \"namespace\": \"ai-jobs\"\n    },\n    \"spec\": {\n        \"template\": {\n            \"spec\": {\n                \"containers\": [\n                    {\n                        \"name\": \"inference-worker\",\n                        \"image\": `our-registry.io/custom-models/${modelId}`,\n                        \"env\": [\n                            {\n                                \"name\": \"INPUT_PROMPT\",\n                                \"value\": inputData.prompt\n                            },\n                            {\n                                \"name\": \"OUTPUT_PATH\",\n                                \"value\": `/outputs/result.png`\n                            }\n                            // In a real scenario, this would mount a PVC\n                            // or use cloud storage credentials passed as secrets.\n                        ]\n                    }\n                ],\n                \"restartPolicy\": \"Never\"\n            }\n        },\n        \"backoffLimit\": 2,\n        \"ttlSecondsAfterFinished\": 300\n    }\n};\n\nitems[0].json.jobManifest = jobManifest;\n\nreturn items;"
+      },
+      "name": "Prepare Job Request",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        470,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "namespace": "ai-jobs",
+        "jobManifest": "={{$json.jobManifest}}",
+        "options": {
+          "waitForCompletion": true,
+          "timeoutSeconds": 600,
+          "retrieveLogs": true
+        }
+      },
+      "name": "Submit K8s Job",
+      "type": "n8n-nodes-base.k8sJobOrchestrator",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const jobResult = items[0].json;\n\nif (jobResult.jobStatus !== 'succeeded') {\n  throw new Error(`K8s job failed: ${jobResult.errorMessage}`);\n}\n\n// In a real implementation, the job would write to a shared volume (PVC) or S3,\n// and the resultData would be a path to that output.\n// Here we simulate parsing the result from logs.\nconst result = {\n  status: 'success',\n  data: {\n    inference_result: jobResult.resultData.logs, // or a path like jobResult.resultData.outputPath\n  }\n};\n\nreturn result;"
+      },
+      "name": "Parse Result",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        920,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const error = items[0].json;\n\nconst result = {\n  status: 'error',\n  errorMessage: error.message || 'An unknown error occurred during K8s job execution.'\n};\n\nreturn result;"
+      },
+      "name": "Format Error",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        920,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Prepare Job Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Job Request": {
+      "main": [
+        [
+          {
+            "node": "Submit K8s Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit K8s Job": {
+      "main": [
+        [
+          {
+            "node": "Parse Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "Format Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {}
+}

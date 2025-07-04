@@ -1,0 +1,24 @@
+# This playbook orchestrates the complete setup of a Kubernetes cluster.
+# It applies roles sequentially to build the cluster from the ground up.
+---
+- name: Apply common Kubernetes configuration
+  hosts: k8s_masters, k8s_workers, k8s_workers_gpu
+  roles:
+    - role: kubernetes_common
+
+- name: Prepare GPU worker nodes
+  hosts: k8s_workers_gpu
+  roles:
+    - role: gpu_support
+
+- name: Initialize Kubernetes control plane
+  hosts: k8s_masters
+  serial: 1 # Initialize one master at a time
+  roles:
+    - role: kubernetes_master
+
+- name: Join worker nodes to the cluster
+  hosts: k8s_workers, k8s_workers_gpu
+  serial: 5 # Join workers in batches of 5 to avoid overwhelming the master
+  roles:
+    - role: kubernetes_worker

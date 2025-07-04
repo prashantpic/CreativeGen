@@ -1,0 +1,35 @@
+# Prometheus scrape configuration for node_exporter instances.
+# This config uses Kubernetes Service Discovery to find node_exporter pods,
+# assuming it's deployed as a DaemonSet across the cluster.
+# Requirement(s) Addressed: DEP-005, QA-003
+
+- job_name: 'node_exporter'
+  kubernetes_sd_configs:
+    - role: endpoints
+      namespaces:
+        names:
+          - kube-system # Assumes node_exporter service is in kube-system namespace
+  relabel_configs:
+    # Keep only endpoints that are part of a service with the specified name.
+    # This is more reliable than using a label selector on pods.
+    - source_labels: [__meta_kubernetes_service_label_app_kubernetes_io_name]
+      action: keep
+      regex: node-exporter
+
+    # The node_exporter Helm chart often exposes metrics on a port named 'http-metrics' or similar.
+    # It's better to target the port name than a fixed number.
+    - source_labels: [__meta_kubernetes_endpoint_port_name]
+      action: keep
+      regex: metrics # Assuming the port is named 'metrics'
+
+    # Rewrite the address to use the standard node_exporter port (9100).
+    # This ensures we scrape the correct port even if the service has others.
+    - source_labels: [__address__]
+      target_label: __address__
+      regex: ([^:]+)(?::\d+)?
+      replacement: ${1}:9100
+
+    # Set the 'instance' label to the node name where the pod is running.
+    # This is crucial for identifying which host the metrics belong to.
+    - source_labels: [__meta_kubernetes_pod_node_name]
+      target_label: instance

@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  author: CreativeFlow
+  description: Role to install and configure Redis.
+  license: proprietary
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+  galaxy_tags:
+    - redis
+    - cache
+    - database
+
+dependencies: []

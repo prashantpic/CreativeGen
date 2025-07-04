@@ -1,0 +1,6 @@
+# Handlers for the n8n server role.
+---
+- name: Restart n8n
+  ansible.builtin.service:
+    name: n8n # Or the name of the pm2 service
+    state: restarted

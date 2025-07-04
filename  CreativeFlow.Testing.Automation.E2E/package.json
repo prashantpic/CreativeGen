@@ -1,0 +1,30 @@
+{
+  "name": "creativeflow-testing-automation-e2e",
+  "version": "1.0.0",
+  "description": "E2E and Performance tests for the CreativeFlow AI platform.",
+  "main": "index.js",
+  "scripts": {
+    "test:e2e:web": "playwright test",
+    "test:e2e:web:headed": "playwright test --headed",
+    "test:e2e:web:report": "playwright show-report",
+    "test:perf:load:api": "k6 run performance/scenarios/api_load_test.js",
+    "test:perf:load:ai": "k6 run performance/scenarios/ai_generation_load_test.js",
+    "test:perf:soak": "k6 run performance/scenarios/soak_test.js"
+  },
+  "keywords": [
+    "playwright",
+    "k6",
+    "testing",
+    "e2e",
+    "performance"
+  ],
+  "author": "CreativeFlow QA Team",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@playwright/test": "^1.44.1",
+    "@types/k6": "^0.51.0",
+    "@types/node": "^20.12.12",
+    "dotenv": "^16.4.5",
+    "typescript": "^5.4.5"
+  }
+}

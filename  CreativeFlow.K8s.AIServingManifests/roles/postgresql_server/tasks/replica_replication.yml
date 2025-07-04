@@ -1,0 +1,54 @@
+---
+# Tasks to configure a replica for streaming replication
+
+- name: Stop PostgreSQL service on replica before restore
+  ansible.builtin.service:
+    name: "{{ pg_service_name }}"
+    state: stopped
+
+- name: Remove existing data directory on replica
+  ansible.builtin.file:
+    path: "{{ pg_data_dir }}/"
+    state: absent
+
+- name: Create empty data directory on replica
+  ansible.builtin.file:
+    path: "{{ pg_data_dir }}/"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: '0700'
+
+- name: Take base backup from primary server
+  ansible.builtin.command: >
+    pg_basebackup -h {{ groups['db_primary'][0] }} -D {{ pg_data_dir }}
+    -U {{ pg_replication_user }} -P --wal-method=stream
+  environment:
+    PGPASSWORD: "{{ pg_replication_password }}" # From vault
+  become_user: postgres
+  no_log: true
+  args:
+    creates: "{{ pg_data_dir }}/postgresql.conf" # Idempotency check
+
+- name: Create standby.signal file on replica
+  ansible.builtin.file:
+    path: "{{ pg_data_dir }}/standby.signal"
+    state: touch
+    owner: postgres
+    group: postgres
+    mode: '0640'
+
+- name: Create primary_conninfo in postgresql.auto.conf on replica
+  ansible.builtin.lineinfile:
+    path: "{{ pg_data_dir }}/postgresql.auto.conf"
+    line: "primary_conninfo = 'host={{ groups['db_primary'][0] }} port={{ pg_port }} user={{ pg_replication_user }} password={{ pg_replication_password }}'"
+    create: yes
+    owner: postgres
+    group: postgres
+    mode: '0600'
+  no_log: true
+
+- name: Start PostgreSQL service on replica
+  ansible.builtin.service:
+    name: "{{ pg_service_name }}"
+    state: started

@@ -1,0 +1,4 @@
+---
+# Role-specific variables for MinIO.
+# These might include data directories, cluster configuration, etc.
+# Sensitive values should be defined in vaulted files.

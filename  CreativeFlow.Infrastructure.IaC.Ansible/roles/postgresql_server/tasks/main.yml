@@ -1,0 +1,73 @@
+# Tasks for installing and configuring a PostgreSQL server.
+---
+- name: Install PostgreSQL server and client packages
+  ansible.builtin.apt:
+    name: "{{ pg_packages }}"
+    state: present
+    update_cache: yes
+
+- name: Install supporting packages
+  ansible.builtin.apt:
+    name:
+      - python3-psycopg2
+      - pgbouncer
+    state: present
+
+- name: Manage main postgresql.conf
+  ansible.builtin.template:
+    src: postgresql.conf.j2
+    dest: "{{ pg_config_path }}/postgresql.conf"
+    owner: postgres
+    group: postgres
+    mode: '0644'
+  notify: Restart postgresql
+
+- name: Manage pg_hba.conf for client authentication
+  ansible.builtin.template:
+    src: pg_hba.conf.j2
+    dest: "{{ pg_config_path }}/pg_hba.conf"
+    owner: postgres
+    group: postgres
+    mode: '0640'
+  notify: Restart postgresql
+
+- name: Ensure PostgreSQL service is started and enabled
+  ansible.builtin.service:
+    name: "{{ pg_service_name }}"
+    state: started
+    enabled: yes
+
+- name: Create application databases
+  community.postgresql.postgresql_db:
+    name: "{{ item.name }}"
+    owner: "{{ item.owner | default(pg_default_db_owner) }}"
+    login_user: postgres
+  loop: "{{ pg_databases }}"
+  become: yes
+  become_user: postgres
+  when: pg_databases is defined and pg_databases|length > 0
+
+- name: Create application users
+  community.postgresql.postgresql_user:
+    db: "{{ item.db | default(omit) }}"
+    name: "{{ item.name }}"
+    password: "{{ item.password }}" # Note: Password should come from Vault
+    priv: "{{ item.priv | default(omit) }}"
+    role_attr_flags: "{{ item.role_attr_flags | default(omit) }}"
+    login_user: postgres
+  loop: "{{ pg_users }}"
+  become: yes
+  become_user: postgres
+  no_log: true
+  when: pg_users is defined and pg_users|length > 0
+
+- name: Include replication tasks for primary server
+  ansible.builtin.include_tasks: replication_primary.yml
+  when: "'db_primary' in group_names"
+
+- name: Include replication tasks for replica servers
+  ansible.builtin.include_tasks: replication_replica.yml
+  when: "'db_replicas' in group_names"
+
+- name: Configure and enable PgBouncer
+  ansible.builtin.include_tasks: pgbouncer.yml

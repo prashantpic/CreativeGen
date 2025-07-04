@@ -1,0 +1,16 @@
+---
+# Default variables for the 'prometheus_exporters' role
+
+# Node Exporter
+node_exporter_version: "1.7.0"
+node_exporter_binary_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+node_exporter_user: "node_exporter"
+
+# PostgreSQL Exporter
+postgres_exporter_version: "0.15.0"
+postgres_exporter_binary_url: "https://github.com/prometheus-community/postgres_exporter/releases/download/v{{ postgres_exporter_version }}/postgres_exporter-{{ postgres_exporter_version }}.linux-amd64.tar.gz"
+postgres_exporter_user: "postgres_exporter"
+
+# DATA_SOURCE_NAME for postgres_exporter
+# This should be configured in group_vars for db servers, using a vaulted password.
+# postgres_exporter_dsn: "postgresql://{{ postgres_exporter_user }}:{{ postgres_exporter_password }}@localhost:5432/postgres"

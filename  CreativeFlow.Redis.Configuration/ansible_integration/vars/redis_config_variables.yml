@@ -1,0 +1,70 @@
+# ansible_integration/vars/redis_config_variables.yml
+#
+# Centralized Ansible variables for Redis configurations.
+# Based on SDS section 4.4.1.
+#
+# These variables provide sane defaults for Redis and Sentinel deployments.
+# They are intended to be included in Ansible playbooks and can be overridden
+# by inventory variables (group_vars, host_vars) for specific environments.
+
+---
+# -- Redis Server Defaults --
+# These apply to all Redis instances unless overridden.
+redis_user: "redis"
+redis_group: "redis"
+redis_default_port: 6379
+redis_default_bind_ip: "127.0.0.1" # Secure default, MUST be overridden for remote access.
+redis_default_aof_enabled: "yes"
+redis_default_loglevel: "notice"
+
+# --- Directory Structure ---
+redis_config_dir: "/etc/redis"
+redis_data_dir_base: "/var/lib/redis"
+redis_log_dir: "/var/log/redis"
+
+# --- Sentinel Defaults ---
+# These apply to all Sentinel instances unless overridden.
+sentinel_default_port: 26379
+sentinel_default_quorum: 2
+sentinel_default_down_after_ms: 30000
+sentinel_default_failover_timeout_ms: 180000
+
+# --- Example Data Structures (for documentation) ---
+# The following structures demonstrate how to define Redis and Sentinel
+# instances in your Ansible inventory (e.g., in host_vars or group_vars).
+# DO NOT DEFINE ACTUAL INSTANCES HERE.
+
+# Example for a group_vars/redis_servers.yml file:
+#
+# redis_instances:
+#   - port: 6379
+#     bind_ip: "192.168.1.10"
+#     role: master # or standalone, slave, cluster_node
+#     # Password should be sourced from Ansible Vault
+#     password: "{{ vault_redis_master_password }}"
+#     maxmemory_mb: 2048
+#
+#   - port: 6380
+#     bind_ip: "192.168.1.11"
+#     role: slave
+#     master_ip: "192.168.1.10"
+#     master_port: 6379
+#     password: "{{ vault_redis_master_password }}"
+#     master_password: "{{ vault_redis_master_password }}"
+#     maxmemory_mb: 2048
+#
+#
+# Example for a group_vars/sentinel_servers.yml file:
+#
+# sentinel_instances:
+#   - port: 26379
+#     # The list of masters this sentinel should monitor
+#     monitors:
+#       - name: "mymaster"
+#         ip: "192.168.1.10" # Master IP
+#         port: 6379          # Master Port
+#         quorum: 2
+#         # Sourced from Ansible Vault
+#         auth_pass: "{{ vault_redis_master_password }}"
+#         down_after_milliseconds: 5000 # Override default
+#         failover_timeout: 10000       # Override default

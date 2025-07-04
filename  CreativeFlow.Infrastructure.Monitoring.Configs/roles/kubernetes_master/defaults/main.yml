@@ -1,0 +1,5 @@
+---
+# defaults file for kubernetes_master
+k8s_pod_network_cidr: "10.244.0.0/16"
+cni_manifest_url: "https://raw.githubusercontent.com/projectcalico/calico/v3.26.1/manifests/calico.yaml"
+kubeadm_init_extra_args: "" # e.g., "--control-plane-endpoint 'k8s-api.creativeflow.ai:6443' --upload-certs"

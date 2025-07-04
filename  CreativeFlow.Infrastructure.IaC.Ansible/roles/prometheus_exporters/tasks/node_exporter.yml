@@ -1,0 +1,44 @@
+---
+- name: Create node_exporter user
+  ansible.builtin.user:
+    name: "{{ node_exporter_user }}"
+    shell: /bin/false
+    system: yes
+    create_home: no
+
+- name: Download and unarchive node_exporter
+  ansible.builtin.unarchive:
+    src: "{{ node_exporter_download_url }}"
+    dest: /tmp
+    remote_src: yes
+    creates: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+
+- name: Copy node_exporter binary to /usr/local/bin
+  ansible.builtin.copy:
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+    dest: /usr/local/bin/node_exporter
+    remote_src: yes
+    mode: '0755'
+    owner: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_user }}"
+
+- name: Deploy systemd service for node_exporter
+  ansible.builtin.template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+    mode: '0644'
+  notify: Restart node_exporter
+
+- name: Start and enable node_exporter service
+  ansible.builtin.systemd:
+    name: node_exporter
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Allow node_exporter port in UFW
+  community.general.ufw:
+    rule: allow
+    port: "{{ node_exporter_port }}"
+    proto: tcp
+    comment: "Allow Prometheus node_exporter"

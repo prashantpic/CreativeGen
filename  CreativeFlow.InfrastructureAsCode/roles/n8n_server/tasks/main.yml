@@ -1,0 +1,34 @@
+---
+# Role to install and configure n8n application and dependencies.
+# This is a placeholder. A full implementation would include:
+# 1. Installing Node.js and npm/yarn.
+# 2. Installing n8n via npm or downloading a pre-built binary.
+# 3. Creating a dedicated user for n8n.
+# 4. Creating and templating an environment file with configuration
+#    (e.g., database connection, encryption key, RabbitMQ hook).
+# 5. Setting up a systemd service to run n8n.
+# 6. Starting and enabling the service.
+
+- name: (Placeholder) Install Node.js
+  ansible.builtin.debug:
+    msg: "TODO: Install Node.js version {{ n8n_nodejs_version }}"
+
+- name: (Placeholder) Install n8n via npm
+  ansible.builtin.debug:
+    msg: "TODO: Run 'npm install -g n8n@{{ n8n_version }}'"
+
+- name: (Placeholder) Create n8n user
+  ansible.builtin.debug:
+    msg: "TODO: Create system user '{{ n8n_user }}'"
+
+- name: (Placeholder) Deploy n8n environment file
+  ansible.builtin.debug:
+    msg: "TODO: Template out the n8n environment file with DB, RabbitMQ, and other settings from vaulted variables."
+
+- name: (Placeholder) Deploy n8n systemd service file
+  ansible.builtin.debug:
+    msg: "TODO: Template out /etc/systemd/system/n8n.service"
+
+- name: (Placeholder) Ensure n8n service is started and enabled
+  ansible.builtin.debug:
+    msg: "TODO: Start and enable the n8n.service"

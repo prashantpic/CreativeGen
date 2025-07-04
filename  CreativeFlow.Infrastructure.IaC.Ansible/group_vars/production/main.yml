@@ -1,0 +1,34 @@
+# Production-specific variables.
+# These values override global defaults defined in group_vars/all/ for the production environment.
+---
+environment: 'production'
+
+# Base URL for the production API
+api_server_url: 'https://api.creativeflow.ai'
+
+# Log level for production services (e.g., INFO, WARN, ERROR)
+log_level: 'INFO'
+
+# Enable performance tuning specific to production hardware
+performance_tuning: true
+
+# Domain name specific to production
+domain_name: 'prod.creativeflow.ai'
+
+# Example override for Nginx sites in production
+nginx_sites:
+  - name: "creativeflow-api"
+    server_name: "api.creativeflow.ai"
+    listen_port: 443
+    ssl: true
+    upstream_servers:
+      - "10.0.1.10:8080"
+      - "10.0.1.11:8080"
+
+  - name: "creativeflow-app"
+    server_name: "app.creativeflow.ai"
+    listen_port: 443
+    ssl: true
+    upstream_servers:
+      - "10.0.2.10:80"
+      - "10.0.2.11:80"

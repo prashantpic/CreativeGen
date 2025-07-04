@@ -1,0 +1,11 @@
+---
+# Handlers for the 'gpu_support' role
+
+- name: restart containerd
+  ansible.builtin.service:
+    name: containerd
+    state: restarted
+
+- name: reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: yes

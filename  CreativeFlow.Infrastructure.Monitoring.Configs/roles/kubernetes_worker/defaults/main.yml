@@ -1,0 +1,3 @@
+---
+# defaults file for kubernetes_worker
+kubeadm_join_extra_args: ""

@@ -1,0 +1,62 @@
+# Prometheus scrape configuration for custom AI models that expose Prometheus metrics.
+# This configuration uses Kubernetes pod annotations for discovery, providing a flexible
+# way for different model serving frameworks to be scraped.
+# Requirement(s) Addressed: DEP-005, QA-003, INT-007
+
+- job_name: 'custom-ai-models'
+  kubernetes_sd_configs:
+    - role: pod
+      namespaces:
+        names:
+          - '<AI_MODELS_NAMESPACE>'
+  relabel_configs:
+    # --- Annotation-based discovery ---
+
+    # Keep only pods with the 'prometheus.io/scrape: true' annotation.
+    - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+      action: keep
+      regex: true
+
+    # Use the 'prometheus.io/path' annotation for the metrics path, default to /metrics.
+    - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+      action: replace
+      target_label: __metrics_path__
+      regex: (.+)
+    - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+      action: replace
+      target_label: __metrics_path__
+      regex: ""
+      replacement: "/metrics"
+
+    # Rewrite the address to use the 'prometheus.io/port' annotation.
+    - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+      action: replace
+      regex: ([^:]+)(?::\d+)?;(\d+)
+      replacement: $1:$2
+      target_label: __address__
+
+    # --- Standard Labeling ---
+
+    # Use pod namespace as a label.
+    - source_labels: [__meta_kubernetes_namespace]
+      target_label: namespace
+
+    # Use pod name as the instance label.
+    - source_labels: [__meta_kubernetes_pod_name]
+      target_label: instance
+
+    # --- Custom AI Model Labeling ---
+
+    # Create 'model_name' label from the pod label 'ai_model_name'.
+    - source_labels: [__meta_kubernetes_pod_label_ai_model_name]
+      action: replace
+      target_label: model_name
+      regex: (.+)
+      replacement: $1
+
+    # Create 'model_version' label from the pod label 'ai_model_version'.
+    - source_labels: [__meta_kubernetes_pod_label_ai_model_version]
+      action: replace
+      target_label: model_version
+      regex: (.+)
+      replacement: $1

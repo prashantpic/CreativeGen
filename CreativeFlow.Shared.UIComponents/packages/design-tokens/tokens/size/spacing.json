@@ -1,0 +1,38 @@
+```json
+{
+  "size": {
+    "spacing": {
+      "base": { "value": 4, "type": "size" },
+      "0": { "value": 0, "type": "size" },
+      "1": { "value": "{size.spacing.base.value}", "type": "size" },
+      "2": { "value": "{size.spacing.base.value} * 2", "type": "size" },
+      "3": { "value": "{size.spacing.base.value} * 3", "type": "size" },
+      "4": { "value": "{size.spacing.base.value} * 4", "type": "size" },
+      "5": { "value": "{size.spacing.base.value} * 5", "type": "size" },
+      "6": { "value": "{size.spacing.base.value} * 6", "type": "size" },
+      "8": { "value": "{size.spacing.base.value} * 8", "type": "size" },
+      "10": { "value": "{size.spacing.base.value} * 10", "type": "size" },
+      "12": { "value": "{size.spacing.base.value} * 12", "type": "size" },
+      "16": { "value": "{size.spacing.base.value} * 16", "type": "size" },
+      "20": { "value": "{size.spacing.base.value} * 20", "type": "size" },
+      "xs":  { "value": "{size.spacing.2.value}", "type": "size"},
+      "sm":  { "value": "{size.spacing.4.value}", "type": "size"},
+      "md":  { "value": "{size.spacing.6.value}", "type": "size"},
+      "lg":  { "value": "{size.spacing.8.value}", "type": "size"},
+      "xl":  { "value": "{size.spacing.12.value}", "type": "size"}
+    },
+    "borderRadius": {
+      "sm": { "value": 4, "type": "size" },
+      "md": { "value": 6, "type": "size" },
+      "lg": { "value": 8, "type": "size" },
+      "xl": { "value": 12, "type": "size" },
+      "full": { "value": 9999, "type": "size" }
+    },
+    "icon": {
+      "sm": { "value": 16, "type": "size" },
+      "md": { "value": 20, "type": "size" },
+      "lg": { "value": 24, "type": "size" }
+    }
+  }
+}
+```

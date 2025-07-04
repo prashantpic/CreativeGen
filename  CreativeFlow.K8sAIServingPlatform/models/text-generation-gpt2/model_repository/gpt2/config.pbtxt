@@ -1,0 +1,37 @@
+name: "gpt2"
+platform: "pytorch_libtorch" # Or "onnxruntime_onnx" or "python"
+max_batch_size: 8 # Example, tune based on model and GPU memory
+
+input [
+  {
+    name: "INPUT__0" # Placeholder, must match actual model input tensor name
+    data_type: TYPE_INT64
+    dims: [ -1, -1 ] # Batch size, sequence length (variable)
+  },
+  {
+    name: "INPUT__1" # Placeholder for attention_mask
+    data_type: TYPE_INT64
+    dims: [ -1, -1 ]
+  }
+]
+output [
+  {
+    name: "OUTPUT__0" # Placeholder, must match actual model output tensor name
+    data_type: TYPE_FP32 # Or appropriate type for logits
+    dims: [ -1, -1, -1 ] # Batch size, sequence length, vocab size
+  }
+]
+
+instance_group [
+  {
+    kind: KIND_GPU
+    count: 1 # Number of model instances per GPU
+    gpus: [ 0 ] # Assign to a specific GPU device index
+  }
+]
+
+# Optional: Dynamic batching configuration can improve throughput
+# dynamic_batching {
+#   preferred_batch_size: [ 4, 8 ]
+#   max_queue_delay_microseconds: 100
+# }

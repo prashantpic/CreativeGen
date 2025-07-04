@@ -1,0 +1,14 @@
+# This file contains environment variables for the MinIO service.
+# It is managed by Ansible. Do not edit manually.
+
+# Volume paths for MinIO to use. For distributed mode, specify multiple hosts.
+# e.g., MINIO_VOLUMES="http://host{1...4}/data/minio"
+MINIO_VOLUMES="{{ minio_data_dirs | join(' ') }}"
+
+# Set the access and secret keys. These MUST be stored in Ansible Vault.
+MINIO_ROOT_USER={{ minio_access_key }}
+MINIO_ROOT_PASSWORD={{ minio_secret_key }}
+
+# MinIO server command line options.
+# Example: MINIO_OPTS="--address :9000 --console-address :9001"
+MINIO_OPTS="{{ minio_opts }}"

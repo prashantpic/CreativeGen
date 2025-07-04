@@ -1,0 +1,35 @@
+# Staging-specific variables.
+# Overrides global defaults for the staging environment.
+---
+environment: 'staging'
+
+# Base URL for the staging API
+api_server_url: 'https://staging-api.creativeflow.ai'
+
+# Log level for staging (more verbose than production)
+log_level: 'DEBUG'
+
+# Disable performance tuning if staging hardware is less powerful
+performance_tuning: false
+
+# Domain name specific to staging
+domain_name: 'staging.creativeflow.ai'
+
+# Example override for Nginx sites in staging
+nginx_sites:
+  - name: "creativeflow-staging-api"
+    server_name: "staging-api.creativeflow.ai"
+    listen_port: 443
+    ssl: true
+    # Using a self-signed or Let's Encrypt staging certificate
+    ssl_cert_type: 'staging'
+    upstream_servers:
+      - "10.1.1.10:8080"
+
+  - name: "creativeflow-staging-app"
+    server_name: "staging-app.creativeflow.ai"
+    listen_port: 443
+    ssl: true
+    ssl_cert_type: 'staging'
+    upstream_servers:
+      - "10.1.2.10:80"

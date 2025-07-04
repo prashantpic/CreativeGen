@@ -1,0 +1,155 @@
+import { INodeTypeDescription } from 'n8n-workflow';
+
+export const secureVaultApiCallerDescription: INodeTypeDescription = {
+	displayName: 'Secure Vault API Caller',
+	name: 'secureVaultApiCaller',
+	group: ['CreativeFlow AI'],
+	version: 1,
+	description: 'Securely calls an external API using credentials from HashiCorp Vault. Supports retries and fallbacks.',
+	defaults: {
+		name: 'Secure Vault API Caller',
+		options: {
+			retries: 3,
+			retryDelayMs: 1000,
+		},
+	},
+	inputs: ['main'],
+	outputs: ['main', 'fallback'],
+	outputNames: ['Success', 'Fallback Success'],
+	properties: [
+		{
+			displayName: 'Vault Secret Path',
+			name: 'vaultSecretPath',
+			type: 'string',
+			required: true,
+			default: 'secret/data/creativeflow/ai_providers/openai',
+			description: 'Path in Vault to the secret, e.g., `secret/data/creativeflow/openai` for KVv2.',
+		},
+		{
+			displayName: 'Vault Secret Key',
+			name: 'vaultSecretKey',
+			type: 'string',
+			required: true,
+			default: 'api_key',
+			description: 'Key within the Vault secret containing the API token.',
+		},
+		{
+			displayName: 'API URL',
+			name: 'apiUrl',
+			type: 'string',
+			required: true,
+			default: 'https://api.openai.com/v1/images/generations',
+			description: 'The URL of the external API to call.',
+		},
+		{
+			displayName: 'HTTP Method',
+			name: 'httpMethod',
+			type: 'options',
+			options: [
+				{ name: 'GET', value: 'GET' },
+				{ name: 'POST', value: 'POST' },
+				{ name: 'PUT', value: 'PUT' },
+				{ name: 'DELETE', value: 'DELETE' },
+			],
+			required: true,
+			default: 'POST',
+		},
+		{
+			displayName: 'API Key Header Name',
+			name: 'apiKeyHeaderName',
+			type: 'string',
+			required: true,
+			default: 'Authorization',
+			description: 'The name of the HTTP header to place the API key in.',
+		},
+		{
+			displayName: 'API Key Prefix',
+			name: 'apiKeyPrefix',
+			type: 'string',
+			default: 'Bearer ',
+			description: 'An optional prefix for the API key in the header (e.g., "Bearer ").',
+		},
+		{
+			displayName: 'Headers',
+			name: 'headers',
+			type: 'json',
+			default: '{"Content-Type": "application/json"}',
+			description: 'Custom headers for the request. The API key header will be added automatically.',
+		},
+		{
+			displayName: 'Body',
+			name: 'body',
+			type: 'json',
+			default: '{}',
+			description: 'Request body for POST/PUT requests.',
+		},
+		{
+			displayName: 'Options',
+			name: 'options',
+			type: 'collection',
+			placeholder: 'Add Option',
+			default: {},
+			options: [
+				{
+					displayName: 'Retries',
+					name: 'retries',
+					type: 'number',
+					typeOptions: { minValue: 0, maxValue: 10 },
+					default: 3,
+					description: 'Max number of retries on transient errors (e.g., 5xx).',
+				},
+				{
+					displayName: 'Retry Delay (ms)',
+					name: 'retryDelayMs',
+					type: 'number',
+					typeOptions: { minValue: 100 },
+					default: 1000,
+					description: 'Initial delay in milliseconds for retries, uses exponential backoff.',
+				},
+				{
+					displayName: 'Enable Fallback',
+					name: 'enableFallback',
+					type: 'boolean',
+					default: false,
+					description: 'Enable the fallback mechanism if the primary API call fails after all retries.',
+				},
+				{
+					displayName: 'Fallback API URL',
+					name: 'fallbackApiUrl',
+					type: 'string',
+					default: '',
+					description: 'URL for the fallback API.',
+					displayOptions: {
+						show: {
+							enableFallback: [true],
+						},
+					},
+				},
+				{
+					displayName: 'Fallback Vault Secret Path',
+					name: 'fallbackVaultSecretPath',
+					type: 'string',
+					default: '',
+					description: 'Vault path for the fallback API secret.',
+					displayOptions: {
+						show: {
+							enableFallback: [true],
+						},
+					},
+				},
+				{
+					displayName: 'Fallback Vault Secret Key',
+					name: 'fallbackVaultSecretKey',
+					type: 'string',
+					default: 'api_key',
+					description: 'Key for the fallback API secret within the Vault secret.',
+					displayOptions: {
+						show: {
+							enableFallback: [true],
+						},
+					},
+				},
+			],
+		},
+	],
+};

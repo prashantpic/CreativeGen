@@ -1,0 +1,177 @@
+{
+  "name": "ImageGeneration_OpenAI_Dalle",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "40292728-a37a-4370-9d90-34a029671d2b",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const inputs = $json;\n\n// Construct the request body for OpenAI DALL-E API\nconst body = {\n  prompt: inputs.prompt,\n  model: inputs.model || 'dall-e-3',\n  n: inputs.n || 1,\n  size: inputs.size || '1024x1024',\n  quality: inputs.quality || 'standard',\n  response_format: 'b64_json' // Request base64 to avoid dealing with expiring URLs\n};\n\nreturn { body };"
+      },
+      "id": "3d536098-97f2-491a-82dd-e9b62a6e9a3b",
+      "name": "Format API Request",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "notes": "Prepares the request body for the DALL-E API based on input parameters."
+    },
+    {
+      "parameters": {
+        "url": "=https://api.openai.com/v1/images/generations",
+        "authentication": "predefinedCredential",
+        "credentialType": "openAiApi",
+        "sendBody": true,
+        "body": "={{$json.body}}",
+        "options": {}
+      },
+      "id": "e43b1841-f513-4416-86c5-e55c3c1e0828",
+      "name": "Call OpenAI DALL-E API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        680,
+        300
+      ],
+      "notes": "Makes the POST request to the OpenAI DALL-E API endpoint."
+    },
+    {
+      "parameters": {
+        "functionCode": "const responseData = $json.data;\n\n// Extract image data from the response\nconst imageData = responseData.map(item => ({\n  b64_json: item.b64_json,\n  revised_prompt: item.revised_prompt\n}));\n\nreturn { imageData };"
+      },
+      "id": "f516d2f3-1819-4598-a1f9-813c015b3c5a",
+      "name": "Parse Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        900,
+        200
+      ],
+      "notes": "Extracts the generated image data (base64) from the successful API response."
+    },
+    {
+      "parameters": {
+        "values": {
+          "json": [
+            {
+              "key": "success",
+              "value": "=true"
+            },
+            {
+              "key": "imageData",
+              "value": "={{ $('Parse Response').item.json.imageData }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2700f575-b6bd-4286-ab7e-976483486377",
+      "name": "Format Success Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        200
+      ],
+      "notes": "Structures the final output for a successful generation."
+    },
+    {
+      "parameters": {
+        "values": {
+          "json": [
+            {
+              "key": "success",
+              "value": "=false"
+            },
+            {
+              "key": "error",
+              "value": "={{ $json.error }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8b51d6c8-f99a-4c2f-ac9d-d81b849c4fce",
+      "name": "Format Failure Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        900,
+        400
+      ],
+      "notes": "Structures the final output for a failed API call."
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Format API Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format API Request": {
+      "main": [
+        [
+          {
+            "node": "Call OpenAI DALL-E API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call OpenAI DALL-E API": {
+      "main": [
+        [
+          {
+            "node": "Parse Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "Format Failure Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Response": {
+      "main": [
+        [
+          {
+            "node": "Format Success Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "id": "ghBq76aH4UaD12Fc",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

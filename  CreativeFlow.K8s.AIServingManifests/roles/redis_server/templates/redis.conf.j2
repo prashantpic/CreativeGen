@@ -1,0 +1,32 @@
+# This file is managed by Ansible. Do not edit manually.
+# See redis.io/topics/config for full documentation.
+
+bind {{ redis_bind_address }}
+port {{ redis_port }}
+protected-mode yes
+tcp-keepalive 300
+daemonize no # Managed by systemd
+supervised systemd
+pidfile /var/run/redis/redis-server.pid
+loglevel notice
+logfile /var/log/redis/redis-server.log
+databases 16
+
+# RDB persistence
+save 900 1
+save 300 10
+save 60 10000
+stop-writes-on-bgsave-error yes
+rdbcompression yes
+rdbchecksum yes
+dbfilename dump.rdb
+dir /var/lib/redis
+
+# AOF persistence (optional, uncomment to enable)
+# appendonly yes
+# appendfilename "appendonly.aof"
+# appendfsync everysec
+
+# Security
+# Use a password in production. This MUST come from vault.
+requirepass {{ redis_password }}

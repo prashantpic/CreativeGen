@@ -1,0 +1,21 @@
+---
+# Variables for the postgresql_server role.
+# Define your application's databases and users here or in group_vars.
+# Passwords MUST be sourced from Ansible Vault.
+
+# pg_databases:
+#   - name: odoo_db
+#     owner: odoo_user
+#   - name: n8n_db
+#     owner: n8n_user
+pg_databases: []
+
+# pg_users:
+#   - name: odoo_user
+#     password: "{{ odoo_db_password }}" # From vault
+#   - name: n8n_user
+#     password: "{{ n8n_db_password }}" # From vault
+pg_users: []
+
+# This variable MUST be defined in a vaulted file
+# pg_replication_password: "{{ some_vaulted_password }}"

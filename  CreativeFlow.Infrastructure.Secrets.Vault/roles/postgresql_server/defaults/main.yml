@@ -1,0 +1,25 @@
+---
+# Default variables for the 'postgresql_server' role.
+pg_version: "15"
+pg_service_name: "postgresql"
+pg_port: 5432
+pg_data_dir: "/var/lib/postgresql/{{ pg_version }}/main"
+pg_config_dir: "/etc/postgresql/{{ pg_version }}/main"
+pg_bin_dir: "/usr/lib/postgresql/{{ pg_version }}/bin"
+pg_packages:
+  - "postgresql-{{ pg_version }}"
+  - "postgresql-client-{{ pg_version }}"
+  - "python3-psycopg2"
+  - "pgbouncer"
+
+# Replication settings
+pg_replication_user: "replicator"
+pg_wal_level: "replica"
+pg_max_wal_senders: 10
+pg_wal_keep_segments: 64 # Deprecated in newer versions, use pg_wal_keep_size
+pg_wal_keep_size: "1024MB"
+pg_hot_standby: "on"
+
+# PgBouncer settings
+pgbouncer_port: 6432
+pgbouncer_user: "pgbouncer"

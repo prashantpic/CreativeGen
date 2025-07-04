@@ -1,0 +1,4 @@
+# Default variables for the RabbitMQ server role.
+---
+rabbitmq_port: 5672
+rabbitmq_management_port: 15672

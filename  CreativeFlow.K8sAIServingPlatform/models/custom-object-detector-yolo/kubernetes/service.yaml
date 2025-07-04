@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: yolo-custom-fastapi-service
+  namespace: creativeflow-ai-serving
+  labels:
+    app: yolo-custom-fastapi
+    runtime: custom-fastapi
+    creativeflow.ai/scrape-metrics: "true" # Allows the base ServiceMonitor to discover this service
+spec:
+  selector:
+    app: yolo-custom-fastapi
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8000
+    targetPort: http # Targets the 'http' port on the pod, which serves both API and metrics
+  type: ClusterIP

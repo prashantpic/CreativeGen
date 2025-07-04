@@ -1,0 +1,11 @@
+---
+# handlers file for prometheus_exporters
+- name: restart node_exporter
+  ansible.builtin.service:
+    name: node_exporter
+    state: restarted
+
+- name: restart postgres_exporter
+  ansible.builtin.service:
+    name: postgres_exporter
+    state: restarted

@@ -1,0 +1,7 @@
+---
+# Placeholder defaults for the 'odoo_server' role.
+odoo_version: "16.0"
+odoo_user: "odoo"
+odoo_home: "/opt/odoo"
+odoo_config_file: "/etc/odoo/odoo.conf"
+odoo_logfile: "/var/log/odoo/odoo-server.log"

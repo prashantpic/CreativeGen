@@ -1,0 +1,15 @@
+# This is a placeholder for the MinIO systemd service template.
+#
+# [Unit]
+# Description=MinIO
+# ...
+#
+# [Service]
+# User={{ minio_user }}
+# Group={{ minio_group }}
+# EnvironmentFile=/etc/default/minio
+# ExecStart=/usr/local/bin/minio server $MINIO_OPTS $MINIO_VOLUMES
+# ...
+#
+# [Install]
+# WantedBy=multi-user.target

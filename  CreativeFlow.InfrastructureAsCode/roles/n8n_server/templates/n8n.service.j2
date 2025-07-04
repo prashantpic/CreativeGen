@@ -1,0 +1,15 @@
+# This is a placeholder for the n8n systemd service template.
+#
+# [Unit]
+# Description=n8n
+# ...
+#
+# [Service]
+# User={{ n8n_user }}
+# Group={{ n8n_user }}
+# EnvironmentFile=/opt/n8n/n8n.env
+# ExecStart=/usr/bin/n8n
+# ...
+#
+# [Install]
+# WantedBy=multi-user.target

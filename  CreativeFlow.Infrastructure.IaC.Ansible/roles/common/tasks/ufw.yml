@@ -1,0 +1,40 @@
+---
+- name: Reset UFW to a known state
+  community.general.ufw:
+    state: reset
+
+- name: Set UFW logging
+  community.general.ufw:
+    logging: "{{ ufw_logging }}"
+
+- name: Set UFW default policies
+  community.general.ufw:
+    direction: "{{ item.direction }}"
+    policy: "{{ item.policy }}"
+  loop:
+    - { direction: 'incoming', policy: 'deny' }
+    - { direction: 'outgoing', policy: 'allow' }
+    - { direction: 'routed', policy: 'deny' }
+
+- name: Allow SSH connections on the specified port
+  community.general.ufw:
+    rule: allow
+    port: "{{ ssh_port }}"
+    proto: tcp
+    comment: 'Allow SSH'
+
+- name: Apply additional UFW rules if defined
+  community.general.ufw:
+    rule: "{{ item.rule | default('allow') }}"
+    direction: "{{ item.direction | default(omit) }}"
+    from_ip: "{{ item.from | default('any') }}"
+    to_ip: "{{ item.to | default('any') }}"
+    port: "{{ item.port | default(omit) }}"
+    proto: "{{ item.proto | default('any') }}"
+    comment: "{{ item.comment | default(omit) }}"
+  loop: "{{ ufw_additional_rules }}"
+  when: ufw_additional_rules is defined and ufw_additional_rules | length > 0
+
+- name: Enable UFW
+  community.general.ufw:
+    state: enabled

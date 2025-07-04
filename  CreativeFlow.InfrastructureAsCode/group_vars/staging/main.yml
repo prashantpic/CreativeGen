@@ -1,0 +1,15 @@
+---
+# This file contains variables specific to the Staging environment.
+# They override any variables defined in group_vars/all/common_vars.yml.
+
+# Environment identifier
+environment: 'staging'
+
+# Staging specific endpoints
+api_server_url: 'https://staging-api.creativeflow.ai'
+app_domain_name: 'staging.creativeflow.ai'
+
+# Performance tuning for staging (lower than production)
+postgresql_shared_buffers: "1GB"
+postgresql_effective_cache_size: "3GB"
+nginx_worker_processes: 4

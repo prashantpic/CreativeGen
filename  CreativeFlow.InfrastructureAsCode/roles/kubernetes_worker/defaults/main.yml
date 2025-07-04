@@ -1,0 +1,3 @@
+---
+# Extra arguments for kubeadm join command
+kubeadm_join_extra_args: ""

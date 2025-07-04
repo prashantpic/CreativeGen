@@ -1,0 +1,51 @@
+---
+# This playbook handles system updates and patching.
+# It can be run on-demand or via a scheduled job.
+# Best practice: Run with --limit to target specific groups or hosts.
+# Example: ansible-playbook playbooks/patch_management.yml --limit web_servers
+# The 'serial' keyword ensures servers are updated in small batches to maintain availability.
+
+- name: Perform system patching
+  hosts: all_servers
+  # Update servers in batches of 2.
+  serial: 2
+  become: true
+  vars:
+    reboot_required_file: /var/run/reboot-required
+  tasks:
+    - name: Update apt package cache
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600 # One hour
+      when: ansible_os_family == "Debian"
+
+    - name: Perform a safe distribution upgrade
+      ansible.builtin.apt:
+        upgrade: dist
+      when: ansible_os_family == "Debian"
+      notify: Check for reboot
+
+    # Add similar blocks for other OS families like RedHat if needed
+    # - name: Update all yum packages
+    #   ansible.builtin.yum:
+    #     name: '*'
+    #     state: latest
+    #   when: ansible_os_family == "RedHat"
+    #   notify: Check for reboot
+
+  handlers:
+    - name: Check for reboot
+      ansible.builtin.stat:
+        path: "{{ reboot_required_file }}"
+      register: reboot_file_stat
+      changed_when: false
+
+    - name: Reboot server if required
+      ansible.builtin.reboot:
+        msg: "Rebooting server after system patches"
+        connect_timeout: 5
+        reboot_timeout: 600
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: whoami
+      when: reboot_file_stat.stat.exists

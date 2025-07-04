@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: CreativeFlow AI
+  description: Role to initialize a Kubernetes control plane (master nodes).
+  license: MIT
+  min_ansible_version: "2.10"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy (22.04)
+  galaxy_tags:
+    - kubernetes
+    - master
+    - control-plane
+
+dependencies:
+  - role: kubernetes_common

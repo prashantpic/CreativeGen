@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  author: CreativeFlow
+  description: Role to install and configure the n8n workflow automation tool.
+  license: proprietary
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+  galaxy_tags:
+    - n8n
+    - workflow
+    - automation
+
+dependencies: []

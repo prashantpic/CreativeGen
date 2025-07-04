@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_res_users_cf_fields_user,res.users.cf.fields.user.access,model_res_users,base.group_user,1,1,0,0
+access_res_users_cf_fields_admin,res.users.cf.fields.admin.access,model_res_users,base.group_system,1,1,0,0
+access_res_users_cf_credit_balance_ro,res.users.cf.credit_balance.ro.access,model_res_users,base.group_user,1,0,0,0

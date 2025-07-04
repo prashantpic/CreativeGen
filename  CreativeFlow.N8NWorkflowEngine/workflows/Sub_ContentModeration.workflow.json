@@ -1,0 +1,107 @@
+{
+  "name": "Sub_ContentModeration",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.CONTENT_MODERATION_API_ENDPOINT}}",
+        "options": {},
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content_type",
+              "value": "={{$json.contentType}}"
+            },
+            {
+              "name": "content_ref",
+              "value": "={{$json.assetReference}}"
+            }
+          ]
+        },
+        "authentication": "headerAuth",
+        "nodeCredentialType": "httpHeaderAuth"
+      },
+      "name": "Call Content Moderation Service",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        470,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_MODERATION_API_KEY_CREDENTIAL_ID",
+          "name": "Content Moderation API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const response = items[0].json;\n\n// Example logic: thresholds for rejection\nconst REJECTION_THRESHOLD = 0.8;\nconst REVIEW_THRESHOLD = 0.6;\n\nlet moderationStatus = 'approved';\nconst flaggedCategories = [];\n\nfor (const category in response.scores) {\n  if (response.scores[category] > REJECTION_THRESHOLD) {\n    moderationStatus = 'rejected';\n    flaggedCategories.push(category);\n    break; // One rejection is enough\n  }\n  if (response.scores[category] > REVIEW_THRESHOLD) {\n    moderationStatus = 'needs_review';\n    flaggedCategories.push(category);\n  }\n}\n\nconst result = {\n  status: 'success',\n  moderationStatus: moderationStatus,\n  details: {\n    scores: response.scores,\n    flagged: response.flagged,\n    flaggedCategories: flaggedCategories,\n  }\n};\n\nreturn result;"
+      },
+      "name": "Parse Moderation Result",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const error = items[0].json;\n\nconst result = {\n  status: 'error',\n  moderationStatus: 'needs_review', // Fail open to needs_review\n  errorMessage: error.message || 'Could not contact moderation service.'\n};\n\nreturn result;"
+      },
+      "name": "Format Error",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        700,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Call Content Moderation Service",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Content Moderation Service": {
+      "main": [
+        [
+          {
+            "node": "Parse Moderation Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "Format Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {}
+}

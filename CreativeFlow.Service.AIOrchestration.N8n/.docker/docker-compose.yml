@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  n8n:
+    image: n8n-custom:latest
+    build:
+      context: ..
+      dockerfile: .docker/Dockerfile
+    ports:
+      - "5678:5678"
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - ../.env
+    volumes:
+      - ../src/workflows:/home/node/.n8n/workflows
+      - ../dist:/home/node/packages/nodes/dist # Mount compiled custom nodes
+    depends_on:
+      - postgres
+      - rabbitmq
+      - minio
+
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=${N8N_DB_POSTGRESDB_USER:-n8n_user}
+      - POSTGRES_PASSWORD=${N8N_DB_POSTGRESDB_PASSWORD:-supersecretpassword}
+      - POSTGRES_DB=${N8N_DB_POSTGRESDB_DATABASE:-n8n}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672" # AMQP
+      - "15672:15672" # Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # Console
+    volumes:
+      - minio_data:/data
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY:-minioadmin}
+    command: server /data --console-address ":9001"
+
+volumes:
+  postgres_data:
+  minio_data:

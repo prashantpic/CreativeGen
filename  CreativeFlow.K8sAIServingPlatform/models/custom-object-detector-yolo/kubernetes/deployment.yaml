@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yolo-custom-fastapi
+  namespace: creativeflow-ai-serving
+  labels:
+    app: yolo-custom-fastapi
+    runtime: custom-fastapi
+    model: yolo-custom
+    task: object-detection
+spec:
+  replicas: 1 # Start with 1, HPA will manage scaling
+  selector:
+    matchLabels:
+      app: yolo-custom-fastapi
+  template:
+    metadata:
+      labels:
+        app: yolo-custom-fastapi
+        runtime: custom-fastapi
+        model: yolo-custom
+        task: object-detection
+        creativeflow.ai/scrape-metrics: "true" # For Prometheus ServiceMonitor
+    spec:
+      serviceAccountName: ai-model-server-sa
+      containers:
+      - name: yolo-custom-fastapi-container
+        image: your-private-registry/creativeflow/yolo-custom-fastapi:latest # Replace with actual registry path
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http # Serves both API and /metrics endpoint
+        env:
+        - name: MODEL_PATH
+          value: "/app/model_weights/yolov5s.pt" # Default model path, can be overridden
+        - name: CONFIDENCE_THRESHOLD
+          value: "0.25"
+        - name: MODEL_VERSION_TAG
+          value: "yolo-v1.0.0" # Example version tag
+        resources:
+          limits:
+            nvidia.com/gpu: 1 
+          requests:
+            nvidia.com/gpu: 1
+            cpu: "1"
+            memory: "4Gi" # Adjust based on model size
+        readinessProbe:
+          httpGet:
+            path: "/health"
+            port: http 
+          initialDelaySeconds: 30 # Allow time for model loading
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: "/health"
+            port: http
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3

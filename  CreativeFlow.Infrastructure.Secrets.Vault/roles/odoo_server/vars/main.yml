@@ -1,0 +1,7 @@
+---
+# Placeholder vars for 'odoo_server' role.
+# Database connection details must be defined here or in group_vars, sourcing secrets from vault.
+# odoo_db_host: "prod-db-01.prod.creativeflow.ai"
+# odoo_db_port: 5432
+# odoo_db_user: "odoo"
+# odoo_db_password: "{{ odoo_db_password_vault }}"

@@ -1,0 +1,18 @@
+---
+- name: Check if node has already joined the cluster
+  ansible.builtin.stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: kubelet_conf
+
+- name: Join worker node to the Kubernetes cluster
+  ansible.builtin.command:
+    cmd: "{{ hostvars[groups['k8s_masters'][0]]['k8s_join_command'] }} {{ kubeadm_join_extra_args }}"
+  when: not kubelet_conf.stat.exists and hostvars[groups['k8s_masters'][0]]['k8s_join_command'] is defined
+  register: kubeadm_join
+
+- name: Reset node if join command is not available (fail safe)
+  ansible.builtin.command:
+    cmd: kubeadm reset -f
+  when: not kubelet_conf.stat.exists and hostvars[groups['k8s_masters'][0]]['k8s_join_command'] is not defined
+  failed_when: true
+  # This task is designed to fail the play for this host if the join command is not available.

@@ -1,0 +1,24 @@
+# PostgreSQL Client Authentication Configuration File
+# ===================================================
+#
+# Refer to the PostgreSQL documentation for a complete
+# description of this file.
+#
+# "local" is for Unix domain socket connections only
+local   all             all                                     peer
+
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            scram-sha-256
+# IPv6 local connections:
+host    all             all             ::1/128                 scram-sha-256
+
+# Allow replication connections from replica servers
+{% for host in groups['db_replicas'] %}
+host    replication     {{ pg_replication_user }}         {{ hostvars[host]['ansible_host'] }}/32    scram-sha-256
+{% endfor %}
+
+# Allow connections from application servers (example)
+# host    all             all             10.0.0.0/16               scram-sha-256
+
+# Allow connections from anywhere for specific app user (example)
+# host    mydatabase      myappuser       0.0.0.0/0                 scram-sha-256

@@ -1,0 +1,39 @@
+---
+- name: Create node_exporter system user
+  ansible.builtin.user:
+    name: "{{ node_exporter_user }}"
+    system: yes
+    shell: /usr/sbin/nologin
+    create_home: no
+
+- name: Download and unarchive Node Exporter
+  ansible.builtin.unarchive:
+    src: "{{ node_exporter_binary_url }}"
+    dest: /tmp/
+    remote_src: yes
+    creates: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+
+- name: Copy node_exporter binary to /usr/local/bin
+  ansible.builtin.copy:
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+    dest: /usr/local/bin/node_exporter
+    remote_src: yes
+    owner: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_user }}"
+    mode: '0755'
+  notify: restart node_exporter
+
+- name: Deploy systemd service file for node_exporter
+  ansible.builtin.template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart node_exporter
+
+- name: Enable and start node_exporter service
+  ansible.builtin.systemd:
+    name: node_exporter
+    enabled: yes
+    state: started

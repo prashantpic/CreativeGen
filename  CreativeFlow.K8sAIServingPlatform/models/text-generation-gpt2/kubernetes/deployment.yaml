@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gpt2-triton
+  namespace: creativeflow-ai-serving
+  labels:
+    app: gpt2-triton
+    runtime: triton
+    model: gpt2
+    task: text-generation
+spec:
+  replicas: 1 # Start with 1, HPA will manage scaling
+  selector:
+    matchLabels:
+      app: gpt2-triton
+  template:
+    metadata:
+      labels:
+        app: gpt2-triton
+        runtime: triton
+        model: gpt2
+        task: text-generation
+        creativeflow.ai/scrape-metrics: "true" # For Prometheus ServiceMonitor
+    spec:
+      serviceAccountName: ai-model-server-sa
+      containers:
+      - name: gpt2-triton-container
+        image: your-private-registry/creativeflow/gpt2-triton:latest # Replace with actual registry path
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+        - containerPort: 8001
+          name: grpc
+        - containerPort: 8002
+          name: http-metrics
+        resources:
+          limits:
+            nvidia.com/gpu: 1 
+          requests:
+            nvidia.com/gpu: 1
+            cpu: "1"
+            memory: "4Gi" # Adjust based on model size
+        readinessProbe:
+          httpGet:
+            path: "/v2/health/ready" # Triton's readiness endpoint
+            port: http 
+          initialDelaySeconds: 30 # Triton can take a while to load large models
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: "/v2/health/live" # Triton's liveness endpoint
+            port: http
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3

@@ -1,0 +1,73 @@
+sequenceDiagram
+    participant "CreativeFlow WebApp (PWA)" as repowebapppwa
+    participant "API Gateway" as compapigatewaynginx
+    participant "Odoo Backend" as svcodoobackend
+    participant "PostgreSQL DB" as repodbpostgresql
+    participant "RabbitMQ" as compmessagequeuerabbitmq
+    participant "Notification Service" as svcnotificationservice
+
+    note over repowebapppwa, svcnotificationservice: User actions are initiated via the WebApp (PWA). User's email client is external and not shown as a participant.
+
+    repowebapppwa-compapigatewaynginx: 1. Submit Registration (POST /users/register with email, password)
+    activate compapigatewaynginx
+    compapigatewaynginx-svcodoobackend: 1.1. Process Registration Request
+    activate svcodoobackend
+    svcodoobackend-repodbpostgresql: 1.2. Create User Record (status: unverified, store verificationToken)
+    activate repodbpostgresql
+    repodbpostgresql--svcodoobackend: 1.3. User Record Created
+    deactivate repodbpostgresql
+    svcodoobackend-compmessagequeuerabbitmq: 1.4. Publish 'UserRegisteredNeedsVerification' Event
+    activate compmessagequeuerabbitmq
+    svcodoobackend--compapigatewaynginx: 1.6. Registration Processed (Internal Ack)
+    deactivate svcodoobackend
+    note right of compapigatewaynginx: Registration Accepted (e.g., 202) indicates successful initial processing. Email verification is handled asynchronously.
+    compapigatewaynginx--repowebapppwa: 1.7. Registration Accepted (e.g., 202 Accepted)
+    deactivate compapigatewaynginx
+
+    compmessagequeuerabbitmq-svcnotificationservice: 2. Consume 'UserRegisteredNeedsVerification' Event
+    deactivate compmessagequeuerabbitmq
+    activate svcnotificationservice
+    svcnotificationservice-svcnotificationservice: 2.1. Send Verification Email (to user's email address)
+    deactivate svcnotificationservice
+
+    note right of compapigatewaynginx: Verification link from email is clicked by user, leading to a GET request to the API Gateway.
+    repowebapppwa-compapigatewaynginx: 3. Verify Email (GET /users/verify-email?token=TOKEN)
+    activate compapigatewaynginx
+    compapigatewaynginx-svcodoobackend: 3.1. Process Email Verification Request
+    activate svcodoobackend
+    svcodoobackend-repodbpostgresql: 3.2. Find User by Verification Token
+    activate repodbpostgresql
+    repodbpostgresql--svcodoobackend: 3.3. User Record (or null)
+    deactivate repodbpostgresql
+    svcodoobackend-svcodoobackend: 3.4. Validate Token
+    alt If Token Valid & User Found
+        svcodoobackend-repodbpostgresql: 3.5. Update User Status (verified), Clear Token
+        activate repodbpostgresql
+        repodbpostgresql--svcodoobackend: Update Successful
+        deactivate repodbpostgresql
+    end
+    svcodoobackend--compapigatewaynginx: 3.6. Verification Processed
+    deactivate svcodoobackend
+    compapigatewaynginx--repowebapppwa: 3.7. Email Verified (e.g., 200 OK) / Failed (e.g., 400)
+    deactivate compapigatewaynginx
+
+    repowebapppwa-compapigatewaynginx: 4. Login Request (POST /auth/login with email, password)
+    activate compapigatewaynginx
+    compapigatewaynginx-svcodoobackend: 4.1. Process Login Request
+    activate svcodoobackend
+    svcodoobackend-repodbpostgresql: 4.2. Find User by Email (ensure verified)
+    activate repodbpostgresql
+    repodbpostgresql--svcodoobackend: 4.3. User Record (with hashed password)
+    deactivate repodbpostgresql
+    svcodoobackend-svcodoobackend: 4.4. Verify Password
+    alt If Password Valid & User Verified
+        svcodoobackend-svcodoobackend: 4.5. Generate JWT
+    end
+    svcodoobackend--compapigatewaynginx: 4.6. Login Response (JWT, user profile)
+    deactivate svcodoobackend
+    compapigatewaynginx--repowebapppwa: 4.7. Login Successful (e.g., 200 OK with JWT) / Failed (e.g., 401)
+    deactivate compapigatewaynginx
+
+    repowebapppwa-repowebapppwa: 5. [Optional] Initiate Progressive Profiling UI
+
+    note over repowebapppwa, svcnotificationservice: This diagram focuses on the successful registration and login flow. Detailed error handling for scenarios like 'email already exists', 'invalid token', or 'incorrect password' would involve alternative paths and specific error responses not fully detailed here.

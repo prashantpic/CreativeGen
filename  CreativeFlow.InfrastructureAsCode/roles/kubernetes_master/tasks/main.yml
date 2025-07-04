@@ -1,0 +1,51 @@
+---
+- name: Check if cluster is already initialized
+  ansible.builtin.stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubeadmin_conf
+
+- name: Initialize Kubernetes control plane
+  ansible.builtin.command: >
+    kubeadm init
+    --pod-network-cidr={{ k8s_pod_network_cidr }}
+    --apiserver-advertise-address={{ ansible_host }}
+    {{ kubeadm_init_extra_args }}
+  when: not kubeadmin_conf.stat.exists
+  register: kubeadm_init_result
+
+- name: Create .kube directory for admin user
+  ansible.builtin.file:
+    path: "/home/{{ ansible_admin_user }}/.kube"
+    state: directory
+    owner: "{{ ansible_admin_user }}"
+    group: "{{ ansible_admin_user }}"
+    mode: '0755'
+  when: not kubeadmin_conf.stat.exists or kubeadm_init_result.changed
+
+- name: Copy admin.conf to user's kube config
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "/home/{{ ansible_admin_user }}/.kube/config"
+    remote_src: true
+    owner: "{{ ansible_admin_user }}"
+    group: "{{ ansible_admin_user }}"
+    mode: '0644'
+  when: not kubeadmin_conf.stat.exists or kubeadm_init_result.changed
+
+- name: Get worker join command
+  ansible.builtin.command: kubeadm token create --print-join-command
+  register: kubeadm_join_command
+  when: not kubeadmin_conf.stat.exists or kubeadm_init_result.changed
+
+- name: Store worker join command for other hosts
+  ansible.builtin.set_fact:
+    k8s_join_command: "{{ kubeadm_join_command.stdout }}"
+    cacheable: yes
+  when: kubeadm_join_command.stdout is defined
+
+- name: Apply CNI manifest (Calico)
+  community.kubernetes.k8s:
+    state: present
+    src: "{{ k8s_cni_manifest_url }}"
+    kubeconfig: /etc/kubernetes/admin.conf
+  when: not kubeadmin_conf.stat.exists or kubeadm_init_result.changed

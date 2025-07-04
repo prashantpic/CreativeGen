@@ -1,0 +1,21 @@
+---
+# Role to install and configure RabbitMQ server or cluster.
+# This is a placeholder implementation. A full implementation would handle:
+# - Adding Erlang and RabbitMQ package repositories.
+# - Installing specific versions of Erlang and RabbitMQ.
+# - Configuring rabbitmq.conf for clustering, memory limits, etc.
+# - Setting up users, vhosts, and permissions using rabbitmqctl.
+# - Enabling the management plugin.
+# - Ensuring the rabbitmq-server service is running and enabled.
+
+- name: Placeholder task for RabbitMQ repository setup
+  ansible.builtin.debug:
+    msg: "This task would add Erlang and RabbitMQ package repositories."
+
+- name: Placeholder task for RabbitMQ installation
+  ansible.builtin.debug:
+    msg: "This task would install RabbitMQ server and its dependencies."
+
+- name: Placeholder task for RabbitMQ configuration
+  ansible.builtin.debug:
+    msg: "This task would configure users, vhosts, and cluster settings."

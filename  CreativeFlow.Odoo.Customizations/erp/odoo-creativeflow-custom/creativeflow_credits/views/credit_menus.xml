@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main CreativeFlow Credits Menu -->
+    <menuitem
+        id="creativeflow_credits_menu_root"
+        name="CreativeFlow Credits"
+        sequence="20"
+        web_icon="creativeflow_credits,static/description/icon.png"/>
+
+    <!-- Submenu for Credit Transactions -->
+    <menuitem
+        id="creativeflow_credit_transaction_menu"
+        name="Credit Transactions"
+        parent="creativeflow_credits_menu_root"
+        action="creativeflow_credit_transaction_action"
+        sequence="10"/>
+
+    <!-- Submenu for Action Costs Configuration -->
+    <menuitem
+        id="creativeflow_credit_action_cost_menu"
+        name="Action Costs Configuration"
+        parent="creativeflow_credits_menu_root"
+        action="creativeflow_credit_action_cost_action"
+        sequence="20"
+        groups="base.group_system"/>
+</odoo>

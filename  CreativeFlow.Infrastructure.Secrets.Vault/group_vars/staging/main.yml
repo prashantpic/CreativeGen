@@ -1,0 +1,14 @@
+---
+# Variables specific to the Staging environment.
+# These will override variables defined in group_vars/all/common_vars.yml.
+
+environment: 'staging'
+
+# Staging API server URL used by front-end applications
+api_server_url: 'https://staging-api.creativeflow.ai'
+
+# Disable host key checking for staging
+host_key_checking: False
+
+# Example of staging-specific tuning (smaller values than production)
+# postgresql_shared_buffers: "2GB"

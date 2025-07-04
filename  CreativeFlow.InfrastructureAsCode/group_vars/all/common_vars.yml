@@ -1,0 +1,19 @@
+---
+# This file contains variables that are common to all hosts in all environments.
+# These can be overridden by environment-specific or host-specific variables.
+
+# System settings
+admin_user: 'ansible_admin'
+ntp_servers:
+  - 0.pool.ntp.org
+  - 1.pool.ntp.org
+  - 2.pool.ntp.org
+  - 3.pool.ntp.org
+
+# Application/Domain settings
+base_domain_name: 'creativeflow.ai'
+
+# Common package versions (can be overridden per environment)
+# Example:
+# postgresql_version: "14"
+# redis_version: "6.2"

@@ -1,0 +1,46 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: gpt2-triton-hpa
+  namespace: creativeflow-ai-serving
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: gpt2-triton
+  minReplicas: 1
+  maxReplicas: 3 # Adjust based on capacity and cost
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
+  # Triton exposes rich metrics that can be used for custom scaling.
+  # Example: scaling based on inference request latency.
+  # This requires prometheus-adapter to expose the Triton metric to the HPA.
+  # - type: Pods
+  #   pods:
+  #     metric:
+  #       name: nv_inference_request_duration_us_average # Hypothetical averaged metric name
+  #     target:
+  #       type: AverageValue
+  #       averageValue: "250000" # Target 250ms average latency
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 180
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60
+      - type: Pods
+        value: 1
+        periodSeconds: 60
+      selectPolicy: Max

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend res.partner form view for Billing Info -->
+    <record id="view_partner_form_billing_inherit" model="ir.ui.view">
+        <field name="name">res.partner.form.billing.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='creativeflow']" position="inside">
+                <group string="Odoo-Managed Billing" name="creativeflow_billing_info">
+                     <field name="cf_credit_balance" widget="monetary"/>
+                </group>
+                <group name="creativeflow_billing_details">
+                    <notebook>
+                        <page string="Subscriptions" name="partner_subscriptions">
+                            <field name="cf_subscription_ids" readonly="1">
+                                <tree>
+                                    <field name="code"/>
+                                    <field name="template_id"/>
+                                    <field name="stage_id"/>
+                                    <field name="date_start"/>
+                                    <field name="date"/>
+                                    <field name="recurring_total"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Credit Log" name="partner_credit_log">
+                            <field name="cf_credit_log_ids" readonly="1">
+                                <tree>
+                                    <field name="date_transaction"/>
+                                    <field name="transaction_type"/>
+                                    <field name="amount" sum="Total"/>
+                                    <field name="description"/>
+                                    <field name="related_document_display"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend sale.subscription form view -->
+    <record id="sale_subscription_view_form_inherit_creativeflow" model="ir.ui.view">
+        <field name="name">sale.subscription.form.inherit.creativeflow</field>
+        <field name="model">sale.subscription</field>
+        <field name="inherit_id" ref="sale_subscription.sale_subscription_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='subscription_details']" position="after">
+                <group string="CreativeFlow Details" name="creativeflow_subscription_details">
+                    <field name="cf_platform_plan_id"/>
+                    <field name="cf_credit_allotment_per_cycle"/>
+                    <field name="cf_last_sync_status_to_platform" readonly="1"/>
+                    <button name="action_sync_status_to_platform" type="object" string="Sync Status Now"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend sale.subscription tree view -->
+    <record id="sale_subscription_view_tree_inherit_creativeflow" model="ir.ui.view">
+        <field name="name">sale.subscription.tree.inherit.creativeflow</field>
+        <field name="model">sale.subscription</field>
+        <field name="inherit_id" ref="sale_subscription.sale_subscription_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="stage_id" position="after">
+                <field name="cf_platform_plan_id" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,27 @@
+sequenceDiagram
+    actor "User" as actoruser
+    participant "WebApp (PWA)" as REPOWEBFRONTEND001
+    participant "API Gateway" as compapigatewaynginx
+    participant "Odoo Backend (Helpdesk)" as svcodooobackend
+
+    activate actoruser
+    note over actoruser: User navigates to Help/Support section in WebApp and fills out the form details. This interaction assumes the form is already filled and is being submitted.
+    actoruser--REPOWEBFRONTEND001: 1. Submits Support Ticket Form (subject, description, category)
+    activate REPOWEBFRONTEND001
+
+    REPOWEBFRONTEND001--compapigatewaynginx: 2. REQ: Create Support Ticket (ticketData: {subject, description, category, userId})
+    activate compapigatewaynginx
+
+    compapigatewaynginx--svcodooobackend: 3. REQ: Create Support Ticket (ticketData)
+    activate svcodooobackend
+    note over svcodooobackend: Odoo Helpdesk module processes the request: validates data, creates a new support ticket (as per REQ-021), and may trigger an asynchronous process to send an automated email confirmation to the user.
+
+    svcodooobackend--compapigatewaynginx: 4. RESP: Ticket Created Successfully ({ticketId, status: 'Success', confirmationMessage})
+    deactivate svcodooobackend
+
+    compapigatewaynginx--REPOWEBFRONTEND001: 5. RESP: Ticket Created Successfully ({ticketId, status: 'Success', confirmationMessage})
+    deactivate compapigatewaynginx
+
+    REPOWEBFRONTEND001--actoruser: 6. Displays Ticket Creation Confirmation (UI Updated with: {ticketId, confirmationMessage})
+    deactivate REPOWEBFRONTEND001
+    deactivate actoruser

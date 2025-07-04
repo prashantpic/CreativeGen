@@ -1,0 +1,67 @@
+{
+  "common": {
+    "or": "or",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "submit": "Submit",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "close": "Close"
+  },
+  "pwa": {
+    "offlineReady": "App is ready to work offline.",
+    "newContent": "New content is available, click on reload button to update.",
+    "reload": "Reload",
+    "close": "Close"
+  },
+  "auth": {
+    "login": {
+      "pageTitle": "Login - CreativeFlow",
+      "title": "Welcome back!",
+      "subtitle": "Don't have an account?",
+      "createAccountLink": "Sign up",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "loginButton": "Login",
+      "loggingIn": "Logging in...",
+      "forgotPasswordLink": "Forgot password?",
+      "validation": {
+        "allFieldsRequired": "Email and password are required.",
+        "invalidEmail": "Please enter a valid email address."
+      }
+    },
+    "register": {
+      "pageTitle": "Sign Up - CreativeFlow",
+      "title": "Create your account",
+      "subtitle": "Already have an account?",
+      "loginLink": "Log in"
+    }
+  },
+  "dashboard": {
+    "pageTitle": "Dashboard - CreativeFlow",
+    "title": "Dashboard",
+    "recentProjects": "Recent Projects"
+  },
+  "editor": {
+    "pageTitle": "Editor - CreativeFlow",
+    "newCreative": "New Creative"
+  },
+  "templates": {
+    "pageTitle": "Templates - CreativeFlow",
+    "title": "Choose a template to start",
+    "subtitle": "Browse our professionally designed templates for any platform.",
+    "noTemplatesFound": "No templates found. Try adjusting your filters."
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "templates": "Templates",
+    "projects": "Projects",
+    "profile": "Profile",
+    "logout": "Logout"
+  }
+}

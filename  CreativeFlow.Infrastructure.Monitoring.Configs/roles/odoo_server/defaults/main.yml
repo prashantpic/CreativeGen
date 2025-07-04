@@ -1,0 +1,9 @@
+---
+# Default variables for the odoo_server role.
+# These can be overridden in group_vars or host_vars.
+
+# Placeholder for Odoo version
+odoo_version: "16.0"
+
+# Placeholder for Python version
+python_version: "3.10"

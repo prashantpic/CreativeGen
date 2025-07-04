@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Brand Kit Tree View -->
+    <record id="creativeflow_brand_kit_view_tree" model="ir.ui.view">
+        <field name="name">creativeflow.brand.kit.tree</field>
+        <field name="model">creativeflow.brand.kit</field>
+        <field name="arch" type="xml">
+            <tree string="Brand Kits">
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="is_default_for_user"/>
+                <field name="cf_external_brand_kit_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Brand Kit Form View -->
+    <record id="creativeflow_brand_kit_view_form" model="ir.ui.view">
+        <field name="name">creativeflow.brand.kit.form</field>
+        <field name="model">creativeflow.brand.kit</field>
+        <field name="arch" type="xml">
+            <form string="Brand Kit">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="e.g. Acme Corp. Primary Brand"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="is_default_for_user"/>
+                        </group>
+                        <group>
+                            <field name="cf_team_id_external"/>
+                            <field name="cf_external_brand_kit_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Assets">
+                            <group>
+                                <field name="logo_ids" widget="many2many_binary" string="Logos"/>
+                            </group>
+                        </page>
+                        <page string="JSON Configuration (Advanced)">
+                            <group>
+                                <field name="colors_json" placeholder="[{&quot;name&quot;: &quot;Primary&quot;, &quot;hex&quot;: &quot;#00A09D&quot;}]"/>
+                                <field name="fonts_json" placeholder="[{&quot;name&quot;: &quot;Heading&quot;, &quot;family&quot;: &quot;Montserrat&quot;}]"/>
+                                <field name="style_preferences_json" placeholder="{&quot;tone&quot;: &quot;professional&quot;, &quot;mood&quot;: &quot;energetic&quot;}"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Brand Kit Search View -->
+    <record id="creativeflow_brand_kit_view_search" model="ir.ui.view">
+        <field name="name">creativeflow.brand.kit.search</field>
+        <field name="model">creativeflow.brand.kit</field>
+        <field name="arch" type="xml">
+            <search string="Search Brand Kits">
+                <field name="name"/>
+                <field name="user_id"/>
+                <filter string="Default Kits" name="filter_is_default" domain="[('is_default_for_user', '=', True)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Owner" name="group_by_user" context="{'group_by': 'user_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action for Brand Kits -->
+    <record id="creativeflow_brand_kit_action" model="ir.actions.act_window">
+        <field name="name">Brand Kits</field>
+        <field name="res_model">creativeflow.brand.kit</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Brand Kit.
+            </p><p>
+                Brand Kits store your logos, colors, and fonts to ensure consistency in AI-generated content.
+            </p>
+        </field>
+    </record>
+</odoo>

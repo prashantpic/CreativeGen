@@ -1,0 +1,16 @@
+# Tasks for provisioning Kubernetes worker nodes.
+---
+- name: Check if node has already joined the cluster
+  ansible.builtin.stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: kubelet_config_exists
+
+- name: Reset kubeadm if node needs to rejoin
+  ansible.builtin.command: kubeadm reset -f
+  when: force_rejoin | default(false)
+  changed_when: true
+
+- name: Join node to the Kubernetes cluster
+  ansible.builtin.command: "{{ hostvars[groups['k8s_masters'][0]]['kubeadm_join_command'] }} {{ kubeadm_join_extra_args }}"
+  when: not kubelet_config_exists.stat.exists or force_rejoin | default(false)
+  changed_when: true

@@ -1,0 +1,330 @@
+{
+  "name": "CreativeGeneration_Main",
+  "nodes": [
+    {
+      "parameters": {
+        "queue": "creativeflow.generation.jobs"
+      },
+      "id": "18f99e30-b193-4a0d-9a67-9eb51b689254",
+      "name": "1. Receive Job from RabbitMQ",
+      "type": "n8n-nodes-base.rabbitMqTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        300
+      ],
+      "credentials": {
+        "rabbitMq": {
+          "id": "your-rabbitmq-credential-id",
+          "name": "RabbitMQ Credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": "lskd8fjh34SDfSdf",
+        "source": "json",
+        "parameters": {
+          "json": "={{$json}}"
+        }
+      },
+      "id": "67b844f2-51c3-4876-96b4-02ac8591866e",
+      "name": "2. Preprocess Input Data",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "kjh34SDfghCVBwer",
+        "source": "json",
+        "parameters": {
+          "json": "={{ ({ serviceName: $json.aiModelPreferences.imageGeneration.split('_')[0] }) }}"
+        }
+      },
+      "id": "40049405-b7b5-4424-9b36-7c1ccb8a3424",
+      "name": "3. Fetch API Key",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "batchSize": 1,
+        "items": "={{ $items('1. Receive Job from RabbitMQ')[0].json.targetFormats }}"
+      },
+      "id": "01c349a7-8f59-4f3b-891d-9359e1966a35",
+      "name": "4. Loop Each Target Format & Sample",
+      "type": "n8n-nodes-base.loop",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $items('1. Receive Job from RabbitMQ')[0].json.aiModelPreferences.imageGeneration === 'OpenAI_Dalle' ? 'ghBq76aH4UaD12Fc' : 'klM89jkl21Lksd34' }}",
+        "source": "json",
+        "parameters": {
+          "json": "={{ ({ prompt: $items('2. Preprocess Input Data')[0].json.processedTextPrompt, size: $json.dimensions, apiKey: $items('3. Fetch API Key')[0].json.apiKey }) }}"
+        }
+      },
+      "id": "51571d70-3486-444f-9e79-58b38799ac03",
+      "name": "5. Generate Sample Image",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        920,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "zxcv987ASDFqwer",
+        "source": "json",
+        "parameters": {
+          "json": "={{ ({ contentType: 'image_url', contentData: $json.imageData[0].url || `data:image/png;base64,${$json.imageData[0].b64_json}` }) }}"
+        }
+      },
+      "id": "e93f6565-d06d-4952-b91c-8b89e3a75908",
+      "name": "6. Content Safety Check",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        1140,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.MINIO_ENDPOINT}}",
+        "authentication": "awsS3",
+        "awsS3Authentication": {
+          "accessKeyId": "={{$credentials.minio.accessKeyId}}",
+          "secretAccessKey": "={{$credentials.minio.secretAccessKey}}"
+        },
+        "bucketName": "creative-assets",
+        "fileName": "samples/{{ $items('1. Receive Job from RabbitMQ')[0].json.jobId }}/{{$items('4. Loop Each Target Format & Sample').item.index}}_{{Date.now()}}.png",
+        "binaryData": true,
+        "source": "base64",
+        "inputData": "={{ $items('5. Generate Sample Image')[0].json.imageData[0].b64_json }}"
+      },
+      "id": "4e797d74-f3c5-430b-b1a1-f417f7d983c5",
+      "name": "7. Store Sample in MinIO",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1360,
+        200
+      ],
+      "credentials": {
+        "aws": {
+          "id": "your-minio-credential-id",
+          "name": "MinIO S3 Credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.isSafe}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "ff9b2a75-1033-4f93-8378-c44d15655787",
+      "name": "Is Content Safe?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1250,
+        200
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "e67e3728-3e28-4f81-9b16-52c78e351834",
+      "name": "Merge Loop Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        1580,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "MNBvc876HGFd345",
+        "source": "json",
+        "parameters": {
+          "json": "={{ ({ routingKey: 'odoo.generation.status_update', messagePayload: { jobId: $items('1. Receive Job from RabbitMQ')[0].json.jobId, status: 'AwaitingSelection', sampleAssets: $items().map(item => ({ path: item.json.Key, etag: item.json.ETag })) } }) }}"
+        }
+      },
+      "id": "d80b7494-b778-4357-9d7a-75b2241d7d56",
+      "name": "8. Notify Odoo (Samples Ready)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "POiu789jkhg654f",
+        "source": "json",
+        "parameters": {
+          "json": "={{ ({ userId: $items('1. Receive Job from RabbitMQ')[0].json.userId, notificationType: 'samples_ready', message: 'Your creative samples are ready for review!' }) }}"
+        }
+      },
+      "id": "76d8b9b6-8a56-4b5c-b5f7-64cd778d91f8",
+      "name": "9. Notify User (Samples Ready)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "path": "={{$items('1. Receive Job from RabbitMQ')[0].json.jobId}}",
+        "options": {}
+      },
+      "id": "c13d7217-1f9e-4a6c-9411-c30162589574",
+      "name": "10. Wait for Sample Selection",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        2020,
+        300
+      ],
+      "webhookId": "your-webhook-id-for-sample-selection"
+    }
+  ],
+  "connections": {
+    "1. Receive Job from RabbitMQ": {
+      "main": [
+        [
+          {
+            "node": "2. Preprocess Input Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Preprocess Input Data": {
+      "main": [
+        [
+          {
+            "node": "3. Fetch API Key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Fetch API Key": {
+      "main": [
+        [
+          {
+            "node": "4. Loop Each Target Format & Sample",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4. Loop Each Target Format & Sample": {
+      "main": [
+        [
+          {
+            "node": "5. Generate Sample Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5. Generate Sample Image": {
+      "main": [
+        [
+          {
+            "node": "6. Content Safety Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6. Content Safety Check": {
+      "main": [
+        [
+          {
+            "node": "Is Content Safe?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7. Store Sample in MinIO": {
+      "main": [
+        [
+          {
+            "node": "Merge Loop Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Content Safe?": {
+      "main": [
+        [
+          {
+            "node": "7. Store Sample in MinIO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Loop Results": {
+      "main": [
+        [
+          {
+            "node": "8. Notify Odoo (Samples Ready)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "9. Notify User (Samples Ready)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "10. Wait for Sample Selection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "id": "qwerASDFzxcv1234",
+  "meta": {},
+  "settings": {}
+}

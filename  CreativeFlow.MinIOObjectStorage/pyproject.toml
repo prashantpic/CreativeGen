@@ -1,0 +1,61 @@
+[tool.poetry]
+name = "creativeflow-mlops-service"
+version = "0.1.0"
+description = "MLOps Service for the CreativeFlow AI Platform"
+authors = ["CreativeFlow Engineering <dev@creativeflow.ai>"]
+license = "Proprietary"
+readme = "README.md"
+packages = [{include = "creativeflow", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "0.111.0"
+uvicorn = {extras = ["standard"], version = "0.29.0"}
+pydantic = "2.7.1"
+pydantic-settings = "2.2.1"
+sqlalchemy = "2.0.30"
+psycopg2-binary = "2.9.9"
+alembic = "1.13.1"
+minio = "7.2.7"
+kubernetes = "29.0.0"
+python-jose = {extras = ["cryptography"], version = "3.3.0"}
+passlib = {extras = ["bcrypt"], version = "2.7.4"}
+python-multipart = "0.0.9"
+python-json-logger = "2.0.7"
+httpx = "0.27.0"
+SQLAlchemy-Utils = "0.41.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "8.2.1"
+pytest-asyncio = "0.23.6"
+flake8 = "7.0.0"
+black = "24.4.2"
+isort = "5.13.2"
+mypy = "1.10.0"
+types-python-jose = "^3.3.4"
+types-passlib = "^1.7.7"
+types-requests = "^2.31.0"
+types-psycopg2 = "^2.9.21"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+# Add other mypy settings as needed

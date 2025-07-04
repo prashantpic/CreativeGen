@@ -1,0 +1,4 @@
+---
+# Placeholder vars for 'redis_server' role.
+# Password should be defined in a vaulted file.
+# redis_password: "{{ redis_password_from_vault }}"

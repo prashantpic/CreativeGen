@@ -1,0 +1,6 @@
+# Default variables for the n8n server role.
+---
+n8n_nodejs_version: "18"
+n8n_user: "n8n"
+n8n_group: "n8n"
+n8n_data_dir: "/var/lib/n8n"

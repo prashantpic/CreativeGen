@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: CreativeFlow
+  description: Role to install and configure Odoo ERP.
+  license: proprietary
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+  galaxy_tags:
+    - odoo
+    - erp
+    - application
+
+dependencies:
+  - role: postgresql_server

@@ -1,0 +1,27 @@
+# This file is managed by Ansible. Do not edit manually.
+
+[databases]
+# Mappings from virtual db name to real db connection string
+{% for db in pg_databases %}
+{{ db.name }} = host={{ pgbouncer_db_host }} port={{ pg_port }} dbname={{ db.name }}
+{% endfor %}
+* = host={{ pgbouncer_db_host }} port={{ pg_port }}
+
+[pgbouncer]
+listen_addr = *
+listen_port = {{ pgbouncer_port }}
+
+auth_type = md5
+auth_file = /etc/pgbouncer/userlist.txt
+
+logfile = /var/log/pgbouncer/pgbouncer.log
+pidfile = /var/run/pgbouncer/pgbouncer.pid
+
+admin_users = postgres, {{ ansible_admin_user }}
+
+pool_mode = session
+server_reset_query = DISCARD ALL
+
+max_client_conn = {{ pgbouncer_max_client_conn }}
+default_pool_size = {{ pgbouncer_default_pool_size }}
+min_pool_size = {{ pgbouncer_min_pool_size }}

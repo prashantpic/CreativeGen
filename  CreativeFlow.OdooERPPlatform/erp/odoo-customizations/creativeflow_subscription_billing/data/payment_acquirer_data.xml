@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Define default Payment Acquirers for CreativeFlow.
+        API keys are placeholders and MUST be configured securely in the
+        Odoo UI or via environment variables in production.
+        noupdate="1" is used to prevent overwriting configurations made in the UI.
+    -->
+    <data noupdate="1">
+        <!-- Stripe Payment Acquirer -->
+        <record id="payment_acquirer_stripe_creativeflow" model="payment.acquirer">
+            <field name="name">Stripe CreativeFlow</field>
+            <field name="provider">stripe</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="state">test</field>
+            <field name="stripe_publishable_key">pk_test_YOUR_STRIPE_PUBLISHABLE_KEY</field>
+            <field name="stripe_secret_key">sk_test_YOUR_STRIPE_SECRET_KEY</field>
+            <field name="cf_webhook_secret">whsec_YOUR_STRIPE_WEBHOOK_SECRET</field>
+            <field name="payment_flow">s2s</field>
+            <field name="allow_tokenization">True</field>
+            <field name="journal_id" ref="account.account_journal_payment_credit_card"/>
+            <field name="image_128" type="base64" file="payment_stripe/static/src/img/stripe_logo.png"/>
+        </record>
+
+        <!-- PayPal Payment Acquirer -->
+        <record id="payment_acquirer_paypal_creativeflow" model="payment.acquirer">
+            <field name="name">PayPal CreativeFlow</field>
+            <field name="provider">paypal</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="state">test</field>
+            <field name="paypal_email_account">your-facilitator-email@example.com</field>
+            <field name="paypal_seller_account">your-facilitator-id</field>
+            <field name="cf_webhook_secret">YOUR_PAYPAL_WEBHOOK_ID_OR_SECRET</field>
+            <field name="journal_id" ref="account.account_journal_payment_credit_card"/>
+            <field name="image_128" type="base64" file="payment_paypal/static/src/img/paypal_logo.png"/>
+        </record>
+    </data>
+</odoo>

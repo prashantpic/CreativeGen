@@ -1,0 +1,47 @@
+[tool.poetry]
+name = "creativeflow-shared-backend"
+version = "0.1.0"
+description = "Shared libraries for the CreativeFlow AI backend."
+authors = ["CreativeFlow AI Team <dev@creativeflow.ai>"]
+readme = "README.md"
+packages = [{include = "creativeflow", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pydantic = {extras = ["email"], version = "^2.7.0"}
+fastapi = "^0.110.0"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+python-multipart = "^0.0.9"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-cov = "^4.1.0"
+black = "^24.0.0"
+flake8 = "^7.0.0"
+mypy = "^1.8.0"
+isort = "^5.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
+warn_return_any = true
+warn_unused_configs = true
+namespace_packages = true
+explicit_package_bases = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --cov=src/creativeflow/shared --cov-report=term-missing"
+testpaths = ["tests"]
+python_files = "tests.py test_*.py *_tests.py"

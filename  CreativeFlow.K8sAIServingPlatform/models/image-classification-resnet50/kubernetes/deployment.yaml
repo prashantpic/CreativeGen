@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resnet50-tfserving
+  namespace: creativeflow-ai-serving
+  labels:
+    app: resnet50-tfserving
+    runtime: tensorflow-serving
+    model: resnet50
+    task: image-classification
+spec:
+  replicas: 1 # Start with 1, HPA will manage scaling
+  selector:
+    matchLabels:
+      app: resnet50-tfserving
+  template:
+    metadata:
+      labels:
+        app: resnet50-tfserving
+        runtime: tensorflow-serving
+        model: resnet50
+        task: image-classification
+        creativeflow.ai/scrape-metrics: "true" # For Prometheus ServiceMonitor if metrics are exposed
+    spec:
+      serviceAccountName: ai-model-server-sa
+      containers:
+      - name: resnet50-tfserving-container
+        image: your-private-registry/creativeflow/resnet50-tfserving:latest # Replace with actual registry path
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8500
+          name: grpc
+        - containerPort: 8501
+          name: http
+        # TensorFlow Serving itself doesn't expose /metrics by default in older versions.
+        # If using a newer version or custom setup that does, add a metrics port:
+        # - containerPort: 8502 
+        #   name: metrics 
+        resources:
+          limits:
+            nvidia.com/gpu: 1 
+          requests:
+            nvidia.com/gpu: 1
+            cpu: "500m"
+            memory: "1Gi"
+        readinessProbe:
+          httpGet:
+            path: "/v1/models/resnet50" # TF Serving readiness endpoint checks if the model is loaded
+            port: http 
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: "/v1/models/resnet50"
+            port: http
+          initialDelaySeconds: 45
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
+        # Example of using a ConfigMap to provide the models.config file
+        # This is an alternative to baking the model name and path into the Docker CMD
+        # volumeMounts:
+        # - name: model-config-volume
+        #   mountPath: /etc/tf_serving/
+        #   readOnly: true
+      # volumes:
+      # - name: model-config-volume
+      #   configMap:
+      #     name: resnet50-tfserving-config # Corresponds to configmap-tfserving.yaml

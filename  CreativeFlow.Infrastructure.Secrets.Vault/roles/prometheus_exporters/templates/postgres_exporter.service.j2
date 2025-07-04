@@ -1,0 +1,15 @@
+# This file is managed by Ansible. Do not edit manually.
+[Unit]
+Description=Prometheus PostgreSQL Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User={{ postgres_exporter_user }}
+Group={{ postgres_exporter_user }}
+Type=simple
+Environment="DATA_SOURCE_NAME={{ postgres_exporter_dsn }}"
+ExecStart=/usr/local/bin/postgres_exporter
+
+[Install]
+WantedBy=multi-user.target

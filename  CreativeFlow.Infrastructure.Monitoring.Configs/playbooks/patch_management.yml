@@ -1,0 +1,45 @@
+# This playbook handles system updates.
+# It should be run with care, ideally with --limit to target specific hosts or groups.
+# The 'serial: 1' strategy ensures that servers are updated one-by-one to
+# minimize service disruption. For larger fleets, this can be increased.
+#
+# Example usage:
+# ansible-playbook playbooks/patch_management.yml --limit web_servers -i environments/staging/inventory.ini
+---
+- name: Apply system updates and security patches
+  hosts: all_servers # Use --limit to target specific hosts or groups
+  serial: 1 # Update one host at a time
+  become: true
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600 # One hour
+      changed_when: false
+      when: ansible_os_family == 'Debian'
+
+    - name: Perform a safe upgrade of all packages
+      ansible.builtin.apt:
+        upgrade: dist
+      register: apt_upgrade
+      when: ansible_os_family == 'Debian'
+      notify: Check for reboot
+
+  handlers:
+    - name: Check for reboot
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required_file
+      listen: "Check for reboot"
+
+    - name: Reboot server if required
+      ansible.builtin.reboot:
+        msg: "Rebooting server after system updates"
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: whoami
+      when: reboot_required_file.stat.exists
+      listen: "Check for reboot"

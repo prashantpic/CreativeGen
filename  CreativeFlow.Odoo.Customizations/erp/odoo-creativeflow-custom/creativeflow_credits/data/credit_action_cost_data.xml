@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Default credit costs for various platform actions -->
+        <record id="action_cost_sample_gen" model="creativeflow.credit.action.cost">
+            <field name="name">sample_generation</field>
+            <field name="cost" eval="0.25"/>
+            <field name="description">Cost for generating 4 low-resolution samples.</field>
+            <field name="is_active">True</field>
+        </record>
+
+        <record id="action_cost_final_gen_std" model="creativeflow.credit.action.cost">
+            <field name="name">final_generation_standard_res</field>
+            <field name="cost" eval="1.0"/>
+            <field name="description">Cost for generating one final standard resolution creative.</field>
+            <field name="is_active">True</field>
+        </record>
+
+        <record id="action_cost_export_hd" model="creativeflow.credit.action.cost">
+            <field name="name">export_hd</field>
+            <field name="cost" eval="2.0"/>
+            <field name="description">Cost for exporting a creative in High Definition.</field>
+            <field name="is_active">True</field>
+        </record>
+
+        <record id="action_cost_api_gen_std" model="creativeflow.credit.action.cost">
+            <field name="name">api_generation_standard</field>
+            <field name="cost" eval="0.05"/>
+            <field name="description">Cost per API generation call (standard).</field>
+            <field name="is_active">True</field>
+        </record>
+    </data>
+</odoo>

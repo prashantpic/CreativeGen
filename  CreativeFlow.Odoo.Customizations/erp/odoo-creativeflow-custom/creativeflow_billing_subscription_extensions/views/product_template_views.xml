@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_form_view_creativeflow_subscription" model="ir.ui.view">
+        <field name="name">product.template.form.creativeflow.subscription</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sales']" position="inside">
+                 <group name="creativeflow_subscription_details" string="CreativeFlow Subscription" attrs="{'invisible': [('recurring_invoice', '=', False)]}">
+                    <field name="cf_subscription_tier_provided"/>
+                    <field name="cf_credits_granted_on_period_start"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,4 @@
+---
+# Variables for the odoo_server role.
+# Sensitive connection details for the database
+# should be defined in vaulted group_vars files.

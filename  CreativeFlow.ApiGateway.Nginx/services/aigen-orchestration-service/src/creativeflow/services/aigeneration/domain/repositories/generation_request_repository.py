@@ -1,0 +1,53 @@
+from abc import ABC, abstractmethod
+from typing import Optional, List
+from uuid import UUID
+
+from creativeflow.services.aigeneration.domain.models.generation_request import GenerationRequest
+
+class IGenerationRequestRepository(ABC):
+    """
+    Interface (Abstract Base Class) for the GenerationRequest repository.
+    Defines the contract for data persistence operations related to the
+    GenerationRequest aggregate root.
+    """
+
+    @abstractmethod
+    async def get_by_id(self, request_id: UUID) -> Optional[GenerationRequest]:
+        """
+        Retrieves a GenerationRequest entity by its unique identifier.
+
+        :param request_id: The UUID of the generation request.
+        :return: A GenerationRequest object if found, otherwise None.
+        """
+        pass
+
+    @abstractmethod
+    async def add(self, generation_request: GenerationRequest) -> None:
+        """
+        Adds a new GenerationRequest entity to the repository.
+
+        :param generation_request: The GenerationRequest object to add.
+        """
+        pass
+
+    @abstractmethod
+    async def update(self, generation_request: GenerationRequest) -> None:
+        """
+
+        Updates an existing GenerationRequest entity in the repository.
+
+        :param generation_request: The GenerationRequest object to update.
+        """
+        pass
+
+    @abstractmethod
+    async def list_by_user_id(self, user_id: str, skip: int = 0, limit: int = 100) -> List[GenerationRequest]:
+        """
+        Lists GenerationRequest entities for a specific user.
+
+        :param user_id: The ID of the user.
+        :param skip: The number of records to skip for pagination.
+        :param limit: The maximum number of records to return.
+        :return: A list of GenerationRequest objects.
+        """
+        pass

@@ -1,0 +1,4 @@
+---
+# Kubernetes version. e.g. 1.28
+k8s_version: "1.28"
+k8s_package_version: "1.28.2" # Must be a specific version for package manager

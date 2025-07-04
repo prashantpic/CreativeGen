@@ -1,0 +1,19 @@
+---
+# Default variables for the odoo_server role.
+odoo_user: 'odoo'
+odoo_home: '/opt/odoo'
+odoo_version: '16.0' # Specify Odoo version
+odoo_repo_url: 'https://github.com/odoo/odoo.git'
+
+# Paths
+odoo_data_dir: '/var/lib/odoo'
+odoo_log_dir: '/var/log/odoo'
+odoo_custom_addons_path: '{{ odoo_home }}/custom-addons'
+
+# Odoo configuration
+odoo_db_host: 'localhost'
+odoo_db_port: 5432
+odoo_db_user: 'odoo'
+odoo_xmlrpc_port: 8069
+odoo_longpolling_port: 8072
+odoo_workers: 2 # Adjust based on CPU cores (2 * cores + 1)

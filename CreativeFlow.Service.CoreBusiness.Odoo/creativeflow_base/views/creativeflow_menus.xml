@@ -1,0 +1,50 @@
+<odoo>
+    <data>
+        <!-- Top-level Menu -->
+        <menuitem
+            id="menu_root"
+            name="CreativeFlow AI"
+            web_icon="creativeflow_base,static/description/icon.png"
+            sequence="1"/>
+
+        <!-- Child Menus -->
+        <!-- The actions for these menus will be defined in their respective modules. -->
+
+        <menuitem
+            id="menu_dashboard"
+            name="Dashboard"
+            parent="creativeflow_base.menu_root"
+            sequence="10"/>
+
+        <menuitem
+            id="menu_workbenches"
+            name="Workbenches"
+            parent="creativeflow_base.menu_root"
+            sequence="20"/>
+
+        <menuitem
+            id="menu_brand_kits"
+            name="Brand Kits"
+            parent="creativeflow_base.menu_root"
+            sequence="30"/>
+
+        <menuitem
+            id="menu_helpdesk"
+            name="Helpdesk"
+            parent="creativeflow_base.menu_root"
+            sequence="40"/>
+
+        <menuitem
+            id="menu_subscriptions"
+            name="Subscriptions"
+            parent="creativeflow_base.menu_root"
+            sequence="50"/>
+
+        <menuitem
+            id="menu_settings"
+            name="Settings"
+            parent="creativeflow_base.menu_root"
+            sequence="99"/>
+
+    </data>
+</odoo>

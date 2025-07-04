@@ -1,0 +1,33 @@
+# Defines Prometheus recording rules to pre-compute frequently needed or
+# computationally expensive queries. This optimizes dashboard loading and alerting performance.
+# Requirement(s) Addressed: DEP-005, QA-003
+
+groups:
+  - name: api_gateway_rules
+    interval: 1m
+    rules:
+      # Pre-calculates the per-second rate of all HTTP requests across all jobs over a 5-minute window.
+      # Useful for high-level traffic overview dashboards.
+      - record: job:http_requests_total:sum_rate5m
+        expr: sum(rate(http_requests_total[5m])) by (job)
+
+      # Pre-calculates the 99th percentile latency for the API gateway over a 5-minute window.
+      # Avoids calculating expensive quantiles in multiple dashboards and alerts.
+      - record: job:api_gateway_latency_seconds:p99_5m
+        expr: histogram_quantile(0.99, sum(rate(api_gateway_latency_seconds_bucket[5m])) by (le, job))
+
+  - name: cluster_resource_rules
+    interval: 1m
+    rules:
+      # Aggregates CPU usage across the entire cluster, excluding idle time.
+      # Result is in "cores". Useful for cluster capacity planning.
+      - record: cluster:cpu_usage:rate5m
+        expr: sum(rate(node_cpu_seconds_total{mode!="idle"}[5m]))
+
+      # Calculates the overall memory utilization percentage for the entire cluster.
+      # Provides a single metric for cluster memory pressure.
+      - record: cluster:memory_utilization:ratio
+        expr: |
+          (
+            sum(node_memory_MemTotal_bytes) - sum(node_memory_MemAvailable_bytes)
+          ) / sum(node_memory_MemTotal_bytes)

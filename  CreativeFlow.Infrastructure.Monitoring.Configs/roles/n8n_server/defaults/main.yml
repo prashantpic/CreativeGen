@@ -1,0 +1,9 @@
+---
+# Default variables for the n8n_server role.
+# These can be overridden in group_vars or host_vars.
+
+# Placeholder for Node.js version
+nodejs_version: "18.x"
+
+# Placeholder for n8n version
+n8n_version: "latest"

@@ -1,0 +1,28 @@
+#
+# Template for Python script configuration (`.py`) providing credentials and
+# the endpoint for the RabbitMQ Management HTTP API.
+#
+# INSTRUCTIONS:
+# 1. Copy this file to `rabbitmq_api_client_config.py` in the same directory:
+#    cp rabbitmq_api_client_config.py.template rabbitmq_api_client_config.py
+#
+# 2. Fill in the connection details for your RabbitMQ cluster.
+#
+# 3. **IMPORTANT**: Ensure `rabbitmq_api_client_config.py` is added to your
+#    `.gitignore` file to prevent secrets from being committed to version control.
+#
+
+RABBITMQ_API_CONFIG = {
+    # The URL for the RabbitMQ Management Plugin.
+    # e.g., 'http://rabbitmq.example.com:15672' or 'http://localhost:15672'
+    'url': 'http://localhost:15672',
+
+    # Credentials for a user with sufficient permissions for the script's actions.
+    # An 'administrator' user is typically required for user/permission management.
+    # A 'monitoring' user is sufficient for read-only scripts like listing queues.
+    'username': 'cf_admin',
+    'password': 'YOUR_ADMIN_PASSWORD',
+
+    # The default virtual host to operate on when not specified.
+    'default_vhost': 'creativeflow_vhost'
+}

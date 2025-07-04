@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        This template inherits the main portal view for a helpdesk ticket
+        to apply CreativeFlow branding via CSS classes.
+    -->
+    <template id="portal_my_ticket_creativeflow" inherit_id="helpdesk.portal_my_ticket" name="CreativeFlow Helpdesk Ticket View">
+        <xpath expr="//div[hasclass('o_portal_helpdesk_ticket')]" position="attributes">
+            <attribute name="class" separator=" " add="cf-support-page"/>
+        </xpath>
+        <xpath expr="//section[hasclass('o_portal_record_sidebar')]" position="attributes">
+             <attribute name="class" separator=" " add="cf-sidebar-branded"/>
+        </xpath>
+    </template>
+</odoo>

@@ -1,0 +1,5 @@
+---
+# Role-specific variables for n8n_server.
+# Sensitive values should be defined in vaulted files.
+n8n_db_password: "{{ vault_n8n_db_password }}"
+n8n_encryption_key: "{{ vault_n8n_encryption_key }}"

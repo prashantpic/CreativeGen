@@ -1,0 +1,9 @@
+---
+- name: Restart containerd
+  ansible.builtin.service:
+    name: containerd
+    state: restarted
+
+- name: Reboot after driver install
+  ansible.builtin.reboot:
+    msg: "Rebooting to apply NVIDIA driver installation."

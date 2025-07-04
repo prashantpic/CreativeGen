@@ -1,0 +1,29 @@
+# Role to deploy and configure an n8n workflow engine server.
+---
+- name: Placeholder task for installing Node.js and dependencies
+  ansible.builtin.debug:
+    msg: "TODO: Install Node.js (e.g., version {{ n8n_nodejs_version }}) and npm/pm2"
+
+- name: Placeholder task for creating n8n user
+  ansible.builtin.debug:
+    msg: "TODO: Create system user '{{ n8n_user }}'"
+
+- name: Placeholder task for installing n8n
+  ansible.builtin.debug:
+    msg: "TODO: Install n8n npm package globally or for the n8n user"
+
+- name: Placeholder task for creating n8n data directory
+  ansible.builtin.debug:
+    msg: "TODO: Create directory '{{ n8n_data_dir }}' with correct permissions"
+
+- name: Placeholder task for deploying n8n environment configuration
+  ansible.builtin.debug:
+    msg: "TODO: Template out an environment file for n8n service with database/queue connection details from Vault"
+
+- name: Placeholder task for deploying n8n systemd service (managed by pm2)
+  ansible.builtin.debug:
+    msg: "TODO: Setup n8n to be managed by pm2 and create a systemd service for pm2"
+
+- name: Placeholder task for starting and enabling n8n service
+  ansible.builtin.debug:
+    msg: "TODO: Start and enable the n8n service"

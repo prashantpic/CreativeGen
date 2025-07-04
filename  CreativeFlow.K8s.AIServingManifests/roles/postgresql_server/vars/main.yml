@@ -1,0 +1,21 @@
+---
+# vars file for postgresql_server
+# Define databases and users required by applications.
+# Passwords MUST be stored in Ansible Vault.
+
+pg_users:
+  - name: 'odoo'
+    password: "{{ vault_odoo_db_password }}" # from group_vars/production/secrets.yml or similar
+  - name: 'n8n_user'
+    password: "{{ vault_n8n_db_password }}"
+  - name: 'replication_user'
+    password: "{{ pg_replication_password }}"
+
+pg_databases:
+  - name: 'odoo_prod'
+    owner: 'odoo'
+  - name: 'n8n'
+    owner: 'n8n_user'
+
+# This should come from vaulted secrets
+pg_replication_password: "{{ vault_pg_replication_password }}"

@@ -1,0 +1,86 @@
+---
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+  when: inventory_hostname is defined
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  changed_when: false
+
+- name: Install common packages
+  ansible.builtin.apt:
+    name: "{{ common_packages }}"
+    state: present
+
+- name: Create ansible admin user
+  ansible.builtin.user:
+    name: "{{ ansible_admin_user }}"
+    shell: "{{ ansible_admin_shell }}"
+    groups: "{{ ansible_admin_groups }}"
+    append: true
+    create_home: true
+
+- name: Set up authorized keys for the admin user
+  ansible.posix.authorized_key:
+    user: "{{ ansible_admin_user }}"
+    state: present
+    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}" # Assumes you are running from a machine with the correct public key
+    # For CI/CD, consider using a vaulted variable for the public key string.
+
+- name: Configure sudoers for passwordless sudo for admin user
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^{{ ansible_admin_user }}'
+    line: '{{ ansible_admin_user }} ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
+- name: Harden SSH configuration
+  ansible.builtin.template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart ssh
+
+- name: Configure NTP for time synchronization
+  ansible.builtin.copy:
+    content: |
+      [Time]
+      NTP={{ ntp_servers | join(' ') }}
+    dest: /etc/systemd/timesyncd.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - restart timesyncd
+
+- name: Ensure timesyncd service is running and enabled
+  ansible.builtin.service:
+    name: systemd-timesyncd
+    state: started
+    enabled: true
+  
+- name: Restart timesyncd
+  ansible.builtin.service:
+    name: systemd-timesyncd
+    state: restarted
+  listen: restart timesyncd
+
+- name: Configure Uncomplicated Firewall (UFW)
+  community.general.ufw:
+    state: enabled
+    policy: "{{ ufw_default_policy_input }}"
+    direction: input
+
+- name: Apply UFW rules
+  community.general.ufw:
+    rule: "{{ item.rule }}"
+    port: "{{ item.to_port | default(omit) }}"
+    proto: "{{ item.proto | default(omit) }}"
+    src: "{{ item.from_ip | default(omit) }}"
+  loop: "{{ ufw_rules }}"

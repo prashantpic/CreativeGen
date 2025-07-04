@@ -1,0 +1,4 @@
+---
+# Role-specific variables for RabbitMQ.
+# Define cluster nodes, users, vhosts, and permissions here.
+# Sensitive values like user passwords or the erlang cookie should be in vaulted files.

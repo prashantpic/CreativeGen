@@ -1,0 +1,17 @@
+# Tasks for deploying various Prometheus exporters on target servers.
+---
+- name: Include tasks for node_exporter (all servers)
+  ansible.builtin.include_tasks: node_exporter.yml
+
+- name: Include tasks for postgres_exporter
+  ansible.builtin.include_tasks: postgres_exporter.yml
+  when: "'db_primary' in group_names or 'db_replicas' in group_names"
+
+- name: Include tasks for rabbitmq_exporter
+  ansible.builtin.include_tasks: rabbitmq_exporter.yml
+  when: "'rabbitmq_servers' in group_names"
+
+# Add other exporters as needed
+# - name: Include tasks for redis_exporter
+#   ansible.builtin.include_tasks: redis_exporter.yml
+#   when: "'redis_servers' in group_names"

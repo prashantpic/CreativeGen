@@ -1,0 +1,14 @@
+[Unit]
+Description=Prometheus PostgreSQL Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User={{ postgres_exporter_user }}
+Group={{ postgres_exporter_group }}
+Type=simple
+EnvironmentFile=/etc/default/postgres_exporter
+ExecStart=/usr/local/bin/postgres_exporter --web.listen-address=":{{ postgres_exporter_port }}"
+
+[Install]
+WantedBy=multi-user.target

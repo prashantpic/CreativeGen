@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "creativeflow-socialpublishingservice"
+version = "0.1.0"
+description = "Microservice for managing social media connections, publishing, and insights for the CreativeFlow AI platform."
+authors = ["CreativeFlow AI <dev@creativeflow.ai>"]
+readme = "README.md"
+packages = [{include = "creativeflow", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.110.0"
+uvicorn = {extras = ["standard"], version = "^0.27.1"}
+pydantic = {extras = ["dotenv"], version = "^2.6.4"}
+sqlalchemy = {extras = ["asyncpg"], version = "^2.0.28"}
+alembic = "^1.13.1"
+httpx = "^0.27.0"
+cryptography = "^42.0.5"
+python-json-logger = "^2.0.7"
+redis = {extras = ["hiredis"], version = "^5.0.3"}
+cachetools = "^5.3.3"
+psycopg2-binary = "^2.9.9" # Required by alembic for initial connection string parsing, even in async mode.
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.1.1"
+pytest-asyncio = "^0.23.5"
+respx = "^0.20.2"
+mypy = "^1.9.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

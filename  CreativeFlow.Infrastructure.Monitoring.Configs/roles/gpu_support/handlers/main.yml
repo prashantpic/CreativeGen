@@ -1,0 +1,6 @@
+---
+# handlers file for gpu_support
+- name: restart containerd
+  ansible.builtin.service:
+    name: containerd
+    state: restarted

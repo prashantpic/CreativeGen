@@ -1,0 +1,39 @@
+# This file is managed by Ansible. Do not edit manually.
+# See postgresql.conf.sample for detailed explanations.
+
+#------------------------------------------------------------------------------
+# CONNECTIONS AND AUTHENTICATION
+#------------------------------------------------------------------------------
+listen_addresses = '*'
+port = {{ pg_port }}
+max_connections = {{ pg_max_connections }}
+
+#------------------------------------------------------------------------------
+# RESOURCE USAGE (Tuning)
+#------------------------------------------------------------------------------
+shared_buffers = {{ pg_shared_buffers }}
+effective_cache_size = {{ (ansible_memtotal_mb * 0.75) | int }}MB
+maintenance_work_mem = {{ (ansible_memtotal_mb * 0.1) | int }}MB
+work_mem = {{ ( (ansible_memtotal_mb * 0.25) / pg_max_connections ) | int }}MB
+
+#------------------------------------------------------------------------------
+# WRITE-AHEAD LOG
+#------------------------------------------------------------------------------
+wal_level = replica # minimal, replica, or logical
+max_wal_senders = 10
+wal_keep_size = 512MB # Replaces wal_keep_segments in PG13+
+
+#------------------------------------------------------------------------------
+# LOGGING
+#------------------------------------------------------------------------------
+logging_collector = on
+log_directory = 'log'
+log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+log_min_duration_statement = 250ms # Log slow queries
+log_checkpoints = on
+log_connections = on
+log_disconnections = on
+log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
+
+# Include other config files
+include_if_exists = 'conf.d/postgresql.local.conf'

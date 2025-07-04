@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  author: CreativeFlow
+  description: A role to apply common baseline configuration to all servers.
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal # 20.04
+        - jammy # 22.04
+dependencies: []

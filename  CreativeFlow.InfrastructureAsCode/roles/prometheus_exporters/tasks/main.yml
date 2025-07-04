@@ -1,0 +1,10 @@
+---
+- name: Include Node Exporter tasks
+  ansible.builtin.include_tasks: node_exporter.yml
+
+- name: Include PostgreSQL Exporter tasks
+  ansible.builtin.include_tasks: postgres_exporter.yml
+  when: "'db_primary' in group_names or 'db_replicas' in group_names"
+
+# Add other exporters here with appropriate when conditions
+# e.g., RabbitMQ exporter, Nginx exporter, etc.

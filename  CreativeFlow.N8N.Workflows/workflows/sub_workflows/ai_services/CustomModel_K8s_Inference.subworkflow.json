@@ -1,0 +1,307 @@
+{
+  "name": "CustomModel_K8s_Inference",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "76426742-b9e4-4d8e-8a2a-ed31c34a81b7",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const inputs = $json;\nconst jobId = `inference-${inputs.modelName}-${Date.now()}`;\n\nconst jobManifest = {\n    \"apiVersion\": \"batch/v1\",\n    \"kind\": \"Job\",\n    \"metadata\": {\n        \"name\": jobId,\n        \"labels\": {\n            \"app\": \"creativeflow-inference\",\n            \"modelName\": inputs.modelName,\n            \"modelVersion\": inputs.modelVersion\n        }\n    },\n    \"spec\": {\n        \"template\": {\n            \"spec\": {\n                \"containers\": [\n                    {\n                        \"name\": `worker-${inputs.modelName}`,\n                        \"image\": `your-container-registry/${inputs.modelName}:${inputs.modelVersion}`,\n                        \"args\": [\n                            \"--input-data\", JSON.stringify(inputs.inputData),\n                            \"--output-path\", `s3://inference-results/${jobId}/output.png`\n                        ],\n                        \"resources\": {\n                            \"limits\": {\n                                \"nvidia.com/gpu\": 1\n                            }\n                        }\n                    }\n                ],\n                \"restartPolicy\": \"Never\"\n            }\n        },\n        \"backoffLimit\": 2,\n        \"ttlSecondsAfterFinished\": 3600\n    }\n};\n\nreturn {\n  jobId: jobId,\n  jobManifest: jobManifest\n};"
+      },
+      "id": "2d1f7e0e-114c-423c-99f5-3c135a507a2d",
+      "name": "Construct K8s Job Manifest",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "job",
+        "operation": "create",
+        "body": "={{$json.jobManifest}}",
+        "options": {}
+      },
+      "id": "b3f0e0e0-8b1e-450f-a3d2-3652d87e0b53",
+      "name": "Create K8s Job",
+      "type": "n8n-nodes-base.kubernetes",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ],
+      "credentials": {
+        "kubernetes": {
+          "id": "your-k8s-credential-id",
+          "name": "Kubernetes Credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "batchSize": 1,
+        "options": {
+          "reset": true,
+          "retries": 60
+        }
+      },
+      "id": "18f99e30-b193-4a0d-9a67-9eb51b689254",
+      "name": "Poll Job Status Loop",
+      "type": "n8n-nodes-base.loop",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "job",
+        "operation": "get",
+        "name": "={{ $('Construct K8s Job Manifest').item.json.jobId }}",
+        "options": {}
+      },
+      "id": "40049405-b7b5-4424-9b36-7c1ccb8a3424",
+      "name": "Get Job Status",
+      "type": "n8n-nodes-base.kubernetes",
+      "typeVersion": 1,
+      "position": [
+        1260,
+        300
+      ],
+      "credentials": {
+        "kubernetes": {
+          "id": "your-k8s-credential-id",
+          "name": "Kubernetes Credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.status.succeeded > 0 || $json.status.failed > 0 }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "67b844f2-51c3-4876-96b4-02ac8591866e",
+      "name": "Is Job Finished?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "json": [
+            {
+              "key": "success",
+              "value": "=true"
+            },
+            {
+              "key": "outputDataPath",
+              "value": "=s3://inference-results/{{ $('Construct K8s Job Manifest').item.json.jobId }}/output.png"
+            },
+            {
+              "key": "jobStatus",
+              "value": "={{ $('Get Job Status').item.json.status }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3e9b14b1-e23a-4424-811c-c2b64c017772",
+      "name": "Format Success Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        1880,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $('Is Job Finished?').item.json.status.succeeded > 0 }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "273a2530-5b23-455b-8664-963a755d7f72",
+      "name": "Did Job Succeed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "json": [
+            {
+              "key": "success",
+              "value": "=false"
+            },
+            {
+              "key": "error",
+              "value": "={{ ({'code': 'k8s_job_failed', 'message': 'Kubernetes inference job failed.', 'jobId': $('Construct K8s Job Manifest').item.json.jobId, 'jobStatus': $('Get Job Status').item.json.status}) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c13d7217-1f9e-4a6c-9411-c30162589574",
+      "name": "Format Failure Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        1880,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "unit": "seconds",
+        "length": 10,
+        "options": {}
+      },
+      "id": "e93f6565-d06d-4952-b91c-8b89e3a75908",
+      "name": "Wait 10s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1080,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Construct K8s Job Manifest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construct K8s Job Manifest": {
+      "main": [
+        [
+          {
+            "node": "Create K8s Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create K8s Job": {
+      "main": [
+        [
+          {
+            "node": "Poll Job Status Loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Poll Job Status Loop": {
+      "main": [
+        [
+          {
+            "node": "Wait 10s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Job Status": {
+      "main": [
+        [
+          {
+            "node": "Is Job Finished?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Job Finished?": {
+      "main": [
+        [
+          {
+            "node": "Did Job Succeed?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Poll Job Status Loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Did Job Succeed?": {
+      "main": [
+        [
+          {
+            "node": "Format Success Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Failure Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 10s": {
+      "main": [
+        [
+          {
+            "node": "Get Job Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "id": "hBq78aH4UaD12Fc",
+  "meta": {},
+  "settings": {}
+}

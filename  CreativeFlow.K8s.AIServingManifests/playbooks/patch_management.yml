@@ -1,0 +1,58 @@
+---
+# Playbook for system patch management (DEP-005)
+# This playbook can be run on a schedule to apply updates.
+# It's recommended to run this with --limit to target specific host groups.
+# Example: ansible-playbook -i <inventory> playbooks/patch_management.yml --limit web_servers
+#
+# The 'serial' keyword ensures that servers are updated in batches (e.g., one at a time)
+# to maintain service availability during the update process.
+
+- name: Apply system updates and manage reboots
+  hosts: all # Use --limit to target specific groups
+  serial: 1 # Process one host at a time
+  vars:
+    reboot_required_file: /var/run/reboot-required
+  
+  tasks:
+    - name: Update apt package cache (for Debian/Ubuntu)
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600 # One hour
+      when: ansible_os_family == "Debian"
+
+    - name: Perform a safe upgrade of all packages (for Debian/Ubuntu)
+      ansible.builtin.apt:
+        upgrade: dist # or 'safe'
+        autoremove: yes
+        autoclean: yes
+      when: ansible_os_family == "Debian"
+      register: apt_upgrade_result
+
+    # Add similar tasks for yum/dnf for RHEL-based systems if needed
+    # - name: Perform system update (for RHEL/CentOS)
+    #   ansible.builtin.yum:
+    #     name: '*'
+    #     state: latest
+    #   when: ansible_os_family == "RedHat"
+    #   register: yum_update_result
+
+    - name: Check if a reboot is required
+      ansible.builtin.stat:
+        path: "{{ reboot_required_file }}"
+      register: reboot_required_stat
+      changed_when: false
+
+    - name: Display reboot status
+      ansible.builtin.debug:
+        msg: "Reboot is required on {{ inventory_hostname }}"
+      when: reboot_required_stat.stat.exists
+
+    - name: Reboot the server if required
+      ansible.builtin.reboot:
+        msg: "Rebooting server after system updates"
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: whoami
+      when: reboot_required_stat.stat.exists

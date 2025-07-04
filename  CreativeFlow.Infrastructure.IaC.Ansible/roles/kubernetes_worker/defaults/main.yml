@@ -1,0 +1,2 @@
+---
+kubeadm_join_extra_args: ""

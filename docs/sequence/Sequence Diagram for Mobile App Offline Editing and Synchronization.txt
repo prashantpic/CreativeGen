@@ -1,0 +1,84 @@
+sequenceDiagram
+    actor "User (Mobile)" as actor-user-mobile
+    participant "Mobile App (Flutter)" as repo-mobile-app-flutter
+    participant "API Gateway" as comp-apigateway-nginx
+    participant "Odoo Backend" as svc-odoo-backend
+    participant "Collaboration Service" as svc-crdt-collaboration
+    participant "PostgreSQL DB" as repo-db-postgresql
+
+    actor-user-mobile-repo-mobile-app-flutter: 1. Opens previously synced project (while offline)
+    activate repo-mobile-app-flutter
+    repo-mobile-app-flutter-repo-mobile-app-flutter: 1.1. Loads project data from local SQLite DB
+    repo-mobile-app-flutter--repo-mobile-app-flutter: Project data
+    repo-mobile-app-flutter--actor-user-mobile: 1.2. Displays project in editor (UI indicates offline mode)
+
+    actor-user-mobile-repo-mobile-app-flutter: 2. Performs edits (text, element rearrangement) (REQ-019)
+    note over repo-mobile-app-flutter: REQ-019: User performs edits offline. Changes are stored locally.
+    repo-mobile-app-flutter-repo-mobile-app-flutter: 2.1. Saves changes locally to SQLite DB
+    repo-mobile-app-flutter--repo-mobile-app-flutter: Save confirmation
+
+    repo-mobile-app-flutter-repo-mobile-app-flutter: 3. Detects internet reconnection (UI-004: indicates sync starting)
+
+    repo-mobile-app-flutter-comp-apigateway-nginx: 4. POST /syncProjectOfflineChanges (projectId, offlineEdits, projectType)
+    activate comp-apigateway-nginx
+    comp-apigateway-nginx-comp-apigateway-nginx: 4.1. Authenticate request
+
+    note over comp-apigateway-nginx: REQ-019.1: MobileApp handles sync based on project type (Non-Collaborative or Collaborative).
+    alt 4.2. Route based on projectType
+        comp-apigateway-nginx-svc-odoo-backend: 4.3. [IF Non-Collaborative] Forward syncOfflineChanges(projectId, offlineEdits)
+        activate svc-odoo-backend
+        svc-odoo-backend-repo-db-postgresql: 4.3.1. Read current project data
+        activate repo-db-postgresql
+        repo-db-postgresql--svc-odoo-backend: Project Data
+        deactivate repo-db-postgresql
+        note over svc-odoo-backend: REQ-019.1: For Non-Collaborative Projects, Odoo uses 'last-write-wins' or prompts user for complex conflicts.
+        svc-odoo-backend-svc-odoo-backend: 4.3.2. Process changes (REQ-019.1)
+        alt [IF LWW applicable]
+            svc-odoo-backend-repo-db-postgresql: 4.3.3. Write updated project data
+            activate repo-db-postgresql
+            repo-db-postgresql--svc-odoo-backend: Write Confirmation
+            deactivate repo-db-postgresql
+            svc-odoo-backend--comp-apigateway-nginx: 4.3.4. Return {status: 'success', data: updatedProject}
+        else [IF Complex Conflict]
+            svc-odoo-backend--comp-apigateway-nginx: 4.3.5. Return {status: 'conflict', conflictDetails: {...}}
+        end
+        deactivate svc-odoo-backend
+    else [IF Collaborative]
+        comp-apigateway-nginx-svc-crdt-collaboration: 4.4. Forward syncOfflineChanges(projectId, offlineEdits)
+        activate svc-crdt-collaboration
+        svc-crdt-collaboration-repo-db-postgresql: 4.4.1. Read current project CRDT state
+        activate repo-db-postgresql
+        repo-db-postgresql--svc-crdt-collaboration: CRDT State
+        deactivate repo-db-postgresql
+        note over svc-crdt-collaboration: REQ-019.1: For Collaborative Projects, Collaboration Service uses CRDTs to merge. If auto-resolve fails, flags conflict, versions changes, notifies users.
+        svc-crdt-collaboration-svc-crdt-collaboration: 4.4.2. Merge offline changes using CRDTs (e.g., Yjs) (REQ-019.1)
+        svc-crdt-collaboration--svc-crdt-collaboration: Merge Result (success/conflict)
+        alt [IF Merge Success]
+            svc-crdt-collaboration-repo-db-postgresql: 4.4.3. Write merged project CRDT state
+            activate repo-db-postgresql
+            repo-db-postgresql--svc-crdt-collaboration: Write Confirmation
+            deactivate repo-db-postgresql
+            svc-crdt-collaboration--comp-apigateway-nginx: 4.4.4. Return {status: 'success', data: mergedProjectState}
+        else [IF Merge Conflict]
+            svc-crdt-collaboration-repo-db-postgresql: 4.4.5. Flag conflict, version changes, persist conflict info
+            activate repo-db-postgresql
+            repo-db-postgresql--svc-crdt-collaboration: Write Confirmation
+            deactivate repo-db-postgresql
+            svc-crdt-collaboration--comp-apigateway-nginx: 4.4.6. Return {status: 'conflictmanualresolution_required'}
+        end
+        deactivate svc-crdt-collaboration
+    end
+    comp-apigateway-nginx--repo-mobile-app-flutter: Sync Status Response
+    deactivate comp-apigateway-nginx
+
+    repo-mobile-app-flutter-repo-mobile-app-flutter: 5. Process sync response
+    alt [IF Sync Success]
+        repo-mobile-app-flutter-repo-mobile-app-flutter: 5.1. Update local SQLite DB with synced state
+        repo-mobile-app-flutter--actor-user-mobile: 5.2. Display "Sync Complete" (UI-004)
+    else [IF Non-Collab Complex Conflict]
+        repo-mobile-app-flutter--actor-user-mobile: 5.3. Display conflict resolution options (UI-004)
+    else [IF Collab Merge Conflict]
+        repo-mobile-app-flutter--actor-user-mobile: 5.4. Display "Sync complete with conflicts. Check notifications/project for resolution." (UI-004)
+        note right of actor-user-mobile: UI-004: Mobile UI clearly indicates offline status, sync progress, and conflict resolution prompts.
+    end
+    deactivate repo-mobile-app-flutter

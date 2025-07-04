@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- creativeflow.credit.log Tree View -->
+    <record id="view_creativeflow_credit_log_tree" model="ir.ui.view">
+        <field name="name">creativeflow.credit.log.tree</field>
+        <field name="model">creativeflow.credit.log</field>
+        <field name="arch" type="xml">
+            <tree create="false" edit="false" delete="false">
+                <field name="date_transaction"/>
+                <field name="partner_id"/>
+                <field name="transaction_type"/>
+                <field name="amount" sum="Total Amount"/>
+                <field name="description"/>
+                <field name="related_document_display"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- creativeflow.credit.log Form View -->
+    <record id="view_creativeflow_credit_log_form" model="ir.ui.view">
+        <field name="name">creativeflow.credit.log.form</field>
+        <field name="model">creativeflow.credit.log</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="transaction_type"/>
+                            <field name="amount"/>
+                        </group>
+                        <group>
+                            <field name="date_transaction"/>
+                            <field name="related_document_display"/>
+                             <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group>
+                         <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- creativeflow.credit.log Search View -->
+    <record id="view_creativeflow_credit_log_search" model="ir.ui.view">
+        <field name="name">creativeflow.credit.log.search</field>
+        <field name="model">creativeflow.credit.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <field name="description"/>
+                <filter string="Additions" name="additions" domain="[('transaction_type', '=', 'addition')]"/>
+                <filter string="Deductions" name="deductions" domain="[('transaction_type', '=', 'deduction')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Partner" name="group_by_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Type" name="group_by_type" context="{'group_by': 'transaction_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- creativeflow.credit.log Action Window -->
+    <record id="action_creativeflow_credit_log" model="ir.actions.act_window">
+        <field name="name">Credit Logs</field>
+        <field name="res_model">creativeflow.credit.log</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No credit transactions found.
+            </p><p>
+                This log shows all credit additions and deductions for users.
+            </p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,34 @@
+---
+# This file specifies collections and roles from Ansible Galaxy or other sources.
+# Install them using: `ansible-galaxy install -r requirements.yml`
+
+collections:
+  # General purpose utilities, including community-maintained firewall modules.
+  - name: community.general
+    version: ">=6.0.0"
+
+  # Modules for interacting with Docker and Docker Compose.
+  - name: community.docker
+    version: ">=3.0.0"
+
+  # Modules for interacting with the Kubernetes API (k8s module).
+  - name: community.kubernetes
+    version: ">=2.0.0"
+
+  # Advanced modules for managing PostgreSQL databases, users, and privileges.
+  - name: community.postgresql
+    version: ">=2.4.0"
+
+# Roles from Ansible Galaxy or other Git repositories can be listed here.
+# Example:
+#
+# roles:
+#   # Install a role from Ansible Galaxy.
+#   - name: geerlingguy.nodejs
+#     version: 6.1.1
+#
+#   # Install a role from a specific git repository.
+#   - name: my_custom_role
+#     src: https://github.com/my-org/my_custom_role.git
+#     scm: git
+#     version: main

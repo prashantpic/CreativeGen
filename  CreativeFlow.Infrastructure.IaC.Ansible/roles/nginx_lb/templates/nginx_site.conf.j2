@@ -1,0 +1,57 @@
+# This file is managed by Ansible
+# Configuration for {{ item.name }}
+
+{% if item.upstream_servers is defined and item.upstream_servers|length > 0 %}
+upstream {{ item.upstream_name | default(item.name ~ '_backend') }} {
+    {% for server in item.upstream_servers %}
+    server {{ server }};
+    {% endfor %}
+    keepalive 32;
+}
+{% endif %}
+
+server {
+    listen {{ item.listen_port | default(80) }} {% if item.ssl %}ssl http2{% endif %};
+    {% if item.listen_port_ipv6 %}
+    listen [::]:{{ item.listen_port_ipv6 }} {% if item.ssl %}ssl http2{% endif %};
+    {% endif %}
+
+    server_name {{ item.server_name }};
+
+    {% if item.ssl %}
+    ssl_certificate {{ item.ssl_cert_path }};
+    ssl_certificate_key {{ item.ssl_key_path }};
+    {% endif %}
+
+    # Add security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+
+    {% if item.root_path is defined %}
+    root {{ item.root_path }};
+    index index.html index.htm;
+    {% endif %}
+
+    location / {
+        {% if item.upstream_servers is defined and item.upstream_servers|length > 0 %}
+        proxy_pass http://{{ item.upstream_name | default(item.name ~ '_backend') }};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 90;
+        {% else %}
+        try_files $uri $uri/ =404;
+        {% endif %}
+    }
+
+    {% if item.extra_config is defined %}
+    {{ item.extra_config | indent(4) }}
+    {% endif %}
+}

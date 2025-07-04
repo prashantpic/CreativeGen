@@ -1,0 +1,14 @@
+---
+# Default variables for the n8n_server role.
+
+n8n_user: 'n8n'
+n8n_port: 5678
+n8n_data_dir: '/var/lib/n8n'
+n8n_public_domain: 'n8n.creativeflow.ai' # Should be overridden in group_vars
+
+# Database connection details (placeholders)
+n8n_db_host: 'localhost'
+n8n_db_port: 5432
+n8n_db_name: 'n8n'
+n8n_db_user: 'n8n_user'
+n8n_db_ssl: 'false'

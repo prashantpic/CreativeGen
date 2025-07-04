@@ -1,0 +1,25 @@
+# This file is managed by Ansible. Do not edit manually.
+# PostgreSQL Host-Based Authentication file
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# "local" is for Unix domain socket connections only
+local   all             postgres                                peer
+local   all             all                                     md5
+
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            md5
+# IPv6 local connections:
+host    all             all             ::1/128                 md5
+
+# Allow replication connections from replica servers
+{% if 'db_primary' in group_names %}
+{% for host in groups['db_replicas'] %}
+host    replication     {{ pg_replication_user }}    {{ hostvars[host]['ansible_host'] }}/32   md5
+{% endfor %}
+{% endif %}
+
+# Allow connections from application servers
+{% for network in pg_allowed_client_nets %}
+host    all             all             {{ network }}           md5
+{% endfor %}

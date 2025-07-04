@@ -1,0 +1,6 @@
+---
+# Handler to restart the RabbitMQ service
+- name: Restart rabbitmq-server
+  ansible.builtin.service:
+    name: rabbitmq-server
+    state: restarted

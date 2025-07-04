@@ -1,0 +1,11 @@
+# Default variables for the Odoo server role.
+---
+odoo_version: "16.0"
+odoo_user: "odoo"
+odoo_group: "odoo"
+odoo_home: "/opt/odoo"
+odoo_config_file: "/etc/odoo.conf"
+odoo_db_host: "localhost"
+odoo_db_port: 5432
+odoo_db_user: "odoo"
+odoo_http_port: 8069

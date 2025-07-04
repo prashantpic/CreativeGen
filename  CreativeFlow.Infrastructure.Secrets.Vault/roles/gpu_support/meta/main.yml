@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: CreativeFlow AI
+  description: Prepares Kubernetes worker nodes for GPU workloads.
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - "jammy" # 22.04
+  galaxy_tags:
+    - kubernetes
+    - gpu
+    - nvidia
+
+dependencies:
+  - role: kubernetes_common

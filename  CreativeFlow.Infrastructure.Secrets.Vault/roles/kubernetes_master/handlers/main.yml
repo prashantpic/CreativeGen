@@ -1,0 +1,3 @@
+---
+# Handlers for the 'kubernetes_master' role
+# Usually empty as most state changes are managed directly by tasks.

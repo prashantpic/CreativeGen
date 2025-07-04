@@ -1,0 +1,68 @@
+<odoo>
+    <data>
+        <!-- Form View -->
+        <record id="view_creativeflow_generation_request_form" model="ir.ui.view">
+            <field name="name">creativeflow.generation.request.form</field>
+            <field name="model">creativeflow.generation_request</field>
+            <field name="arch" type="xml">
+                <form string="Generation Request">
+                    <header>
+                        <field name="status" widget="statusbar" statusbar_visible="pending,processing,completed"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="name"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="project_id"/>
+                                <field name="user_id"/>
+                            </group>
+                            <group>
+                                <field name="create_date"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Request Details">
+                                <group>
+                                    <field name="prompt"/>
+                                    <field name="error_message" attrs="{'invisible': [('status', '!=', 'failed')]}"/>
+                                </group>
+                            </page>
+                            <page string="Credit Transactions">
+                                <field name="credit_transaction_ids" readonly="1"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Tree View -->
+        <record id="view_creativeflow_generation_request_tree" model="ir.ui.view">
+            <field name="name">creativeflow.generation.request.tree</field>
+            <field name="model">creativeflow.generation_request</field>
+            <field name="arch" type="xml">
+                <tree string="Generation Requests" decoration-danger="status == 'failed'" decoration-success="status == 'completed'" decoration-info="status == 'processing'">
+                    <field name="name"/>
+                    <field name="project_id"/>
+                    <field name="user_id"/>
+                    <field name="status"/>
+                    <field name="create_date"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Action Window -->
+        <record id="action_creativeflow_generation_request" model="ir.actions.act_window">
+            <field name="name">AI Generation Requests</field>
+            <field name="res_model">creativeflow.generation_request</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No generation requests found.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>

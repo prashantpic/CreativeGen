@@ -1,0 +1,11 @@
+---
+# defaults file for common
+ansible_admin_user: 'ansible_admin'
+ansible_admin_groups: 'sudo'
+
+ssh_port: 22
+
+# UFW (Firewall) defaults
+ufw_default_policy_input: deny
+ufw_default_policy_output: allow
+ufw_default_policy_forward: deny

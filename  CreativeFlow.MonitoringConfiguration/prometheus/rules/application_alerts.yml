@@ -1,0 +1,50 @@
+# Defines Prometheus alerting rules for core application services.
+# Covers aspects like error rates, latency, saturation, and availability.
+# Requirement(s) Addressed: DEP-005, QA-003, QA-003.1
+
+groups:
+  - name: application_service_alerts
+    rules:
+      - alert: HighErrorRateAPIGateway
+        expr: sum(rate(http_requests_total{job="api-gateway", code=~"5.."}[5m])) / sum(rate(http_requests_total{job="api-gateway"}[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          service: api-gateway
+        annotations:
+          summary: "High API Gateway Error Rate (Instance {{ $labels.instance }})"
+          description: "API Gateway is experiencing an error rate greater than 5% for the last 5 minutes. Current value is {{ $value | humanizePercentage }}."
+          runbook_url: "<RUNBOOK_URL_API_GATEWAY_ERRORS>"
+
+      - alert: HighLatencyAPIGateway
+        expr: job:api_gateway_latency_seconds:p99_5m{job="api-gateway"} > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: api-gateway
+        annotations:
+          summary: "High P99 Latency on API Gateway"
+          description: "The 99th percentile latency for the API Gateway has been above 500ms for 5 minutes. Current value is {{ $value | humanizeDuration }}."
+          runbook_url: "<RUNBOOK_URL_API_GATEWAY_LATENCY>"
+
+      - alert: OdooBackendDown
+        expr: up{job="odoo-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: odoo-backend
+        annotations:
+          summary: "Odoo Backend instance is down"
+          description: "The Odoo backend instance {{ $labels.instance }} has been unreachable for 1 minute."
+          runbook_url: "<RUNBOOK_URL_ODOO_DOWN>"
+
+      - alert: N8NWorkflowFailures
+        expr: rate(n8n_workflow_executions_total{status="failed"}[10m]) > 0
+        for: 10m
+        labels:
+          severity: warning
+          service: n8n-workflows
+        annotations:
+          summary: "N8N is experiencing workflow failures"
+          description: "Workflows in N8N are failing. The workflow '{{ $labels.workflow_name }}' on instance {{ $labels.instance }} has been failing for 10 minutes."
+          runbook_url: "<RUNBOOK_URL_N8N_FAILURES>"

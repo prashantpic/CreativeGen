@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: creativeflow-ai-serving
+  labels:
+    app.kubernetes.io/name: creativeflow-ai-serving
+    app.kubernetes.io/part-of: creativeflow-platform

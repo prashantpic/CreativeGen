@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ai-model-server-role
+  namespace: creativeflow-ai-serving
+  labels:
+    app.kubernetes.io/name: ai-model-server-role
+rules:
+- apiGroups: [""] # core API group
+  resources: ["configmaps", "secrets"] # Example: if models load config/secrets
+  verbs: ["get", "watch", "list"]
+- apiGroups: [""]
+  resources: ["pods", "services"] # If model servers need to discover peers or self-inspect
+  verbs: ["get", "list"]
+# Add other permissions as required by specific serving runtimes

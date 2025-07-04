@@ -1,0 +1,12 @@
+---
+# Handlers for the 'kubernetes_common' role
+
+- name: reload sysctl
+  ansible.builtin.command:
+    cmd: sysctl --system
+  changed_when: false
+
+- name: restart containerd
+  ansible.builtin.service:
+    name: containerd
+    state: restarted

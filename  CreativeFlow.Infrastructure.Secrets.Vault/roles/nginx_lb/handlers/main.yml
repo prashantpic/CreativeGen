@@ -1,0 +1,12 @@
+---
+# Handlers for the 'nginx_lb' role.
+
+- name: reload nginx
+  ansible.builtin.service:
+    name: "{{ nginx_service_name }}"
+    state: reloaded
+
+- name: restart nginx
+  ansible.builtin.service:
+    name: "{{ nginx_service_name }}"
+    state: restarted

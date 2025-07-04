@@ -1,0 +1,40 @@
+# This file is managed by Ansible. Do not edit manually.
+#
+# PostgreSQL Client Authentication Configuration File
+# ===================================================
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# "local" is for Unix domain socket connections only
+local   all             postgres                                peer
+local   all             all                                     peer
+
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            scram-sha-256
+# IPv6 local connections:
+host    all             all             ::1/128                 scram-sha-256
+
+# Allow replication connections from other PostgreSQL servers
+{% for replica in groups['db_replicas'] | default([]) %}
+host    replication     {{ pg_replication_user }}         {{ hostvars[replica].ansible_host | default(replica) }}/32    scram-sha-256
+{% endfor %}
+{% if 'db_primary' in group_names and groups['db_primary'] | length > 1 %}
+{% for master in groups['db_primary'] %}
+{% if master != inventory_hostname %}
+host    replication     {{ pg_replication_user }}         {{ hostvars[master].ansible_host | default(master) }}/32      scram-sha-256
+{% endif %}
+{% endfor %}
+{% endif %}
+
+# Allow connections from application servers
+{% for host in groups['odoo_servers'] | default([]) + groups['n8n_servers'] | default([]) %}
+host    all             all             {{ hostvars[host].ansible_host | default(host) }}/32               scram-sha-256
+{% endfor %}
+
+# Allow connections from Kubernetes Pod Network (adjust CIDR as needed)
+# host    all             all             10.244.0.0/16           scram-sha-256
+
+# Allow connections from web servers (for PgBouncer)
+{% for host in groups['web_servers'] | default([]) %}
+host    all             all             {{ hostvars[host].ansible_host | default(host) }}/32               scram-sha-256
+{% endfor %}

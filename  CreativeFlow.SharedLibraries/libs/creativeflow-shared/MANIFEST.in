@@ -1,0 +1,3 @@
+include LICENSE
+include README.md
+recursive-include creativeflow_shared/i18n/locales *.mo

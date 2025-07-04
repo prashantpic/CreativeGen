@@ -1,0 +1,9 @@
+---
+# Default variables for the rabbitmq_server role.
+# These can be overridden in group_vars or host_vars.
+
+# Placeholder for RabbitMQ version
+rabbitmq_version: "3.11"
+
+# Placeholder for Erlang version
+erlang_version: "25.3"

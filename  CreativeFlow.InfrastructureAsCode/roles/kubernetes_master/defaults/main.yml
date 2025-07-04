@@ -1,0 +1,9 @@
+---
+# Pod network CIDR. Must not overlap with host network.
+k8s_pod_network_cidr: "192.168.0.0/16"
+
+# CNI (Container Network Interface) manifest URL. Calico is a common choice.
+k8s_cni_manifest_url: "https://raw.githubusercontent.com/projectcalico/calico/v3.26.4/manifests/calico.yaml"
+
+# Extra arguments for kubeadm init
+kubeadm_init_extra_args: ""

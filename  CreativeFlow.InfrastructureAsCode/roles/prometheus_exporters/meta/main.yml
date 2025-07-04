@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  author: CreativeFlow
+  description: Role to deploy various Prometheus exporters for monitoring.
+  license: proprietary
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+  galaxy_tags:
+    - monitoring
+    - prometheus
+    - exporter
+
+dependencies: []

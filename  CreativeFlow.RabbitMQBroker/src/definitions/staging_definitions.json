@@ -1,0 +1,327 @@
+{
+  "rabbit_version": "3.13.2",
+  "users": [
+    {
+      "name": "rabbitmq_admin_app_staging",
+      "password_hash": "<RABBITMQ_ADMIN_APP_STAGING_PASS_HASH>",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "administrator"
+    },
+    {
+      "name": "monitoring_agent_staging",
+      "password_hash": "<MONITORING_AGENT_STAGING_PASS_HASH>",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "monitoring"
+    },
+    {
+      "name": "odoo_svc_staging",
+      "password_hash": "<ODOO_SVC_STAGING_PASS_HASH>",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": ""
+    },
+    {
+      "name": "n8n_worker_staging",
+      "password_hash": "<N8N_WORKER_STAGING_PASS_HASH>",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": ""
+    },
+    {
+      "name": "ai_svc_internal_staging",
+      "password_hash": "<AI_SVC_INTERNAL_STAGING_PASS_HASH>",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": ""
+    },
+    {
+      "name": "notification_svc_staging",
+      "password_hash": "<NOTIFICATION_SVC_STAGING_PASS_HASH>",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": ""
+    },
+    {
+      "name": "apigw_publisher_staging",
+      "password_hash": "<APIGW_PUBLISHER_STAGING_PASS_HASH>",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": ""
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/creativeflow_staging"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "rabbitmq_admin_app_staging",
+      "vhost": "/creativeflow_staging",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "monitoring_agent_staging",
+      "vhost": "/creativeflow_staging",
+      "configure": "^amq\\.gen.*",
+      "write": "",
+      "read": ".*"
+    },
+    {
+      "user": "odoo_svc_staging",
+      "vhost": "/creativeflow_staging",
+      "configure": "^odoo\\.",
+      "write": "^odoo\\.",
+      "read": "^n8n\\.results\\..*|odoo\\..*"
+    },
+    {
+      "user": "n8n_worker_staging",
+      "vhost": "/creativeflow_staging",
+      "configure": "^n8n\\.",
+      "write": "^n8n\\.results\\..*",
+      "read": "^ai\\.jobs\\..*|odoo\\.events\\..*"
+    },
+    {
+      "user": "ai_svc_internal_staging",
+      "vhost": "/creativeflow_staging",
+      "configure": "^ai\\.",
+      "write": "^ai\\.results\\..*",
+      "read": "^ai\\.models\\..*"
+    },
+    {
+      "user": "notification_svc_staging",
+      "vhost": "/creativeflow_staging",
+      "configure": "^notifications\\.",
+      "write": "^notifications\\.",
+      "read": "^notifications\\..*"
+    },
+    {
+      "user": "apigw_publisher_staging",
+      "vhost": "/creativeflow_staging",
+      "configure": "",
+      "write": "^ai\\.jobs\\.pending",
+      "read": ""
+    }
+  ],
+  "policies": [
+    {
+      "vhost": "/creativeflow_staging",
+      "name": "ha-all-critical-queues-staging",
+      "pattern": "^q\\.(ai|odoo|n8n|notifications|collaboration)\\..*",
+      "apply-to": "queues",
+      "definition": {
+        "ha-mode": "all",
+        "ha-sync-mode": "automatic"
+      },
+      "priority": 0
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "ex.creativeflow.direct",
+      "vhost": "/creativeflow_staging",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "ex.creativeflow.topic",
+      "vhost": "/creativeflow_staging",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "ex.creativeflow.fanout",
+      "vhost": "/creativeflow_staging",
+      "type": "fanout",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "ex.dead_letter",
+      "vhost": "/creativeflow_staging",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "q.ai_generation.pending",
+      "vhost": "/creativeflow_staging",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "ex.dead_letter",
+        "x-message-ttl": 3600000
+      }
+    },
+    {
+      "name": "q.ai_generation.samples_ready",
+      "vhost": "/creativeflow_staging",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "ex.dead_letter"
+      }
+    },
+    {
+      "name": "q.ai_generation.final_request",
+      "vhost": "/creativeflow_staging",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "ex.dead_letter"
+      }
+    },
+    {
+      "name": "q.ai_generation.completed",
+      "vhost": "/creativeflow_staging",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "ex.dead_letter"
+      }
+    },
+    {
+      "name": "q.ai_generation.failed",
+      "vhost": "/creativeflow_staging",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "ex.dead_letter"
+      }
+    },
+    {
+      "name": "q.odoo.events",
+      "vhost": "/creativeflow_staging",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "ex.dead_letter"
+      }
+    },
+    {
+      "name": "q.n8n.task_results",
+      "vhost": "/creativeflow_staging",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "ex.dead_letter"
+      }
+    },
+    {
+      "name": "q.notifications.user_alerts",
+      "vhost": "/creativeflow_staging",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "ex.dead_letter"
+      }
+    },
+    {
+      "name": "q.collaboration.updates",
+      "vhost": "/creativeflow_staging",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "ex.dead_letter"
+      }
+    },
+    {
+      "name": "q.dead_letter",
+      "vhost": "/creativeflow_staging",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "ex.creativeflow.direct",
+      "vhost": "/creativeflow_staging",
+      "destination": "q.ai_generation.pending",
+      "destination_type": "queue",
+      "routing_key": "ai.generation.request",
+      "arguments": {}
+    },
+    {
+      "source": "ex.creativeflow.direct",
+      "vhost": "/creativeflow_staging",
+      "destination": "q.ai_generation.final_request",
+      "destination_type": "queue",
+      "routing_key": "ai.generation.final",
+      "arguments": {}
+    },
+    {
+      "source": "ex.creativeflow.direct",
+      "vhost": "/creativeflow_staging",
+      "destination": "q.n8n.task_results",
+      "destination_type": "queue",
+      "routing_key": "n8n.result.odoo",
+      "arguments": {}
+    },
+    {
+      "source": "ex.creativeflow.topic",
+      "vhost": "/creativeflow_staging",
+      "destination": "q.ai_generation.samples_ready",
+      "destination_type": "queue",
+      "routing_key": "ai.event.samples.ready.#",
+      "arguments": {}
+    },
+    {
+      "source": "ex.creativeflow.topic",
+      "vhost": "/creativeflow_staging",
+      "destination": "q.ai_generation.completed",
+      "destination_type": "queue",
+      "routing_key": "ai.event.completed.#",
+      "arguments": {}
+    },
+    {
+      "source": "ex.creativeflow.topic",
+      "vhost": "/creativeflow_staging",
+      "destination": "q.ai_generation.failed",
+      "destination_type": "queue",
+      "routing_key": "ai.event.failed.#",
+      "arguments": {}
+    },
+    {
+      "source": "ex.creativeflow.topic",
+      "vhost": "/creativeflow_staging",
+      "destination": "q.odoo.events",
+      "destination_type": "queue",
+      "routing_key": "odoo.event.#",
+      "arguments": {}
+    },
+    {
+      "source": "ex.creativeflow.topic",
+      "vhost": "/creativeflow_staging",
+      "destination": "q.notifications.user_alerts",
+      "destination_type": "queue",
+      "routing_key": "notification.user.#",
+      "arguments": {}
+    },
+    {
+      "source": "ex.creativeflow.topic",
+      "vhost": "/creativeflow_staging",
+      "destination": "q.collaboration.updates",
+      "destination_type": "queue",
+      "routing_key": "collaboration.update.#",
+      "arguments": {}
+    },
+    {
+      "source": "ex.dead_letter",
+      "vhost": "/creativeflow_staging",
+      "destination": "q.dead_letter",
+      "destination_type": "queue",
+      "routing_key": "#",
+      "arguments": {}
+    }
+  ]
+}

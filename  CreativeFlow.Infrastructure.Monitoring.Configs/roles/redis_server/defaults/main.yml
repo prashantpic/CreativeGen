@@ -1,0 +1,6 @@
+---
+# Default variables for the redis_server role.
+# These can be overridden in group_vars or host_vars.
+
+# Placeholder for Redis version
+redis_version: "6.2"

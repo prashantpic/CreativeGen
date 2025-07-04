@@ -1,0 +1,4 @@
+---
+# Variables for the minio_server role.
+# Sensitive variables like MINIO_ROOT_USER and MINIO_ROOT_PASSWORD
+# should be defined in vaulted files (e.g., group_vars/all/secrets.yml).

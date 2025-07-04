@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_credit_transaction_admin,creativeflow.credit.transaction.admin.access,model_creativeflow_credit_transaction,base.group_system,1,1,1,1
+access_credit_transaction_user,creativeflow.credit.transaction.user.access,model_creativeflow_credit_transaction,base.group_user,1,0,0,0
+access_credit_action_cost_admin,creativeflow.credit.action.cost.admin.access,model_creativeflow_credit_action_cost,base.group_system,1,1,1,1
+access_credit_action_cost_user,creativeflow.credit.action.cost.user.access,model_creativeflow_credit_action_cost,base.group_user,1,0,0,0

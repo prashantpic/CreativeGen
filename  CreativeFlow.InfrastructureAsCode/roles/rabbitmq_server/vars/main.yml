@@ -1,0 +1,4 @@
+---
+# Variables for the rabbitmq_server role.
+# Sensitive data like user passwords and the erlang cookie
+# should be defined in vaulted group_vars files.

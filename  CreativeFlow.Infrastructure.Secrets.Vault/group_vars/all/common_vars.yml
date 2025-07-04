@@ -1,0 +1,16 @@
+---
+# Global variables applicable to all environments.
+# These can be overridden in environment-specific or host-specific variable files.
+
+# Administrative user created and managed by Ansible
+admin_user: 'ansible_admin'
+
+# NTP servers for time synchronization
+ntp_servers:
+  - '0.pool.ntp.org'
+  - '1.pool.ntp.org'
+  - '2.pool.ntp.org'
+  - '3.pool.ntp.org'
+
+# Base domain for infrastructure FQDNs
+base_domain_name: 'creativeflow.ai'

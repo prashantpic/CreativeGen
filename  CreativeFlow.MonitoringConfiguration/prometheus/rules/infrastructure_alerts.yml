@@ -1,0 +1,75 @@
+# Defines Prometheus alerting rules for underlying infrastructure components
+# such as servers, databases, message queues, and Kubernetes.
+# Requirement(s) Addressed: DEP-005, QA-003, QA-003.1
+
+groups:
+  - name: infrastructure_component_alerts
+    rules:
+      - alert: HostHighCpuLoad
+        expr: node_load15{job="node_exporter"} / count without(cpu, mode) (node_cpu_seconds_total{job="node_exporter", mode="system"}) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: server
+        annotations:
+          summary: "High CPU Load on {{ $labels.instance }}"
+          description: "CPU load (15 min avg) is above 80% on host {{ $labels.instance }}. Current value is {{ $value }}."
+          runbook_url: "<RUNBOOK_URL_HIGH_CPU>"
+
+      - alert: HostLowDiskSpace
+        expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|fuse.lxcfs", mountpoint!="/boot"} / node_filesystem_size_bytes{fstype!~"tmpfs|fuse.lxcfs", mountpoint!="/boot"}) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+          component: server
+        annotations:
+          summary: "Low Disk Space on {{ $labels.instance }} (mountpoint {{ $labels.mountpoint }})"
+          description: "Less than 10% disk space available on {{ $labels.mountpoint }} for host {{ $labels.instance }}. Current value is {{ $value | humanize }}%."
+          runbook_url: "<RUNBOOK_URL_LOW_DISK>"
+
+      - alert: PostgreSQLReplicationLagHigh
+        expr: pg_replication_lag > 300
+        for: 5m
+        labels:
+          severity: critical
+          component: database
+          service: postgresql
+        annotations:
+          summary: "High PostgreSQL Replication Lag"
+          description: "PostgreSQL replication lag on instance {{ $labels.instance }} is over 5 minutes. Current lag is {{ $value | humanizeDuration }}."
+          runbook_url: "<RUNBOOK_URL_PG_REPLICATION>"
+
+      - alert: RabbitMQHighQueueDepth
+        expr: rabbitmq_queue_messages_ready > 1000
+        for: 15m
+        labels:
+          severity: warning
+          component: message-queue
+          service: rabbitmq
+        annotations:
+          summary: "High RabbitMQ Queue Depth for {{ $labels.queue }}"
+          description: "The RabbitMQ queue '{{ $labels.queue }}' has over 1000 ready messages for 15 minutes. Current depth: {{ $value }} messages."
+          runbook_url: "<RUNBOOK_URL_RABBITMQ_QUEUE>"
+
+      - alert: RedisMemoryHigh
+        expr: (redis_memory_used_bytes / redis_memory_max_bytes) > 0.85
+        for: 10m
+        labels:
+          severity: critical
+          component: database
+          service: redis
+        annotations:
+          summary: "High Memory Usage on Redis Instance {{ $labels.instance }}"
+          description: "Redis instance {{ $labels.instance }} is using over 85% of its configured maxmemory. Current usage: {{ $value | humanizePercentage }}."
+          runbook_url: "<RUNBOOK_URL_REDIS_MEMORY>"
+
+      - alert: KubePodCrashLooping
+        expr: increase(kube_pod_container_status_restarts_total[15m]) > 3
+        for: 15m
+        labels:
+          severity: warning
+          component: kubernetes
+        annotations:
+          summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash-looping"
+          description: "Container '{{ $labels.container }}' in pod '{{ $labels.pod }}' has restarted more than 3 times in the last 15 minutes."
+          runbook_url: "<RUNBOOK_URL_K8S_CRASHLOOP>"

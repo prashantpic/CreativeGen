@@ -1,0 +1,81 @@
+---
+# tasks file for common role
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  changed_when: false
+
+- name: Install common packages
+  ansible.builtin.apt:
+    name: "{{ common_packages_to_install }}"
+    state: present
+
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Create the admin user
+  ansible.builtin.user:
+    name: "{{ ansible_admin_user }}"
+    comment: "Ansible Admin User"
+    groups: "{{ ansible_admin_groups }}"
+    shell: /bin/bash
+    state: present
+    append: yes
+
+- name: Set up authorized keys for the admin user
+  ansible.posix.authorized_key:
+    user: "{{ ansible_admin_user }}"
+    state: present
+    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}" # Assumes key is on control node
+
+- name: Configure sudoers for the admin user
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^{{ ansible_admin_user }}'
+    line: '{{ ansible_admin_user }} ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
+- name: Harden SSH configuration
+  ansible.builtin.template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart ssh
+
+- name: Configure UFW firewall
+  community.general.ufw:
+    rule: "{{ item.rule }}"
+    port: "{{ item.port | default(omit) }}"
+    proto: "{{ item.proto | default(omit) }}"
+    from_ip: "{{ item.from_ip | default(omit) }}"
+    state: enabled
+  loop:
+    - { rule: 'allow', port: '{{ ssh_port }}', proto: 'tcp' } # Allow SSH
+    # Add other global rules here if needed
+
+- name: Set UFW default policies and enable
+  community.general.ufw:
+    state: enabled
+    policy: "{{ ufw_default_policy_input }}"
+    direction: input
+
+- name: Configure NTP for time synchronization
+  ansible.builtin.template:
+    src: timesyncd.conf.j2
+    dest: /etc/systemd/timesyncd.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart timesyncd
+
+- name: Ensure systemd-timesyncd service is started and enabled
+  ansible.builtin.service:
+    name: systemd-timesyncd
+    state: started
+    enabled: yes

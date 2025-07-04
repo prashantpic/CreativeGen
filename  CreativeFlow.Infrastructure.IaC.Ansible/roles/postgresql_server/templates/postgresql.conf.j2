@@ -1,0 +1,38 @@
+# This file is managed by Ansible.
+# Based on the default postgresql.conf
+
+#------------------------------------------------------------------------------
+# CONNECTIONS AND AUTHENTICATION
+#------------------------------------------------------------------------------
+
+listen_addresses = '*'
+port = {{ pg_port }}
+max_connections = 100
+
+#------------------------------------------------------------------------------
+# RESOURCE USAGE (TUNE THESE FOR YOUR HARDWARE)
+#------------------------------------------------------------------------------
+
+shared_buffers = 1GB
+effective_cache_size = 3GB
+maintenance_work_mem = 256MB
+work_mem = 4MB
+
+#------------------------------------------------------------------------------
+# WRITE-AHEAD LOG
+#------------------------------------------------------------------------------
+
+wal_level = replica
+max_wal_senders = 10
+wal_keep_size = 512MB # Replaces wal_keep_segments in PG < 13
+
+#------------------------------------------------------------------------------
+# LOGGING
+#------------------------------------------------------------------------------
+
+logging_collector = on
+log_directory = 'log'
+log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+log_statement = 'ddl'
+log_min_duration_statement = 250ms
+log_line_prefix = '< %m >'

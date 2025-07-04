@@ -1,0 +1,22 @@
+---
+# Variables specific to the Production environment.
+# These values override variables defined in group_vars/all/common_vars.yml
+
+environment: 'production'
+api_server_url: 'https://api.creativeflow.ai'
+
+# Example: Define production PostgreSQL settings
+pg_max_connections: 200
+pg_shared_buffers: '4GB'
+
+# Example: Nginx site configuration for production
+nginx_sites:
+  - name: creativeflow_app
+    server_name: "app.creativeflow.ai"
+    upstream_servers:
+      - "prod-odoo-01.creativeflow.ai:8069"
+    listen_port: 443
+    ssl: true
+    # SSL cert/key paths should be defined here or in a more specific var file
+    ssl_cert_path: "/etc/letsencrypt/live/app.creativeflow.ai/fullchain.pem"
+    ssl_key_path: "/etc/letsencrypt/live/app.creativeflow.ai/privkey.pem"

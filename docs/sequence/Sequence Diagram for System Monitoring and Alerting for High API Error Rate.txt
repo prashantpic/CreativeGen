@@ -1,0 +1,48 @@
+sequenceDiagram
+    participant "API Gateway (Nginx)" as compapigatewaynginx
+    participant "Odoo Backend" as svcodoobackend
+    participant "Prometheus" as svcprometheusmonitoring
+    participant "Alertmanager" as svcalertmanager
+    actor "PagerDuty" as extnotificationopspagerduty
+
+    note over compapigatewaynginx: 1. API Gateway (comp-apigateway-nginx) or Odoo Backend (svc-odoo-backend) starts experiencing a high rate of 5xx errors on a critical API endpoint. This is the trigger condition.
+
+    activate svcprometheusmonitoring
+    note right of svcprometheusmonitoring: 2. Prometheus (svc-prometheus-monitoring) periodically scrapes metrics from configured targets. This interaction shows one such scrape event for simplicity, assuming metrics indicating high error rate are collected over several scrape cycles.
+    
+    svcprometheusmonitoring-compapigatewaynginx: 2. Scrape Metrics (HTTP GET /metrics)
+    activate compapigatewaynginx
+    compapigatewaynginx--svcprometheusmonitoring: Metrics Payload (200 OK, including httprequeststotal{code="5xx",endpoint="/critical/api"})
+    deactivate compapigatewaynginx
+
+    opt 2.1 Applicable if Odoo Backend directly serves monitored API endpoints and exposes metrics.
+        svcprometheusmonitoring-svcodoobackend: 2.1. Scrape Metrics (HTTP GET /metrics)
+        activate svcodoobackend
+        svcodoobackend--svcprometheusmonitoring: Metrics Payload (200 OK, if Odoo exports relevant metrics)
+        deactivate svcodoobackend
+    end
+
+    loop 3. Evaluate Alerting Rules
+        note over svcprometheusmonitoring: This is a continuous internal process in Prometheus based on scraped metrics.
+        svcprometheusmonitoring-svcprometheusmonitoring: Evaluate Alerting Rules (e.g., apierrorratecritical  5% for 5 min)
+        
+        alt 3.1 Condition: 'HighAPIErrorRate' threshold breached for /critical/api
+            svcprometheusmonitoring-svcalertmanager: 4. Fire Alert (HTTP POST /api/v1/alerts: HighAPIErrorRate, endpoint='/critical/api', severity='critical')
+            activate svcalertmanager
+            svcalertmanager--svcprometheusmonitoring: Acknowledge Alert Reception (200 OK)
+        end
+    end
+    deactivate svcprometheusmonitoring
+
+    activate svcalertmanager
+    svcalertmanager-svcalertmanager: 5. Process Alert (deduplication, grouping, inhibition, routing rules)
+    note right of svcalertmanager: 5. Alertmanager (svc-alertmanager) may also route notifications to other channels like Slack for the Ops team, as per its configuration. This is not shown as a direct interaction due to participant scope.
+    
+    svcalertmanager-extnotificationopspagerduty: 6. Send PagerDuty Notification (HTTP POST /v2/enqueue with alert details)
+    activate extnotificationopspagerduty
+    extnotificationopspagerduty--svcalertmanager: PagerDuty Event Ack (e.g., 202 Accepted, eventId='PD123')
+    deactivate extnotificationopspagerduty
+    deactivate svcalertmanager
+    
+    note over extnotificationopspagerduty: 6. PagerDuty (ext-notification-ops-pagerduty) notifies the on-call engineer. The engineer then acknowledges the alert via PagerDuty. These interactions involve an 'Actor: OnCallEngineer' not explicitly listed as a repository participant for this diagram.
+    note over extnotificationops_pagerduty: Post-notification, the on-call engineer investigates the issue using Grafana (which queries Prometheus) and ELK/Loki (for logs) to find the root cause. These investigation steps involve interactions with systems (Grafana, ELK/Loki) and actors not in this diagram's defined participant list.

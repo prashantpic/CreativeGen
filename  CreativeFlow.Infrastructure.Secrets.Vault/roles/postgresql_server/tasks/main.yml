@@ -1,0 +1,114 @@
+---
+- name: Install PostgreSQL and related packages
+  ansible.builtin.apt:
+    name: "{{ pg_packages }}"
+    state: present
+    update_cache: yes
+
+- name: Configure postgresql.conf
+  ansible.builtin.template:
+    src: postgresql.conf.j2
+    dest: "{{ pg_config_dir }}/postgresql.conf"
+    owner: postgres
+    group: postgres
+    mode: '0644'
+  notify: restart postgresql
+
+- name: Configure pg_hba.conf for client authentication
+  ansible.builtin.template:
+    src: pg_hba.conf.j2
+    dest: "{{ pg_config_dir }}/pg_hba.conf"
+    owner: postgres
+    group: postgres
+    mode: '0640'
+  notify: restart postgresql
+
+- name: Ensure PostgreSQL service is started and enabled
+  ansible.builtin.service:
+    name: "{{ pg_service_name }}"
+    state: started
+    enabled: yes
+
+- name: Create application databases
+  community.postgresql.postgresql_db:
+    name: "{{ item.name }}"
+    owner: "{{ item.owner | default(omit) }}"
+    state: present
+  become: yes
+  become_user: postgres
+  loop: "{{ pg_databases | default([]) }}"
+  when: "'db_primary' in group_names"
+
+- name: Create application users
+  community.postgresql.postgresql_user:
+    name: "{{ item.name }}"
+    password: "{{ item.password }}" # Must be from vault
+    state: present
+  become: yes
+  become_user: postgres
+  loop: "{{ pg_users | default([]) }}"
+  no_log: true
+  when: "'db_primary' in group_names"
+
+- name: Grant privileges to users
+  community.postgresql.postgresql_privs:
+    db: "{{ item.db }}"
+    privs: "{{ item.privs }}"
+    type: "{{ item.type | default('table') }}"
+    objs: "{{ item.objs | default('ALL_IN_SCHEMA') }}"
+    schema: "{{ item.schema | default('public') }}"
+    role: "{{ item.role }}"
+    state: present
+  become: yes
+  become_user: postgres
+  loop: "{{ pg_user_privileges | default([]) }}"
+  when: "'db_primary' in group_names"
+
+- name: Create replication user
+  community.postgresql.postgresql_user:
+    name: "{{ pg_replication_user }}"
+    password: "{{ pg_replication_password }}" # Must be from vault
+    role_attr_flags: "REPLICATION,LOGIN"
+    state: present
+  become: yes
+  become_user: postgres
+  no_log: true
+  when: "'db_primary' in group_names"
+
+- name: Set up streaming replication on replicas
+  ansible.builtin.include_tasks: replication_replica.yml
+  when: "'db_replicas' in group_names"
+
+- name: Install and configure PgBouncer
+  block:
+    - name: Configure pgbouncer.ini
+      ansible.builtin.template:
+        src: pgbouncer.ini.j2
+        dest: /etc/pgbouncer/pgbouncer.ini
+        owner: postgres
+        group: postgres
+        mode: '0640'
+      notify: restart pgbouncer
+
+    - name: Configure PgBouncer userlist
+      ansible.builtin.template:
+        src: userlist.txt.j2
+        dest: /etc/pgbouncer/userlist.txt
+        owner: postgres
+        group: postgres
+        mode: '0640'
+      notify: restart pgbouncer
+      no_log: true
+
+    - name: Enable PgBouncer service
+      ansible.builtin.lineinfile:
+        path: /etc/default/pgbouncer
+        regexp: '^START='
+        line: 'START=1'
+      notify: restart pgbouncer
+
+    - name: Ensure PgBouncer service is started
+      ansible.builtin.service:
+        name: pgbouncer
+        state: started
+        enabled: yes

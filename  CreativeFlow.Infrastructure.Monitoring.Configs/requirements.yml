@@ -1,0 +1,23 @@
+---
+collections:
+  # General purpose utilities and modules
+  - name: community.general
+    version: ">=6.0.0"
+
+  # Modules for managing Docker containers and services
+  - name: community.docker
+    version: ">=3.0.0"
+
+  # Modules for interacting with the Kubernetes API
+  - name: community.kubernetes
+    version: ">=2.0.0"
+
+  # Modules for advanced PostgreSQL management
+  - name: community.postgresql
+    version: ">=2.0.0"
+
+# Roles from Ansible Galaxy or other Git repositories can be defined here.
+# Example:
+# roles:
+#   - name: geerlingguy.docker
+#     version: 4.1.2

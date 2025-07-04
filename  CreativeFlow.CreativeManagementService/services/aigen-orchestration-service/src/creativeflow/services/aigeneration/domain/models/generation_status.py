@@ -1,0 +1,22 @@
+"""
+Enum for Generation Request Statuses.
+
+This module defines a standardized set of possible statuses for an AI
+generation request, ensuring consistency across the application.
+"""
+from enum import Enum
+
+class GenerationStatus(str, Enum):
+    """
+    Defines the possible states of a GenerationRequest throughout its lifecycle.
+    Inherits from `str` and `Enum` to be easily serializable.
+    """
+    PENDING = "PENDING"
+    VALIDATING_CREDITS = "VALIDATING_CREDITS"
+    PUBLISHING_TO_QUEUE = "PUBLISHING_TO_QUEUE"
+    PROCESSING_SAMPLES = "PROCESSING_SAMPLES"
+    AWAITING_SELECTION = "AWAITING_SELECTION"
+    PROCESSING_FINAL = "PROCESSING_FINAL"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    CONTENT_REJECTED = "CONTENT_REJECTED"

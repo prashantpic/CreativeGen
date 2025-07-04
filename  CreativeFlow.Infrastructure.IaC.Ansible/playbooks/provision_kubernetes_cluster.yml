@@ -1,0 +1,31 @@
+# Playbook for provisioning the Kubernetes cluster, including master nodes,
+# worker nodes, and GPU configurations. This playbook orchestrates the
+# necessary roles in the correct sequence.
+---
+- name: Apply common Kubernetes configuration to all K8s nodes
+  hosts: k8s_masters, k8s_workers, k8s_workers_gpu
+  become: true
+  roles:
+    - role: kubernetes_common
+
+- name: Prepare Kubernetes worker nodes for GPU workloads
+  hosts: k8s_workers_gpu
+  become: true
+  roles:
+    - role: gpu_support
+
+- name: Initialize Kubernetes control plane on master nodes
+  hosts: k8s_masters
+  become: true
+  serial: 1 # Initialize masters one by one to avoid race conditions
+  roles:
+    - role: kubernetes_master
+
+- name: Join worker nodes to the Kubernetes cluster
+  hosts: k8s_workers, k8s_workers_gpu
+  become: true
+  # Using a higher serial number for workers as they can join in parallel
+  # once the master(s) are ready.
+  serial: "25%"
+  roles:
+    - role: kubernetes_worker

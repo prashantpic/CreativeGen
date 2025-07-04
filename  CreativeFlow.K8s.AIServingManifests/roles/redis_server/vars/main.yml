@@ -1,0 +1,4 @@
+---
+# Role-specific variables for redis_server.
+# Sensitive values should be defined in vaulted files.
+redis_password: "{{ vault_redis_password }}"

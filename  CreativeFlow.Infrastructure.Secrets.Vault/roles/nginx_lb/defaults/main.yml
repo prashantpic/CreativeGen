@@ -1,0 +1,31 @@
+---
+# Default variables for the 'nginx_lb' role.
+
+nginx_package: "nginx"
+nginx_service_name: "nginx"
+nginx_user: "www-data"
+nginx_worker_processes: "auto"
+
+# Placeholder for site configurations.
+# This list should be populated in environment-specific group_vars.
+# Example structure:
+# nginx_sites:
+#   - name: "creativeflow_api"
+#     listen: "443 ssl http2"
+#     server_name: "api.creativeflow.ai"
+#     ssl_cert_path: "/etc/ssl/certs/api.creativeflow.ai.crt"
+#     ssl_key_path: "/etc/ssl/private/api.creativeflow.ai.key"
+#     access_log: "/var/log/nginx/api.access.log"
+#     error_log: "/var/log/nginx/api.error.log"
+#     upstreams:
+#       - name: "backend_app"
+#         servers:
+#           - "10.0.1.10:8080"
+#           - "10.0.1.11:8080"
+#     locations:
+#       - path: "/"
+#         proxy_pass: "http://backend_app"
+#         extra_options: |
+#           proxy_set_header Host $host;
+#           proxy_set_header X-Real-IP $remote_addr;
+nginx_sites: []

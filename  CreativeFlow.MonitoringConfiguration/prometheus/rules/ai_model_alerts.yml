@@ -1,0 +1,44 @@
+# Defines specific Prometheus alerting rules for custom AI models, focusing on
+# performance, error rates, and resource consumption as per INT-007.
+# Requirement(s) Addressed: DEP-005, QA-003, QA-003.1, INT-007
+
+groups:
+  - name: ai_model_alerts
+    rules:
+      - alert: CustomAIModelHighInferenceLatency
+        expr: histogram_quantile(0.99, sum(rate(custom_model_inference_latency_seconds_bucket{job="custom-ai-models"}[5m])) by (le, model_name)) > <MODEL_SPECIFIC_LATENCY_THRESHOLD_SECONDS>
+        for: 5m
+        labels:
+          severity: warning
+          service: custom-ai-models
+          model_name: "{{ $labels.model_name }}"
+        annotations:
+          summary: "High P99 Inference Latency for AI Model {{ $labels.model_name }}"
+          description: "P99 inference latency for model {{ $labels.model_name }} is above the threshold of <MODEL_SPECIFIC_LATENCY_THRESHOLD_SECONDS>s. Current value is {{ $value | humanizeDuration }}."
+          runbook_url: "<RUNBOOK_URL_AI_MODEL_LATENCY>"
+
+      - alert: CustomAIModelHighErrorRate
+        expr: sum(rate(custom_model_inference_errors_total{job="custom-ai-models"}[5m])) by (model_name) / sum(rate(custom_model_inference_requests_total{job="custom-ai-models"}[5m])) by (model_name) > <MODEL_SPECIFIC_ERROR_RATE_THRESHOLD>
+        for: 10m
+        labels:
+          severity: critical
+          service: custom-ai-models
+          model_name: "{{ $labels.model_name }}"
+        annotations:
+          summary: "High Error Rate for AI Model {{ $labels.model_name }}"
+          description: "Error rate for model {{ $labels.model_name }} is above the threshold of <MODEL_SPECIFIC_ERROR_RATE_THRESHOLD>. Current value is {{ $value | humanizePercentage }}."
+          runbook_url: "<RUNBOOK_URL_AI_MODEL_ERRORS>"
+
+      - alert: GPUHighMemoryUtilization
+        # This alert assumes that dcgm-exporter metrics are enriched with Kubernetes labels
+        # via relabel_configs in the Prometheus scrape configuration.
+        expr: dcgm_fb_used_percent{kubernetes_namespace="<AI_MODELS_NAMESPACE>"} > 90
+        for: 5m
+        labels:
+          severity: warning
+          service: gpu-cluster
+          component: gpu
+        annotations:
+          summary: "High GPU Memory Utilization on node {{ $labels.kubernetes_node }}"
+          description: "GPU {{ $labels.gpu }} on node {{ $labels.kubernetes_node }} has memory utilization over 90% for 5 minutes. This could impact model {{ $labels.model_name }} running in pod {{ $labels.kubernetes_pod }}. Current usage: {{ $value | humanize }}%."
+          runbook_url: "<RUNBOOK_URL_GPU_MEMORY>"

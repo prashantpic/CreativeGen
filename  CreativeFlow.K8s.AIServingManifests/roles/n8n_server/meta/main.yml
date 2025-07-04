@@ -1,0 +1,11 @@
+---
+galaxy_info:
+  author: CreativeFlow
+  description: Role to install and configure n8n workflow engine.
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy # 22.04
+dependencies: [] # Add dependency on a Node.js role if not using a community one.

@@ -1,0 +1,6 @@
+---
+# Placeholder handler for the 'rabbitmq_server' role.
+- name: restart rabbitmq-server
+  ansible.builtin.service:
+    name: rabbitmq-server
+    state: restarted

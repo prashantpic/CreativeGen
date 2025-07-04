@@ -1,0 +1,25 @@
+---
+- name: Configure PgBouncer main config
+  ansible.builtin.template:
+    src: pgbouncer.ini.j2
+    dest: /etc/pgbouncer/pgbouncer.ini
+    owner: postgres
+    group: postgres
+    mode: '0640'
+  notify: Restart pgbouncer
+
+- name: Configure PgBouncer user list
+  ansible.builtin.template:
+    src: userlist.txt.j2
+    dest: /etc/pgbouncer/userlist.txt
+    owner: postgres
+    group: postgres
+    mode: '0640'
+  notify: Restart pgbouncer
+  no_log: true
+
+- name: Ensure PgBouncer service is started and enabled
+  ansible.builtin.service:
+    name: pgbouncer
+    state: started
+    enabled: yes

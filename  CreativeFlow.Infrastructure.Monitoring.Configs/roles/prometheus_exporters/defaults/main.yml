@@ -1,0 +1,8 @@
+---
+# defaults file for prometheus_exporters
+node_exporter_version: "1.7.0"
+postgres_exporter_version: "0.15.0"
+prometheus_exporters_user: "prometheus"
+prometheus_exporters_group: "prometheus"
+prometheus_exporters_bin_dir: "/usr/local/bin"
+prometheus_exporters_config_dir: "/etc/prometheus"

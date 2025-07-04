@@ -1,0 +1,7 @@
+---
+# Default variables for the minio_server role
+minio_version: "RELEASE.2023-11-20T22-40-07Z"
+minio_binary_url: "https://dl.min.io/server/minio/release/linux-amd64/minio.{{ minio_version }}"
+minio_user: "minio-user"
+minio_group: "minio-user"
+minio_volumes: "/mnt/disk1/minio /mnt/disk2/minio"

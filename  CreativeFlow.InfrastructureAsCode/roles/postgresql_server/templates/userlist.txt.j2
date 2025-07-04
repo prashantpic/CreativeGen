@@ -1,0 +1,7 @@
+# This file is managed by Ansible. Do not edit manually.
+# Contains users and passwords for PgBouncer authentication.
+# Format: "username" "password"
+
+{% for user in pg_users %}
+"{{ user.name }}" "{{ user.password }}"
+{% endfor %}

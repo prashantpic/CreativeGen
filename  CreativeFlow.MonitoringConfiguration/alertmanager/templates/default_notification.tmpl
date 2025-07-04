@@ -1,0 +1,59 @@
+{{/*
+  Default Go template for formatting alert notifications sent by Alertmanager.
+  This file defines templates for both HTML email and Slack messages.
+  Requirement(s) Addressed: DEP-005, QA-003.1
+*/}}
+
+{{ define "email.default.subject" }}[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }} - {{ .CommonLabels.service | default "general" }}{{ end }}
+
+{{ define "email.default.html" }}
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #D9452E; } /* Firing color */
+        h2 { color: #333; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        p { line-height: 1.6; }
+        strong { color: #555; }
+        .alert { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 4px; background-color: #f9f9f9; }
+        .firing { border-left: 5px solid #D9452E; }
+        .resolved { border-left: 5px solid #4CAF50; }
+        .group-labels { font-size: 0.9em; color: #777; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    {{ if eq .Status "firing" }}
+        <h1 class="firing">FIRING Alert: {{ .CommonLabels.alertname }}</h1>
+    {{ else }}
+        <h1 style="color: #4CAF50;" class="resolved">RESOLVED Alert: {{ .CommonLabels.alertname }}</h1>
+    {{ end }}
+
+    {{ range .Alerts }}
+    <div class="alert {{ .Status }}">
+        <h2>{{ .Annotations.summary }}</h2>
+        <p><strong>Severity:</strong> {{ .Labels.severity | toUpper }}</p>
+        <p><strong>Service:</strong> {{ .Labels.service | default "N/A" }}</p>
+        <p><strong>Instance:</strong> {{ .Labels.instance | default "N/A" }}</p>
+        <p><strong>Description:</strong> {{ .Annotations.description }}</p>
+        {{ if .Annotations.runbook_url }}<p><strong>Runbook:</strong> <a href="{{ .Annotations.runbook_url }}">{{ .Annotations.runbook_url }}</a></p>{{ end }}
+        <p><strong>Starts at:</strong> {{ .StartsAt.Format "2006-01-02 15:04:05 MST" }}</p>
+        {{ if eq .Status "resolved" }}<p><strong>Ends at:</strong> {{ .EndsAt.Format "2006-01-02 15:04:05 MST" }}</p>{{ end }}
+    </div>
+    {{ end }}
+
+    <p class="group-labels">Grouped by: {{ .GroupLabels.String }}</p>
+</body>
+</html>
+{{ end }}
+
+
+{{ define "slack.default.text" }}
+{{ range .Alerts }}
+*Summary:* {{ .Annotations.summary }}
+> `Severity:` {{ .Labels.severity | toUpper }}
+> `Service:` {{ .Labels.service | default "N/A" }}
+> `Description:` {{ .Annotations.description }}
+{{ if .Annotations.runbook_url }}> `Runbook:` <{{ .Annotations.runbook_url }}|Click Here> {{ end }}
+{{ end }}
+{{ end }}

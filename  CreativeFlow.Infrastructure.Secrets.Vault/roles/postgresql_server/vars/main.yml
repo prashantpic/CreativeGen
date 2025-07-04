@@ -1,0 +1,26 @@
+---
+# Variables for the 'postgresql_server' role.
+# These should be defined in environment-specific group_vars.
+# Passwords MUST be stored in ansible-vault encrypted files.
+
+# pg_replication_password: "{{ some_vault_variable }}"
+
+# pg_databases:
+#   - name: odoo_db
+#     owner: odoo_user
+#   - name: n8n_db
+#     owner: n8n_user
+
+# pg_users:
+#   - name: odoo_user
+#     password: "{{ odoo_db_password }}" # from vault
+#   - name: n8n_user
+#     password: "{{ n8n_db_password }}" # from vault
+
+# pg_user_privileges:
+#   - db: odoo_db
+#     role: odoo_user
+#     privs: ALL
+#   - db: n8n_db
+#     role: n8n_user
+#     privs: ALL

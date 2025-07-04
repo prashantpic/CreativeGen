@@ -1,0 +1,6 @@
+---
+# Handlers for the n8n_server role.
+- name: restart n8n
+  ansible.builtin.service:
+    name: n8n
+    state: restarted

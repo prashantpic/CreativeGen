@@ -1,0 +1,26 @@
+# This file is managed by Ansible. Do not edit manually.
+
+[databases]
+{% for db in pg_databases %}
+{{ db.name }} = host=127.0.0.1 port={{ pg_port }} dbname={{ db.name }}
+{% endfor %}
+* = host=127.0.0.1 port={{ pg_port }}
+
+[pgbouncer]
+listen_addr = {{ pgbouncer_listen_addr }}
+listen_port = {{ pgbouncer_listen_port }}
+
+auth_type = md5
+auth_file = /etc/pgbouncer/userlist.txt
+
+logfile = /var/log/pgbouncer/pgbouncer.log
+pidfile = /var/run/pgbouncer/pgbouncer.pid
+
+admin_users = postgres
+stats_users = postgres
+
+pool_mode = session
+server_reset_query = DISCARD ALL;
+
+default_pool_size = {{ pgbouncer_default_pool_size }}
+max_client_conn = {{ pgbouncer_max_client_conn }}

@@ -1,0 +1,7 @@
+# Contains default variables for the 'common' role.
+# These variables have higher precedence than defaults and are meant to be
+# defined for the role's context.
+---
+# This file can be used for variables that are role-specific but might
+# not have a sensible default. For the `common` role, most variables are
+# better placed in `defaults/main.yml` or `group_vars`.

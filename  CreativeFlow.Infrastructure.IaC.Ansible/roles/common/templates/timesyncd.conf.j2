@@ -1,0 +1,6 @@
+# This file is managed by Ansible.
+# See timesyncd.conf(5) for details.
+
+[Time]
+NTP={{ ntp_servers | join(' ') }}
+FallbackNTP=ntp.ubuntu.com

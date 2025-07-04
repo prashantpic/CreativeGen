@@ -1,0 +1,56 @@
+# Prometheus scrape configuration for custom application services.
+# This uses Kubernetes Service Discovery to find pods based on their labels
+# and the name of their metrics port.
+# Requirement(s) Addressed: DEP-005, QA-003
+
+# Scrape config for the API Gateway
+- job_name: 'api-gateway'
+  kubernetes_sd_configs:
+    - role: pod
+  relabel_configs:
+    # Find pods with the label app='api-gateway-app'
+    - source_labels: [__meta_kubernetes_pod_label_app]
+      action: keep
+      regex: 'api-gateway-app'
+    # Find containers that have a port named 'metrics'
+    - source_labels: [__meta_kubernetes_pod_container_port_name]
+      action: keep
+      regex: 'metrics'
+    # Use pod namespace as a label
+    - source_labels: [__meta_kubernetes_namespace]
+      target_label: namespace
+    # Use pod name as the instance label
+    - source_labels: [__meta_kubernetes_pod_name]
+      target_label: instance
+
+# Scrape config for the Odoo Backend
+- job_name: 'odoo-backend'
+  kubernetes_sd_configs:
+    - role: pod
+  relabel_configs:
+    - source_labels: [__meta_kubernetes_pod_label_app]
+      action: keep
+      regex: 'odoo-app'
+    - source_labels: [__meta_kubernetes_pod_container_port_name]
+      action: keep
+      regex: 'metrics-odoo'
+    - source_labels: [__meta_kubernetes_namespace]
+      target_label: namespace
+    - source_labels: [__meta_kubernetes_pod_name]
+      target_label: instance
+
+# Scrape config for n8n Workflows
+- job_name: 'n8n-workflows'
+  kubernetes_sd_configs:
+    - role: pod
+  relabel_configs:
+    - source_labels: [__meta_kubernetes_pod_label_app]
+      action: keep
+      regex: 'n8n-app'
+    - source_labels: [__meta_kubernetes_pod_container_port_name]
+      action: keep
+      regex: 'metrics-n8n'
+    - source_labels: [__meta_kubernetes_namespace]
+      target_label: namespace
+    - source_labels: [__meta_kubernetes_pod_name]
+      target_label: instance

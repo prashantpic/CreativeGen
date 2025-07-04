@@ -1,0 +1,14 @@
+---
+# node_exporter defaults
+node_exporter_version: "1.6.1"
+node_exporter_download_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+node_exporter_user: "node-exporter"
+node_exporter_port: 9100
+
+# postgres_exporter defaults
+postgres_exporter_version: "0.13.2"
+postgres_exporter_port: 9187
+
+# rabbitmq_exporter defaults
+rabbitmq_exporter_version: "1.0.0-RC18"
+rabbitmq_exporter_port: 9419

@@ -1,0 +1,23 @@
+<odoo>
+    <data>
+        <!-- Link actions to the base menus -->
+        <menuitem
+            id="creativeflow_base.menu_workbenches"
+            action="action_creativeflow_workbench"
+            sequence="20"/>
+
+        <menuitem
+            id="creativeflow_base.menu_brand_kits"
+            action="action_creativeflow_brand_kit"
+            sequence="30"/>
+        
+        <!-- Add a new menu for all projects -->
+        <menuitem
+            id="menu_projects_all"
+            name="All Projects"
+            parent="creativeflow_base.menu_root"
+            action="action_creativeflow_project"
+            sequence="21"/>
+
+    </data>
+</odoo>

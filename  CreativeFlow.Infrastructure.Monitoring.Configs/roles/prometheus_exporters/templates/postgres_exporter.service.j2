@@ -1,0 +1,17 @@
+[Unit]
+Description=Prometheus PostgreSQL Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User={{ prometheus_exporters_user }}
+Group={{ prometheus_exporters_group }}
+Type=simple
+Environment="DATA_SOURCE_NAME=postgresql://localhost:5432/postgres?sslmode=disable"
+# In a production setup, the DATA_SOURCE_NAME should be more secure,
+# potentially using a dedicated monitoring user and password,
+# sourced from a vaulted environment file.
+ExecStart={{ prometheus_exporters_bin_dir }}/postgres_exporter
+
+[Install]
+WantedBy=multi-user.target

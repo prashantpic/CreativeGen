@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  author: CreativeFlow
+  description: Role to install common components for a Kubernetes cluster.
+  license: proprietary
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+  galaxy_tags:
+    - kubernetes
+    - container
+
+dependencies:
+  - role: common

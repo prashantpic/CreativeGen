@@ -1,0 +1,31 @@
+{
+  "name": "creativeflow-n8n-nodes",
+  "version": "1.0.0",
+  "description": "Custom nodes and workflow definitions for CreativeFlow AI's n8n orchestration engine.",
+  "license": "UNLICENSED",
+  "main": "dist/nodes/index.js",
+  "n8n": {
+    "nodes": [
+      "dist/nodes/KubernetesJobSubmitter/KubernetesJobSubmitter.node.js"
+    ]
+  },
+  "dependencies": {
+    "@kubernetes/client-node": "^0.20.0"
+  },
+  "devDependencies": {
+    "@n8n/core": "^1.0.0",
+    "@n8n/workflow": "^1.0.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "n8n start --tunnel",
+    "lint": "eslint nodes/**/*.ts",
+    "format": "prettier --write nodes/**/*.ts"
+  }
+}

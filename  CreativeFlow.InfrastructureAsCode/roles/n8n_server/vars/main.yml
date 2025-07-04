@@ -1,0 +1,9 @@
+---
+# Role-specific variables for n8n.
+# Sensitive connection details for database, RabbitMQ, etc.,
+# should be defined in vaulted group_vars files.
+# Example:
+# n8n_db_type: 'postgresdb'
+# n8n_db_host: 'db-primary.prod.creativeflow.ai'
+# n8n_db_user: 'n8n_user'
+# n8n_db_password: '{{ n8n_db_pass_from_vault }}'

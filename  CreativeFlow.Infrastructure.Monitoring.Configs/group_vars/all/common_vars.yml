@@ -1,0 +1,14 @@
+# This file defines variables that are common to all hosts in all environments.
+# These values can be overridden by environment-specific or host-specific variables.
+---
+# Default administrative user created and managed by Ansible.
+admin_user: 'ansible_admin'
+
+# NTP servers for time synchronization across the infrastructure.
+ntp_servers:
+  - '0.pool.ntp.org'
+  - '1.pool.ntp.org'
+  - '2.pool.ntp.org'
+
+# The base domain name for the platform.
+base_domain_name: 'creativeflow.ai'

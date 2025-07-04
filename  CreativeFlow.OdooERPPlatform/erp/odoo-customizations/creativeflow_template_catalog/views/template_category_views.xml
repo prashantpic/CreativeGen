@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- creativeflow.template.category Tree View -->
+    <record id="view_creativeflow_template_category_tree" model="ir.ui.view">
+        <field name="name">creativeflow.template.category.tree</field>
+        <field name="model">creativeflow.template.category</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="parent_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- creativeflow.template.category Form View -->
+    <record id="view_creativeflow_template_category_form" model="ir.ui.view">
+        <field name="name">creativeflow.template.category.form</field>
+        <field name="model">creativeflow.template.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="parent_id"/>
+                        <field name="sequence"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- creativeflow.template.category Action Window -->
+    <record id="action_creativeflow_template_category" model="ir.actions.act_window">
+        <field name="name">Template Categories</field>
+        <field name="res_model">creativeflow.template.category</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new template category.
+            </p>
+        </field>
+    </record>
+
+</odoo>

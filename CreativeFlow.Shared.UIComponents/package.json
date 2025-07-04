@@ -1,0 +1,38 @@
+```json
+{
+  "name": "creativeflow-ui-monorepo",
+  "private": true,
+  "description": "Monorepo for the CreativeFlow Design System, including design tokens, React components, and Flutter widgets.",
+  "scripts": {
+    "bootstrap": "lerna bootstrap",
+    "build": "lerna run build",
+    "test": "lerna run test",
+    "lint": "eslint 'packages/**/*.{ts,tsx}' --quiet",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "@babel/core": "^7.24.4",
+    "@storybook/addon-a11y": "^8.0.8",
+    "@storybook/addon-essentials": "^8.0.8",
+    "@storybook/addon-links": "^8.0.8",
+    "@storybook/addon-styling-webpack": "^1.0.0",
+    "@storybook/react": "^8.0.8",
+    "@storybook/react-webpack5": "^8.0.8",
+    "@typescript-eslint/eslint-plugin": "^7.7.0",
+    "@typescript-eslint/parser": "^7.7.0",
+    "babel-loader": "^9.1.3",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "eslint-plugin-react": "^7.34.1",
+    "lerna": "^8.1.2",
+    "prettier": "^3.2.5",
+    "storybook": "^8.0.8",
+    "typescript": "^5.4.5"
+  }
+}
+```

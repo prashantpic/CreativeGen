@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "creativeflow-service-apiplatform"
+version = "0.1.0"
+description = "CreativeFlow AI Platform - Public API Gateway"
+authors = ["CreativeFlow Engineering <dev@creativeflow.ai>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.111.0"
+uvicorn = {extras = ["standard"], version = "^0.30.1"}
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.30"}
+alembic = "^1.13.1"
+psycopg2-binary = "^2.9.9"
+asyncpg = "^0.29.0"
+pika = "^1.3.2"
+aio-pika = "^9.4.0"
+pydantic = "^2.7.4"
+pydantic-settings = "^2.3.4"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+httpx = "^0.27.0"
+python-json-logger = "^2.0.7"
+uuid = "^1.30"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.2"
+pytest-asyncio = "^0.23.7"
+black = "^24.4.2"
+isort = "^5.13.2"
+mypy = "^1.10.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"

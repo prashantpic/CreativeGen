@@ -1,0 +1,9 @@
+<odoo>
+    <data>
+        <!-- Link Odoo's native Subscription menu to our main app menu -->
+        <menuitem
+            id="creativeflow_base.menu_subscriptions"
+            action="sale_subscription.sale_subscription_action"
+            sequence="50"/>
+    </data>
+</odoo>

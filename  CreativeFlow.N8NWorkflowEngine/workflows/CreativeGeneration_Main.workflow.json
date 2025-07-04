@@ -1,0 +1,592 @@
+{
+  "name": "CreativeGeneration_Main",
+  "nodes": [
+    {
+      "parameters": {
+        "queue": "creative_generation_queue",
+        "options": {}
+      },
+      "name": "RabbitMQ Trigger",
+      "type": "n8n-nodes-base.rabbitMqTrigger",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "credentials": {
+        "rabbitMq": {
+          "id": "YOUR_RABBITMQ_CREDENTIAL_ID",
+          "name": "RabbitMQ connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "workflowContext",
+              "value": "={{$json}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Workflow Context",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const context = items[0].json.workflowContext;\n\nif (!context.jobId || !context.userId || !context.inputPrompt) {\n  throw new Error('Invalid job data: Missing jobId, userId, or inputPrompt.');\n}\n\n// Add any other preprocessing or transformations here\n// For example, preparing prompts\nitems[0].json.preprocessedPrompt = context.inputPrompt.trim();\n\nreturn items;"
+      },
+      "name": "Data Validation & Preprocessing",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ],
+      "executeOnTimeouts": true
+    },
+    {
+      "parameters": {
+        "taskType": "image_generation_from_text",
+        "userTier": "={{$json.workflowContext.userContext.tier}}",
+        "userId": "={{$json.workflowContext.userId}}"
+      },
+      "name": "AI Model Selection",
+      "type": "n8n-nodes-base.creativeFlowModelSelector",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "data_property_to_match": "={{$json.selectedProvider}}",
+        "rules": {
+          "rules": [
+            {
+              "value_1": "OpenAI",
+              "output": 0
+            },
+            {
+              "value_1": "StabilityAI",
+              "output": 1
+            },
+            {
+              "value_1": "CustomK8s",
+              "output": 2
+            }
+          ]
+        }
+      },
+      "name": "Switch Provider",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "Sub_OpenAI_Image.workflow.json",
+        "source": "id",
+        "parameters": "={{ { \"prompt\": $json.preprocessedPrompt, \"parameters\": $json.providerSpecificParams } }}"
+      },
+      "name": "Execute OpenAI Sub-Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "Sub_StabilityAI_Image.workflow.json",
+        "source": "id",
+        "parameters": "={{ { \"prompt\": $json.preprocessedPrompt, \"parameters\": $json.providerSpecificParams } }}"
+      },
+      "name": "Execute StabilityAI Sub-Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "Sub_CustomK8s_Model.workflow.json",
+        "source": "id",
+        "parameters": "={{ { \"modelId\": $json.selectedModelId, \"inputData\": { \"prompt\": $json.preprocessedPrompt } } }}"
+      },
+      "name": "Execute CustomK8s Sub-Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "Utility_ErrorHandling.workflow.json",
+        "source": "id",
+        "parameters": "={{ { \"errorObject\": $json, \"workflowContext\": $items('Set Workflow Context')[0].json.workflowContext } }}"
+      },
+      "name": "Execute Error Handling",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "Sub_ContentModeration.workflow.json",
+        "source": "id",
+        "parameters": "={{ { \"assetReference\": $json.data[0].b64_json || $json.data[0].base64 || $json.data[0].url, \"contentType\": \"image\" } }}"
+      },
+      "name": "Content Moderation",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        1800,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.moderationStatus}}",
+              "operation": "equal",
+              "value2": "approved"
+            }
+          ]
+        }
+      },
+      "name": "Check Moderation",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        2020,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "bucketName": "generated_assets",
+        "fileName": "={{$items('Set Workflow Context')[0].json.workflowContext.projectId}}/{{$items('Set Workflow Context')[0].json.workflowContext.jobId}}/output.png",
+        "binaryData": true
+      },
+      "name": "Store Asset to MinIO",
+      "type": "n8n-nodes-base.minIo",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        200
+      ],
+      "credentials": {
+        "minioApi": {
+          "id": "YOUR_MINIO_CREDENTIAL_ID",
+          "name": "MinIO connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{$env.USAGE_LOGGING_API_ENDPOINT}}",
+        "options": {},
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "jobId",
+              "value": "={{$items('Set Workflow Context')[0].json.workflowContext.jobId}}"
+            },
+            {
+              "name": "userId",
+              "value": "={{$items('Set Workflow Context')[0].json.workflowContext.userId}}"
+            },
+            {
+              "name": "provider",
+              "value": "={{$items('AI Model Selection')[0].json.selectedProvider}}"
+            },
+            {
+              "name": "modelUsed",
+              "value": "={{$items('AI Model Selection')[0].json.selectedModelId}}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{$now.toISOString()}}"
+            }
+          ]
+        }
+      },
+      "name": "Log AI Service Usage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        2460,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "successPayload",
+              "value": "={{ { \"jobId\": $items('Set Workflow Context')[0].json.workflowContext.jobId, \"status\": \"Completed\", \"assetUrl\": $json.url, \"minioFilePath\": $json.path, \"creditsUsed\": 1 } }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Prepare Success Notification",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        2680,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "failurePayload",
+              "value": "={{ { \"jobId\": $items('Set Workflow Context')[0].json.workflowContext.jobId, \"status\": $json.status || 'Failed', \"errorMessage\": $json.message || 'An unexpected error occurred.', \"creditsUsed\": 0 } }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Prepare Failure Notification",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "queue": "notification_service_queue_creative_updates",
+        "message": "={{$json.successPayload}}"
+      },
+      "name": "Publish Success to Notif Service",
+      "type": "n8n-nodes-base.rabbitMq",
+      "typeVersion": 1,
+      "position": [
+        2900,
+        200
+      ],
+      "credentials": {
+        "rabbitMq": {
+          "id": "YOUR_RABBITMQ_CREDENTIAL_ID",
+          "name": "RabbitMQ connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "queue": "odoo_updates_queue_creative_status",
+        "message": "={{$json.successPayload}}"
+      },
+      "name": "Publish Success to Odoo",
+      "type": "n8n-nodes-base.rabbitMq",
+      "typeVersion": 1,
+      "position": [
+        3120,
+        200
+      ],
+      "credentials": {
+        "rabbitMq": {
+          "id": "YOUR_RABBITMQ_CREDENTIAL_ID",
+          "name": "RabbitMQ connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "queue": "notification_service_queue_creative_updates",
+        "message": "={{$json.failurePayload}}"
+      },
+      "name": "Publish Failure to Notif Service",
+      "type": "n8n-nodes-base.rabbitMq",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        700
+      ],
+      "credentials": {
+        "rabbitMq": {
+          "id": "YOUR_RABBITMQ_CREDENTIAL_ID",
+          "name": "RabbitMQ connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "queue": "odoo_updates_queue_creative_status",
+        "message": "={{$json.failurePayload}}"
+      },
+      "name": "Publish Failure to Odoo",
+      "type": "n8n-nodes-base.rabbitMq",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        700
+      ],
+      "credentials": {
+        "rabbitMq": {
+          "id": "YOUR_RABBITMQ_CREDENTIAL_ID",
+          "name": "RabbitMQ connection"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "RabbitMQ Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Workflow Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Workflow Context": {
+      "main": [
+        [
+          {
+            "node": "Data Validation & Preprocessing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Validation & Preprocessing": {
+      "main": [
+        [
+          {
+            "node": "AI Model Selection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "Execute Error Handling",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Model Selection": {
+      "main": [
+        [
+          {
+            "node": "Switch Provider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Provider": {
+      "main": [
+        [
+          {
+            "node": "Execute OpenAI Sub-Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute StabilityAI Sub-Workflow",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Execute CustomK8s Sub-Workflow",
+            "type": "main",
+            "index": 2
+          }
+        ],
+        [
+          {
+            "node": "Execute Error Handling",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Execute OpenAI Sub-Workflow": {
+      "main": [
+        [
+          {
+            "node": "Content Moderation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute StabilityAI Sub-Workflow": {
+      "main": [
+        [
+          {
+            "node": "Content Moderation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute CustomK8s Sub-Workflow": {
+      "main": [
+        [
+          {
+            "node": "Content Moderation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Error Handling": {
+      "main": [
+        [
+          {
+            "node": "Prepare Failure Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Moderation": {
+      "main": [
+        [
+          {
+            "node": "Check Moderation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Moderation": {
+      "main": [
+        [
+          {
+            "node": "Store Asset to MinIO",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute Error Handling",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Store Asset to MinIO": {
+      "main": [
+        [
+          {
+            "node": "Log AI Service Usage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log AI Service Usage": {
+      "main": [
+        [
+          {
+            "node": "Prepare Success Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Success Notification": {
+      "main": [
+        [
+          {
+            "node": "Publish Success to Notif Service",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Failure Notification": {
+      "main": [
+        [
+          {
+            "node": "Publish Failure to Notif Service",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publish Success to Notif Service": {
+      "main": [
+        [
+          {
+            "node": "Publish Success to Odoo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publish Failure to Notif Service": {
+      "main": [
+        [
+          {
+            "node": "Publish Failure to Odoo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "errorWorkflow": "Utility_ErrorHandling.workflow.json"
+  }
+}

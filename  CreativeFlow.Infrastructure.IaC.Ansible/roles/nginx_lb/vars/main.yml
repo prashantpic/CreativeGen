@@ -1,0 +1,3 @@
+---
+# Nginx role specific variables.
+# It's recommended to define the `nginx_sites` variable in `group_vars` per environment.

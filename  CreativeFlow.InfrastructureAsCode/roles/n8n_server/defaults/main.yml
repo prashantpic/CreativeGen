@@ -1,0 +1,5 @@
+---
+# Default variables for the n8n_server role
+n8n_version: "1.18.0"
+n8n_nodejs_version: "18"
+n8n_user: "n8n"

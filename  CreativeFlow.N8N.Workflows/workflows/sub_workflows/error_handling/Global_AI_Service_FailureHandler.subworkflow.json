@@ -1,0 +1,261 @@
+{
+  "name": "Global_AI_Service_FailureHandler",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "e67e3728-3e28-4f81-9b16-52c78e351834",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const MAX_RETRIES = 3;\n\n// Initialize or increment retry count\nlet retryCount = $json.currentRetryCount || 0;\n\n// Log the failure for inspection\nconsole.log(`AI Service Failure for job ${$json.jobId}:`, $json.errorDetails);\n\n// Check if we should attempt a retry\nif (retryCount < MAX_RETRIES) {\n  return {\n    ...$json, // pass through all original data\n    shouldRetry: true,\n    currentRetryCount: retryCount + 1,\n  };\n} else {\n  return {\n    ...$json,\n    shouldRetry: false,\n    currentRetryCount: retryCount,\n  };\n}"
+      },
+      "id": "8b51d6c8-f99a-4c2f-ac9d-d81b849c4fce",
+      "name": "Prepare Retry Logic",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.shouldRetry}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "a9e69c3a-867c-473d-9d45-661726cf94f2",
+      "name": "Retry?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "={{$json.failedServiceName}}",
+        "parameters": {
+          "json": [
+            {
+              "name": "apiKey",
+              "value": "={{ $json.originalRequest.apiKey }}"
+            },
+            {
+              "name": "prompt",
+              "value": "={{ $json.originalRequest.prompt }}"
+            },
+            {
+              "name": "size",
+              "value": "={{ $json.originalRequest.size }}"
+            }
+          ]
+        }
+      },
+      "id": "8a067f9b-6401-447a-8f43-085e98585e57",
+      "name": "Execute Retry",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "unit": "seconds",
+        "length": "={{Math.pow(2, $json.currentRetryCount)}}",
+        "options": {}
+      },
+      "id": "51571d70-3486-444f-9e79-58b38799ac03",
+      "name": "Exponential Backoff Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        860,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "json": [
+            {
+              "key": "success",
+              "value": "=false"
+            },
+            {
+              "key": "error",
+              "value": "Max retries reached. AI service failed permanently."
+            },
+            {
+              "key": "details",
+              "value": "={{ $json.errorDetails }}"
+            },
+            {
+              "key": "noCreditDeduction",
+              "value": "=true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "01c349a7-8f59-4f3b-891d-9359e1966a35",
+      "name": "Final Failure Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        860,
+        400
+      ],
+      "notes": "TODO: Implement fallback logic here if needed before failing."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.success}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "18f99e30-b193-4a0d-9a67-9eb51b689254",
+      "name": "Retry Succeeded?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "json": [
+            {
+              "key": "success",
+              "value": "=true"
+            },
+            {
+              "key": "recoveredVia",
+              "value": "retry"
+            },
+            {
+              "key": "result",
+              "value": "={{$json}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "67b844f2-51c3-4876-96b4-02ac8591866e",
+      "name": "Success Output (Retry)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        1480,
+        100
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Prepare Retry Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Retry Logic": {
+      "main": [
+        [
+          {
+            "node": "Retry?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry?": {
+      "main": [
+        [
+          {
+            "node": "Exponential Backoff Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Final Failure Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Retry": {
+      "main": [
+        [
+          {
+            "node": "Retry Succeeded?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exponential Backoff Wait": {
+      "main": [
+        [
+          {
+            "node": "Execute Retry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry Succeeded?": {
+      "main": [
+        [
+          {
+            "node": "Success Output (Retry)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Final Failure Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "id": "lkjh876GFDxCVb4",
+  "meta": {},
+  "settings": {}
+}

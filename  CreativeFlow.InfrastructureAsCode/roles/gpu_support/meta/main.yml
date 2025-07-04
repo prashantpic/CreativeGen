@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: CreativeFlow
+  description: Role to install NVIDIA drivers and GPU support for Kubernetes.
+  license: proprietary
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+  galaxy_tags:
+    - kubernetes
+    - gpu
+    - nvidia
+
+dependencies:
+  - role: kubernetes_common

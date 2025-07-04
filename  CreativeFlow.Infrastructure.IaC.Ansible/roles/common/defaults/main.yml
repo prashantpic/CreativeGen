@@ -1,0 +1,43 @@
+# Provides default variable values for the 'common' role, which can be
+# easily overridden by other variable sources.
+---
+# List of common packages to install on all servers.
+common_packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - htop
+  - iotop
+  - logwatch
+  - net-tools
+  - ntp
+  - python3-pip
+  - rsync
+  - software-properties-common
+  - ufw
+  - unzip
+  - vim
+  - wget
+
+# Default SSH port.
+ssh_port: 22
+
+# Admin user details.
+admin_user_groups:
+  - sudo
+  - adm
+
+# UFW default settings.
+ufw_logging: 'on'
+ufw_additional_rules: []
+
+# SSHD hardening defaults.
+sshd_permit_root_login: "no"
+sshd_password_authentication: "no"
+sshd_challenge_response_authentication: "no"
+sshd_use_pam: "yes"
+sshd_x11_forwarding: "yes"
+sshd_print_motd: "no"
+sshd_accept_env: "LANG LC_*"
+sshd_subsystem: "sftp /usr/lib/openssh/sftp-server"

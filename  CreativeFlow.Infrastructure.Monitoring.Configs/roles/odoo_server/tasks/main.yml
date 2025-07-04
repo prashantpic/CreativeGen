@@ -1,0 +1,23 @@
+---
+# Role to install and configure Odoo application and dependencies.
+# This is a placeholder implementation. A full implementation would handle:
+# - Installing Python and PostgreSQL client libraries.
+# - Installing OS-level dependencies for Odoo (e.g., libsasl2-dev, libldap2-dev).
+# - Cloning the Odoo source code from a git repository.
+# - Installing Python dependencies using pip from a requirements.txt file.
+# - Creating a dedicated system user for Odoo.
+# - Creating a configuration file (odoo.conf) from a template.
+# - Setting up a systemd service to run Odoo.
+# - Configuring a reverse proxy (likely in the nginx_lb role).
+
+- name: Placeholder task for Odoo dependencies installation
+  ansible.builtin.debug:
+    msg: "This task would install Python, pip, and other system dependencies."
+
+- name: Placeholder task for Odoo deployment
+  ansible.builtin.debug:
+    msg: "This task would clone the Odoo git repo and install Python requirements."
+
+- name: Placeholder task for Odoo configuration
+  ansible.builtin.debug:
+    msg: "This task would create odoo.conf and set up the systemd service."

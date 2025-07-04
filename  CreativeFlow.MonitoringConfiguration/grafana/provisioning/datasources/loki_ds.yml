@@ -1,0 +1,19 @@
+# Grafana datasource provisioning file for Loki.
+# This file enables Grafana to automatically connect to Loki for log
+# querying and visualization, managed as code.
+# Requirement(s) Addressed: DEP-005, QA-003
+
+apiVersion: 1
+
+datasources:
+  - name: Loki-Main
+    type: loki
+    # URL of the Loki server. This should be the address of the Loki service
+    # from within the Grafana container's perspective.
+    url: http://loki:3100
+    access: server
+    jsonData:
+      # Default maximum number of log lines to return in a query.
+      maxLines: 1000
+    # Making the datasource non-editable from the UI enforces configuration as code.
+    editable: false

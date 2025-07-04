@@ -1,0 +1,5 @@
+---
+# vars file for common
+# Variables defined here have higher precedence than defaults.
+# These variables are specific to the role and not meant to be overridden
+# by group_vars typically.

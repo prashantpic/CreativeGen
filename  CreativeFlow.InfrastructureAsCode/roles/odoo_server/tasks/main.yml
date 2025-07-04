@@ -1,0 +1,38 @@
+---
+# Role to install and configure Odoo application and dependencies.
+# This is a placeholder. A full implementation would include:
+# 1. Installing dependencies like Python, PostgreSQL client, wkhtmltopdf, etc.
+# 2. Creating a dedicated system user for Odoo.
+# 3. Cloning the Odoo source code from a Git repository for a specific version.
+# 4. Installing Python dependencies using pip from a requirements.txt file.
+# 5. Creating a log directory and an Odoo configuration file (odoo.conf) from a template.
+# 6. Setting up a systemd service file for Odoo.
+# 7. Starting and enabling the Odoo service.
+
+- name: (Placeholder) Install Odoo dependencies
+  ansible.builtin.debug:
+    msg: "TODO: Install packages like python3-pip, libpq-dev, wkhtmltopdf, etc."
+
+- name: (Placeholder) Create Odoo system user
+  ansible.builtin.debug:
+    msg: "TODO: Create user '{{ odoo_user }}'"
+
+- name: (Placeholder) Clone Odoo source code
+  ansible.builtin.debug:
+    msg: "TODO: Clone '{{ odoo_git_repo }}' at version '{{ odoo_version }}' to '{{ odoo_path }}'"
+
+- name: (Placeholder) Install Python dependencies
+  ansible.builtin.debug:
+    msg: "TODO: Run pip install -r {{ odoo_path }}/requirements.txt"
+
+- name: (Placeholder) Deploy odoo.conf configuration file
+  ansible.builtin.debug:
+    msg: "TODO: Template out {{ odoo_config_file }} with db_host, db_user, db_password (from vault), addons_path, etc."
+
+- name: (Placeholder) Deploy Odoo systemd service
+  ansible.builtin.debug:
+    msg: "TODO: Template out /etc/systemd/system/odoo.service"
+
+- name: (Placeholder) Ensure Odoo service is started and enabled
+  ansible.builtin.debug:
+    msg: "TODO: Start and enable the odoo.service"

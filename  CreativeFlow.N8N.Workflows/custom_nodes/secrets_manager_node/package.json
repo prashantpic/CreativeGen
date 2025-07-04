@@ -1,0 +1,29 @@
+{
+  "name": "@creativeflow/n8n-nodes-secrets-manager",
+  "version": "0.1.0",
+  "description": "Custom n8n node to fetch secrets from HashiCorp Vault for CreativeFlow AI.",
+  "main": "dist/SecretsManager.node.js",
+  "n8n": {
+    "nodes": [
+      "dist/SecretsManager.node.js"
+    ],
+    "credentials": [
+      "dist/VaultApi.credentials.js"
+    ]
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "n8n-workflow": "*",
+    "n8n-core": "*",
+    "node-vault": "^0.10.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.4.0",
+    "@types/node": "^20.0.0",
+    "n8n-workflow": "*",
+    "n8n-core": "*"
+  }
+}

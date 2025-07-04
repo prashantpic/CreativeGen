@@ -1,0 +1,42 @@
+#
+# CreativeFlow.MinIO.Configuration - Environment Setup Template
+#
+# INSTRUCTIONS:
+# 1. Copy this file to 'set_env.sh' in the same directory.
+# 2. Uncomment and populate the variables below with your MinIO cluster's details.
+# 3. Source this file in your shell before running any scripts: `source set_env.sh`
+#
+# IMPORTANT:
+# - The populated 'set_env.sh' file contains sensitive credentials.
+# - DO NOT COMMIT 'set_env.sh' to version control.
+# - Ensure 'set_env.sh' is listed in your .gitignore file.
+#
+
+# --- MinIO Alias and Host Configuration ---
+
+# The alias name that all scripts will use to refer to this MinIO instance.
+# export MINIO_ALIAS_NAME="myminio"
+
+# The following variables configure the `mc` client for the alias specified above.
+# The alias name (e.g., 'myminio') MUST be part of the variable name.
+# If you change MINIO_ALIAS_NAME to "production", the variables should be:
+# MC_HOST_production_URL, MC_HOST_production_ACCESS_KEY, etc.
+
+# The full URL to your MinIO server's API endpoint.
+# export MC_HOST_myminio_URL="http://your-minio-endpoint:9000"
+
+# The access key for your MinIO user (preferably an admin user for these scripts).
+# export MC_HOST_myminio_ACCESS_KEY="YOUR_ACCESS_KEY"
+
+# The secret key for your MinIO user.
+# export MC_HOST_myminio_SECRET_KEY="YOUR_SECRET_KEY"
+
+
+# --- Alternative `mc alias set` command ---
+#
+# You can also manually configure the alias using the `mc` command line tool.
+# The scripts will work as long as the alias defined in MINIO_ALIAS_NAME exists.
+#
+# Example command (uncomment and run after setting the variables above):
+# mc alias set "${MINIO_ALIAS_NAME}" "${MC_HOST_myminio_URL}" "${MC_HOST_myminio_ACCESS_KEY}" "${MC_HOST_myminio_SECRET_KEY}"
+#

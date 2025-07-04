@@ -1,0 +1,54 @@
+# Tasks for provisioning Kubernetes master nodes.
+---
+- name: Check if cluster is already initialized
+  ansible.builtin.stat:
+    path: /etc/kubernetes/admin.conf
+  register: k8s_initialized
+
+- name: Initialize the Kubernetes cluster using kubeadm
+  ansible.builtin.command: >
+    kubeadm init
+    --pod-network-cidr={{ k8s_pod_network_cidr }}
+    --apiserver-advertise-address={{ ansible_default_ipv4.address }}
+    {{ kubeadm_init_extra_args }}
+  when: not k8s_initialized.stat.exists
+  register: kubeadm_init_result
+  changed_when: "'Your Kubernetes control-plane has initialized successfully!' in kubeadm_init_result.stdout"
+
+- name: Create .kube directory for the admin user
+  ansible.builtin.file:
+    path: "/home/{{ admin_user }}/.kube"
+    state: directory
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0755'
+
+- name: Copy admin.conf to user's kube config
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "/home/{{ admin_user }}/.kube/config"
+    remote_src: yes
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0644'
+
+- name: Apply CNI network plugin (Calico)
+  ansible.builtin.command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f {{ k8s_cni_manifest_url }}"
+  when: not k8s_initialized.stat.exists or force_cni_apply | default(false)
+  changed_when: true
+
+- name: Get the kubeadm join command
+  ansible.builtin.command: kubeadm token create --print-join-command
+  register: kubeadm_join_command_result
+  when: not k8s_initialized.stat.exists
+  changed_when: false
+
+- name: Store the join command for worker nodes
+  ansible.builtin.set_fact:
+    kubeadm_join_command: "{{ kubeadm_join_command_result.stdout }}"
+  when: kubeadm_join_command_result.stdout is defined
+
+- name: Display join command
+  ansible.builtin.debug:
+    msg: "Worker nodes can join with: {{ kubeadm_join_command }}"
+  when: kubeadm_join_command is defined

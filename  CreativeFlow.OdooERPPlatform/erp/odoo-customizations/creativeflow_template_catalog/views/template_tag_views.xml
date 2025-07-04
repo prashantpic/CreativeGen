@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- creativeflow.template.tag Tree View -->
+    <record id="view_creativeflow_template_tag_tree" model="ir.ui.view">
+        <field name="name">creativeflow.template.tag.tree</field>
+        <field name="model">creativeflow.template.tag</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="name"/>
+                <field name="color" widget="color_picker"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- creativeflow.template.tag Form View -->
+    <record id="view_creativeflow_template_tag_form" model="ir.ui.view">
+        <field name="name">creativeflow.template.tag.form</field>
+        <field name="model">creativeflow.template.tag</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="color" widget="color_picker"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- creativeflow.template.tag Action Window -->
+    <record id="action_creativeflow_template_tag" model="ir.actions.act_window">
+        <field name="name">Template Tags</field>
+        <field name="res_model">creativeflow.template.tag</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new template tag.
+            </p>
+        </field>
+    </record>
+
+</odoo>

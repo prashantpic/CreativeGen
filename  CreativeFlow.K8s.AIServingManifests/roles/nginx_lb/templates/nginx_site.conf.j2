@@ -1,0 +1,60 @@
+# This file is managed by Ansible for the site '{{ item.name }}'. Do not edit manually.
+
+# Upstream block for the application servers
+upstream {{ item.name }}_upstream {
+    # least_conn; # Or another load balancing method
+    {% for server in item.upstream_servers %}
+    server {{ server }};
+    {% endfor %}
+    keepalive 32;
+}
+
+server {
+    listen {{ item.listen_port | default(80) }} {% if item.ssl %}ssl http2{% endif %};
+    listen [::]:{{ item.listen_port | default(80) }} {% if item.ssl %}ssl http2{% endif %};
+
+    server_name {{ item.server_name }};
+
+    {% if item.ssl %}
+    ssl_certificate {{ item.ssl_cert_path }};
+    ssl_certificate_key {{ item.ssl_key_path }};
+    # Add other SSL enhancements like HSTS header if needed
+    # add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    {% endif %}
+
+    # Logging
+    access_log /var/log/nginx/{{ item.name }}.access.log;
+    error_log /var/log/nginx/{{ item.name }}.error.log;
+
+    location / {
+        proxy_pass http://{{ item.name }}_upstream;
+
+        # Proxy headers
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+
+        # WebSocket support (if needed by the application)
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        
+        proxy_buffering on;
+        proxy_buffer_size 128k;
+        proxy_buffers 4 256k;
+        proxy_busy_buffers_size 256k;
+    }
+}
+
+# Optional: Redirect HTTP to HTTPS
+{% if item.ssl %}
+server {
+    listen 80;
+    listen [::]:80;
+    server_name {{ item.server_name }};
+    return 301 https://$host$request_uri;
+}
+{% endif %}

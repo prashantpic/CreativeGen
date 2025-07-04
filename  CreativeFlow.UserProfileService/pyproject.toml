@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "creativeflow-userprofile-service"
+version = "0.1.0"
+description = "Service for managing user profiles, preferences, and data privacy."
+authors = ["CreativeFlow AI Team <dev@creativeflow.ai>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.111.0"
+uvicorn = {extras = ["standard"], version = "^0.29.0"}
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.30"}
+asyncpg = "^0.29.0"
+pydantic = {extras = ["email"], version = "^2.7.4"}
+pydantic-settings = "^2.3.4"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+python-multipart = "^0.0.9"
+python-json-logger = "^2.0.7"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-asyncio = "^0.23.0"
+httpx = "^0.27.0"
+flake8 = "^7.0.0"
+mypy = "^1.10.0"
+black = "^24.0.0"
+isort = "^5.13.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

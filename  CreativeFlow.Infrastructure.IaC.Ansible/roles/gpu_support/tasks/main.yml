@@ -1,0 +1,66 @@
+# Tasks for preparing Kubernetes worker nodes for GPU workloads.
+---
+- name: Add NVIDIA package repository key
+  ansible.builtin.apt_key:
+    url: "{{ nvidia_repo_key_url }}"
+    state: present
+
+- name: Add NVIDIA package repository
+  ansible.builtin.apt_repository:
+    repo: "{{ nvidia_repo_url }}"
+    state: present
+    update_cache: yes
+
+- name: Install NVIDIA drivers and CUDA toolkit
+  ansible.builtin.apt:
+    name: "{{ nvidia_driver_packages }}"
+    state: present
+  notify: Reboot after driver install
+
+- name: Add NVIDIA container toolkit repository key
+  ansible.builtin.get_url:
+    url: https://nvidia.github.io/libnvidia-container/gpgkey
+    dest: /etc/apt/trusted.gpg.d/nvidia-container-toolkit.gpg
+    mode: '0644'
+
+- name: Add NVIDIA container toolkit repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://nvidia.github.io/libnvidia-container/stable/ubuntu18.04/$(ARCH) /"
+    state: present
+    update_cache: yes
+
+- name: Install NVIDIA container toolkit
+  ansible.builtin.apt:
+    name: nvidia-container-toolkit
+    state: present
+  notify: Restart containerd
+
+- name: Configure containerd to use NVIDIA runtime
+  ansible.builtin.lineinfile:
+    path: /etc/containerd/config.toml
+    regexp: '^\s*default_runtime_name\s*='
+    line: '            default_runtime_name = "nvidia"'
+  notify: Restart containerd
+  # This is a simplistic approach. A more robust method would use a template
+  # or dedicated configuration blocks.
+
+- name: Add NVIDIA runtime to containerd
+  ansible.builtin.blockinfile:
+    path: /etc/containerd/config.toml
+    block: |
+      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia]
+        privileged_without_host_devices = false
+        runtime_engine = ""
+        runtime_root = ""
+        runtime_type = "io.containerd.runc.v2"
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia.options]
+          BinaryName = "/usr/bin/nvidia-container-runtime"
+  notify: Restart containerd
+
+- name: Deploy NVIDIA GPU Operator manifest
+  community.kubernetes.k8s:
+    state: present
+    src: "{{ nvidia_gpu_operator_manifest_url }}"
+  delegate_to: localhost # Run this task from the control node that has kubectl access
+  run_once: true # Only run this once per play
+  when: run_on_k8s_master is defined and run_on_k8s_master

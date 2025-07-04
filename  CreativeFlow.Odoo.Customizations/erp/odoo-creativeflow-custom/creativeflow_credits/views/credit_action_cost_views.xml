@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Credit Action Cost Tree View -->
+    <record id="creativeflow_credit_action_cost_tree" model="ir.ui.view">
+        <field name="name">creativeflow.credit.action.cost.tree</field>
+        <field name="model">creativeflow.credit.action.cost</field>
+        <field name="arch" type="xml">
+            <tree string="Credit Action Costs">
+                <field name="name"/>
+                <field name="cost"/>
+                <field name="description"/>
+                <field name="is_active"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Credit Action Cost Form View -->
+    <record id="creativeflow_credit_action_cost_form" model="ir.ui.view">
+        <field name="name">creativeflow.credit.action.cost.form</field>
+        <field name="model">creativeflow.credit.action.cost</field>
+        <field name="arch" type="xml">
+            <form string="Credit Action Cost">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="cost"/>
+                        </group>
+                        <group>
+                            <field name="is_active"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for Credit Action Costs -->
+    <record id="creativeflow_credit_action_cost_action" model="ir.actions.act_window">
+        <field name="name">Action Costs Configuration</field>
+        <field name="res_model">creativeflow.credit.action.cost</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new action cost.
+            </p><p>
+                Define the credit cost for various billable actions on the CreativeFlow platform.
+            </p>
+        </field>
+    </record>
+</odoo>

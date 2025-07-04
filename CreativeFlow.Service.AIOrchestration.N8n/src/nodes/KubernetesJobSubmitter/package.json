@@ -1,0 +1,11 @@
+{
+  "name": "n8n-nodes-creativeflow-kubernetesjobsubmitter",
+  "version": "1.0.0",
+  "description": "N8N node for submitting jobs to Kubernetes.",
+  "license": "UNLICENSED",
+  "n8n": {
+    "nodes": [
+      "dist/nodes/KubernetesJobSubmitter/KubernetesJobSubmitter.node.js"
+    ]
+  }
+}

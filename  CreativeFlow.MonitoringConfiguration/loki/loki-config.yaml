@@ -1,0 +1,78 @@
+# Configuration file for the Loki server.
+# Defines storage backend (MinIO), retention policies, and server parameters.
+# Requirement(s) Addressed: DEP-005, QA-003
+
+# Disable authentication for simplicity. In a production environment with external
+# access, this should be enabled and configured appropriately.
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+
+# Configures how Loki handles incoming log entries (ingestion).
+ingester:
+  lifecycler:
+    address: 127.0.0.1
+    ring:
+      # For a single-node Loki setup, 'inmemory' is sufficient for the ring.
+      # For a clustered setup, 'etcd' or 'consul' would be used.
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+  # Flush chunks to storage if they are idle for this duration.
+  chunk_idle_period: 5m
+  # Target size of chunks in bytes before they are flushed.
+  chunk_target_size: 1572864 # 1.5MB
+  # Flush chunks to storage if they reach this age.
+  max_chunk_age: 1h
+  # How long to keep chunks in memory after flushing.
+  chunk_retain_period: 1m
+
+# Defines the schema for the Loki index and chunks.
+schema_config:
+  configs:
+    - from: 2024-01-01 # Use a recent date for initial setup.
+      # 'boltdb-shipper' is a good default for moderate scale. It stores the index locally
+      # and ships it to object storage, reducing dependency on another database.
+      store: boltdb-shipper
+      object_store: s3
+      schema: v12 # Use a recent schema version.
+      index:
+        prefix: index_
+        period: 24h # Create a new index table daily.
+
+# Configures the storage backend.
+storage_config:
+  boltdb_shipper:
+    # Directory for the active index file.
+    active_index_directory: /loki/boltdb-shipper-active
+    # Directory for caching shared store data.
+    cache_location: /loki/boltdb-shipper-cache
+    cache_ttl: 24h
+    shared_store: s3
+  # This section configures the S3-compatible object storage (MinIO).
+  # Secrets should be injected via environment variables or a secrets management tool.
+  aws:
+    s3: http://<MINIO_USER>:<MINIO_PASSWORD_PLACEHOLDER>@<MINIO_HOST>:<MINIO_PORT>/<LOKI_BUCKET_NAME>
+    # s3forcepathstyle is required for most S3-compatible object stores like MinIO.
+    s3forcepathstyle: true
+
+# Configures the compactor, which merges small index files into larger ones.
+compactor:
+  working_directory: /loki/compactor
+  compaction_interval: 10m
+  retention_enabled: true
+  retention_delete_delay: 2h
+
+# Defines global limits for ingestion and querying.
+limits_config:
+  # Default log retention period for all tenants.
+  # This may need to be adjusted for specific compliance requirements (e.g., security logs).
+  # For varied retention, consider using multiple Loki instances or an enterprise solution.
+  retention_period: 30d
+
+# Manages table creation and retention.
+table_manager:
+  retention_deletes_enabled: true
+  retention_period: 30d

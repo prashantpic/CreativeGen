@@ -1,0 +1,37 @@
+# This file is managed by Ansible.
+# Based on default redis.conf
+
+bind {{ redis_bind_address }}
+port {{ redis_port }}
+tcp-keepalive 300
+daemonize no
+supervised systemd
+pidfile /var/run/redis/redis-server.pid
+loglevel notice
+logfile /var/log/redis/redis-server.log
+databases 16
+
+# RDB saving
+save 900 1
+save 300 10
+save 60 10000
+
+stop-writes-on-bgsave-error yes
+rdbcompression yes
+rdbchecksum yes
+dbfilename dump.rdb
+dir /var/lib/redis
+
+# Memory management
+maxmemory {{ redis_maxmemory }}
+maxmemory-policy {{ redis_maxmemory_policy }}
+
+# Append Only File
+appendonly no
+
+# Include local customizations
+include /etc/redis/redis-local.conf
+
+{% if redis_password is defined and redis_password != '' %}
+requirepass {{ redis_password }}
+{% endif %}

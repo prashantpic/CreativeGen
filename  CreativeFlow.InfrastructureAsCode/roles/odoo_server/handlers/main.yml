@@ -1,0 +1,6 @@
+---
+# Handler to restart the main application service
+- name: Restart odoo
+  ansible.builtin.service:
+    name: odoo
+    state: restarted

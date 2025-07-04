@@ -1,0 +1,45 @@
+---
+# Role to install and configure a RabbitMQ server or cluster.
+# This is a placeholder structure.
+
+- name: Add RabbitMQ GPG key
+  ansible.builtin.apt_key:
+    url: https://www.rabbitmq.com/rabbitmq-release-signing-key.asc
+    state: present
+
+- name: Add RabbitMQ repository
+  ansible.builtin.apt_repository:
+    repo: "deb http://www.rabbitmq.com/debian/ testing main"
+    state: present
+
+- name: Install RabbitMQ server
+  ansible.builtin.apt:
+    name: rabbitmq-server
+    state: present
+    update_cache: yes
+
+- name: Enable RabbitMQ management plugin
+  community.rabbitmq.rabbitmq_plugin:
+    names: rabbitmq_management
+    state: enabled
+  notify: Restart rabbitmq
+
+- name: Create RabbitMQ application user
+  community.rabbitmq.rabbitmq_user:
+    user: "{{ rabbitmq_user }}"
+    password: "{{ rabbitmq_password }}" # From vault
+    vhost: "/"
+    configure_priv: ".*"
+    read_priv: ".*"
+    write_priv: ".*"
+    tags: administrator
+    state: present
+  no_log: true
+
+# Add tasks for clustering if needed, which involves sharing the erlang cookie.
+
+- name: Ensure RabbitMQ service is started and enabled
+  ansible.builtin.service:
+    name: rabbitmq-server
+    state: started
+    enabled: yes

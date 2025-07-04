@@ -1,0 +1,4 @@
+---
+# Default variables for the redis_server role.
+redis_bind_address: '127.0.0.1' # Bind to localhost by default for security
+redis_port: 6379

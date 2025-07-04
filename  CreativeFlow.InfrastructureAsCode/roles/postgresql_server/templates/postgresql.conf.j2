@@ -1,0 +1,37 @@
+# This file is managed by Ansible. Do not edit manually.
+# Main PostgreSQL configuration file
+
+# Connection settings
+listen_addresses = '{{ pg_listen_addresses }}'
+port = {{ pg_port }}
+max_connections = {{ pg_max_connections }}
+
+# Memory settings
+shared_buffers = {{ postgresql_shared_buffers | default('1GB') }}
+effective_cache_size = {{ postgresql_effective_cache_size | default('4GB') }}
+work_mem = 64MB
+maintenance_work_mem = 256MB
+
+# Logging
+log_destination = 'stderr'
+logging_collector = on
+log_directory = 'log'
+log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+log_statement = 'ddl'
+log_min_duration_statement = 250ms
+
+# Replication Settings (for Primary)
+{% if 'db_primary' in group_names %}
+wal_level = replica
+max_wal_senders = 10
+wal_keep_size = 512MB
+archive_mode = on
+archive_command = 'cd .'
+{% endif %}
+
+# Other settings
+data_directory = '{{ pg_data_dir }}'
+hba_file = '/etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf'
+ident_file = '/etc/postgresql/{{ postgresql_version }}/main/pg_ident.conf'
+
+include_if_exists = 'conf.d/postgresql.local.conf'

@@ -1,0 +1,107 @@
+---
+- name: Set hostname from inventory name
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+  when: inventory_hostname is not none
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  changed_when: false
+
+- name: Install common packages
+  ansible.builtin.apt:
+    name: "{{ common_packages }}"
+    state: present
+
+- name: Configure unattended upgrades
+  ansible.builtin.copy:
+    src: "20auto-upgrades"
+    dest: "/etc/apt/apt.conf.d/20auto-upgrades"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Create the ansible admin user
+  ansible.builtin.user:
+    name: "{{ ansible_admin_user }}"
+    groups: "{{ ansible_admin_groups }}"
+    append: yes
+    shell: /bin/bash
+    state: present
+
+- name: Set up authorized keys for the admin user
+  ansible.posix.authorized_key:
+    user: "{{ ansible_admin_user }}"
+    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+    state: present
+
+- name: Ensure sudoers file grants passwordless sudo to admin user
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: "^{{ ansible_admin_user }} ALL="
+    line: "{{ ansible_admin_user }} ALL=(ALL) NOPASSWD: ALL"
+    validate: 'visudo -cf %s'
+
+- name: Configure UFW firewall
+  community.general.ufw:
+    rule: "{{ item.rule }}"
+    port: "{{ item.port | default(omit) }}"
+    proto: "{{ item.proto | default(omit) }}"
+    src: "{{ item.src | default(omit) }}"
+    to_port: "{{ item.to_port | default(omit) }}"
+    state: enabled
+  loop:
+    - { rule: 'allow', port: '{{ ssh_port }}', proto: 'tcp' }
+  notify: reload ufw
+
+- name: Set UFW default policies
+  community.general.ufw:
+    direction: "{{ item.direction }}"
+    policy: "{{ item.policy }}"
+  loop:
+    - { direction: 'incoming', policy: '{{ ufw_default_policy_input }}' }
+    - { direction: 'outgoing', policy: '{{ ufw_default_policy_output }}' }
+    - { direction: 'forward', policy: '{{ ufw_default_policy_forward }}' }
+  notify: reload ufw
+
+- name: Enable UFW
+  community.general.ufw:
+    state: enabled
+
+- name: Harden SSH configuration
+  ansible.builtin.template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0644'
+    validate: 'sshd -t -f %s'
+  notify: restart ssh
+
+- name: Configure NTP for time synchronization
+  ansible.builtin.copy:
+    content: |
+      [Time]
+      NTP={{ ntp_servers | join(' ') }}
+    dest: /etc/systemd/timesyncd.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - restart systemd-timesyncd
+
+- name: Ensure systemd-timesyncd is running and enabled
+  ansible.builtin.service:
+    name: systemd-timesyncd
+    state: started
+    enabled: yes
+  notify:
+    - restart systemd-timesyncd
+  handlers:
+    - name: restart systemd-timesyncd
+      ansible.builtin.service:
+        name: systemd-timesyncd
+        state: restarted

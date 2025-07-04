@@ -1,0 +1,53 @@
+sequenceDiagram
+    actor "WebApp (PWA)" as repowebapppwa
+    participant "Notification Service" as svcnotificationservice
+    participant "Collaboration Service" as svccrdtcollaboration
+    participant "PostgreSQL Database" as repodbpostgresql
+    participant "MinIO Object Storage" as repostorageminio
+
+    note over repowebapppwa: User A initiates an edit through their WebApp instance.
+    activate repowebapppwa
+    repowebapppwa-repowebapppwa: 1. [User A makes an edit on UI (e.g., moves element)] Generates CRDT update (updateA)
+
+    repowebapppwa--svcnotificationservice: 2. sendCollaborativeEdit(projectId, crdtUpdateA)
+    activate svcnotificationservice
+    note right of svcnotificationservice: Notification Service uses WebSockets to communicate with WebApp instances.
+
+    svcnotificationservice-svccrdtcollaboration: 3. processEdit(projectId, userIdA, crdtUpdateA)
+    activate svccrdtcollaboration
+    
+    svccrdtcollaboration-svccrdtcollaboration: 3.1 Apply crdtUpdateA to shared document, merge/resolve conflicts
+    note right of svccrdtcollaboration: Collaboration Service handles CRDT merging logic. Conflicts from near-simultaneous online edits are resolved here.
+    svccrdtcollaboration--svccrdtcollaboration: 3.1 mergedCrdtUpdate
+
+    svccrdtcollaboration-svcnotificationservice: 4. broadcastUpdate(projectId, mergedCrdtUpdate)
+    deactivate svccrdtcollaboration
+
+    note over repowebapppwa: Update is broadcast to all connected WebApp instances in the project session (User A, User B, User C).
+    svcnotificationservice--repowebapppwa: 5. receiveCollaborativeUpdate(mergedCrdtUpdate)
+    deactivate svcnotificationservice
+    
+    repowebapppwa-repowebapppwa: 5.1 Apply mergedCrdtUpdate to local view
+    deactivate repowebapppwa
+
+    loop Periodically or on significant changes
+        activate svccrdtcollaboration
+        svccrdtcollaboration-repodbpostgresql: 6.1 persistProjectState(projectId, consolidatedState)
+        activate repodbpostgresql
+        repodbpostgresql--svccrdtcollaboration: 6.1 PersistenceAck
+        deactivate repodbpostgresql
+
+        alt If asset updates involved in consolidatedState
+            svccrdtcollaboration-repostorageminio: 6.2.1 storeUpdatedAsset(assetId, assetData)
+            activate repostorageminio
+            repostorageminio--svccrdtcollaboration: 6.2.1 AssetStoreAck
+            deactivate repostorageminio
+        end
+
+        svccrdtcollaboration-repodbpostgresql: 6.3 logChangeHistory(projectId, changeDetails, versionInfo)
+        activate repodbpostgresql
+        note right of svccrdtcollaboration: REQ-013: Change tracking and history logged.
+        repodbpostgresql--svccrdtcollaboration: 6.3 LogAck
+        deactivate repodbpostgresql
+        deactivate svccrdt_collaboration
+    end

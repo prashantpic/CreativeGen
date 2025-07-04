@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Default Helpdesk Team for CreativeFlow -->
+        <record id="helpdesk_team_creativeflow" model="helpdesk.team">
+            <field name="name">CreativeFlow Customer Support</field>
+            <field name="use_sla" eval="True"/>
+            <field name="use_website_helpdesk_form" eval="True"/>
+            <field name="use_helpdesk_timesheet" eval="False"/>
+            <field name="use_credit_notes" eval="True"/>
+            <field name="use_coupons" eval="False"/>
+            <field name="use_product_returns" eval="False"/>
+            <field name="use_product_repairs" eval="False"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="color" eval="1"/>
+        </record>
+
+        <!-- Default SLA Policy for the team -->
+        <record id="sla_policy_creativeflow_standard" model="helpdesk.sla">
+            <field name="name">Standard Priority</field>
+            <field name="team_id" ref="helpdesk_team_creativeflow"/>
+            <field name="stage_id" ref="helpdesk.stage_in_progress"/> <!-- Target stage for this SLA -->
+            <field name="time">8</field> <!-- 8 working hours -->
+        </record>
+    </data>
+
+    <!--
+        Default stages are created by the helpdesk module itself.
+        We can associate them with our new team. If custom stages were needed,
+        they would be defined here.
+    -->
+    <data noupdate="0">
+        <!-- Example of associating existing stages with the new team -->
+        <record id="helpdesk.stage_new" model="helpdesk.stage">
+            <field name="team_ids" eval="[(4, ref('helpdesk_team_creativeflow'))]"/>
+        </record>
+        <record id="helpdesk.stage_in_progress" model="helpdesk.stage">
+            <field name="team_ids" eval="[(4, ref('helpdesk_team_creativeflow'))]"/>
+        </record>
+        <record id="helpdesk.stage_solved" model="helpdesk.stage">
+            <field name="team_ids" eval="[(4, ref('helpdesk_team_creativeflow'))]"/>
+        </record>
+        <record id="helpdesk.stage_cancelled" model="helpdesk.stage">
+            <field name="team_ids" eval="[(4, ref('helpdesk_team_creativeflow'))]"/>
+        </record>
+    </data>
+</odoo>

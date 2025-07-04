@@ -1,0 +1,8 @@
+---
+# defaults file for nginx_lb
+nginx_package: "nginx"
+nginx_service_name: "nginx"
+
+# Default to an empty list. This variable must be defined in group_vars or host_vars
+# to configure any sites.
+nginx_sites: []

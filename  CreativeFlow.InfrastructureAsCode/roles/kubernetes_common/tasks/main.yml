@@ -1,0 +1,83 @@
+---
+- name: Ensure legacy iptables are used
+  ansible.builtin.command: update-alternatives --set iptables /usr/sbin/iptables-legacy
+  changed_when: true
+- name: Ensure legacy ip6tables are used
+  ansible.builtin.command: update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+  changed_when: true
+
+- name: Let iptables see bridged traffic
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/k8s.conf
+    content: |
+      overlay
+      br_netfilter
+  notify: Reload sysctl
+
+- name: Configure required sysctl params
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/99-kubernetes-cri.conf
+    content: |
+      net.bridge.bridge-nf-call-iptables  = 1
+      net.ipv4.ip_forward                 = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+  notify: Reload sysctl
+
+- name: Disable swap
+  ansible.builtin.command: swapoff -a
+  when: ansible_swaptotal_mb > 0
+  changed_when: true
+
+- name: Remove swap from fstab
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^(\s*[^#\s]+\s+)+swap(\s+.*)?$'
+    replace: '# \g<0>'
+
+- name: Add Kubernetes apt repository key
+  ansible.builtin.get_url:
+    url: "https://pkgs.k8s.io/core:/stable:/v{{ k8s_version }}/deb/Release.key"
+    dest: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    mode: '0644'
+
+- name: Add Kubernetes apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ k8s_version }}/deb/ /"
+    state: present
+    filename: kubernetes
+
+- name: Install containerd, kubelet, kubeadm, and kubectl
+  ansible.builtin.apt:
+    name:
+      - containerd
+      - "kubelet={{ k8s_package_version }}-*"
+      - "kubeadm={{ k8s_package_version }}-*"
+      - "kubectl={{ k8s_package_version }}-*"
+    state: present
+    update_cache: true
+
+- name: Hold kubelet, kubeadm and kubectl packages
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - kubelet
+    - kubeadm
+    - kubectl
+
+- name: Create containerd config directory
+  ansible.builtin.file:
+    path: /etc/containerd
+    state: directory
+    mode: '0755'
+
+- name: Configure containerd and enable SystemdCgroup
+  ansible.builtin.shell: |
+    set -o pipefail
+    containerd config default | tee /etc/containerd/config.toml
+    sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+  args:
+    executable: /bin/bash
+    creates: /etc/containerd/config.toml
+  changed_when: true
+  notify: Restart containerd

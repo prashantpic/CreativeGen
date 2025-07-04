@@ -1,0 +1,69 @@
+# This file configures the static analysis results for your project (errors,
+# warnings, and lints).
+#
+# This file is organized into four sections:
+#
+# 1.  **include** - A list of other analysis options files to include.
+# 2.  **analyzer** - Analyzer configuration options.
+# 3.  **linter** - A list of lints to enable or disable.
+#
+# For more information, see:
+# https://dart.dev/guides/language/analysis-options
+
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  # Enable stricter type checking.
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+  
+  # Treat specific analysis results as errors.
+  # This helps enforce critical rules during development.
+  errors:
+    # Ensure all todos are addressed before release.
+    todo: error 
+    missing_required_param: error
+    unnecessary_null_comparison: warning
+    
+    # We encourage using a proper logger instead of print for production apps.
+    avoid_print: warning
+
+  # Exclude generated files from analysis.
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+
+linter:
+  # The lint rules are specified in the included `flutter_lints` package.
+  # You can override rules here. For a list of all rules, see
+  # https://dart-lang.github.io/linter/lints/index.html.
+  rules:
+    # --- Style Rules ---
+    # Prefer final for fields that are not reassigned.
+    - prefer_final_fields
+    # Prefer const for constructors where possible.
+    - prefer_const_constructors
+    - prefer_const_constructors_in_immutables
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
+    # Use curly braces for all flow control structures.
+    - curly_braces_in_flow_control_structures
+    # Avoid duplicate case values in switch statements.
+    - no_duplicate_case_values
+
+    # --- Clean Code / Best Practices ---
+    # Encourage use of a proper logger instead of print.
+    - avoid_print
+    # Avoid redundant argument values that match the default.
+    - avoid_redundant_argument_values
+    # Avoid returning null for void functions.
+    - avoid_returning_null_for_void
+    # Avoid unused constructor parameters.
+    - avoid_unused_constructor_parameters
+
+    # --- Accessibility ---
+    # While there isn't a direct linter for this, developers should ensure
+    # Semantics are used correctly. For example:
+    # - always_specify_types (helps with clarity)
+    # - prefer_final_in_for_each (helps avoid unexpected behavior)

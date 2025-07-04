@@ -1,0 +1,5 @@
+---
+# Example role-specific default variables
+rabbitmq_version: "3.11"
+# The erlang cookie should be a long, random string defined in vault
+# rabbitmq_erlang_cookie: "{{ some_vaulted_cookie }}"

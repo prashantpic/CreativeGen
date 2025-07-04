@@ -1,0 +1,128 @@
+{
+  "name": "RabbitMQ_Publisher_Odoo",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "31f4a13e-f1b9-498c-843e-c68962a22731",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "notes": "Receives messagePayload and routingKey."
+    },
+    {
+      "parameters": {
+        "exchange": "={{ $env.RABBITMQ_ODOO_EXCHANGE || 'creativeflow_odoo_exchange' }}",
+        "routingKey": "={{$json.routingKey}}",
+        "message": "={{JSON.stringify($json.messagePayload)}}",
+        "options": {
+          "persistent": true
+        }
+      },
+      "id": "e98e4f5a-3a52-4424-9b16-5e5d3c8c728e",
+      "name": "Publish to RabbitMQ",
+      "type": "n8n-nodes-base.rabbitMq",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "notes": "Publishes a persistent message to the configured Odoo exchange.",
+      "credentials": {
+        "rabbitMq": {
+          "id": "your-rabbitmq-credential-id",
+          "name": "RabbitMQ Credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "boolean": [
+            {
+              "name": "published",
+              "value": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "98e411ef-7a6c-4b68-80f0-c5f2b87e2b72",
+      "name": "Success",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        680,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "boolean": [
+            {
+              "name": "published",
+              "value": false
+            }
+          ],
+          "string": [
+            {
+              "name": "error",
+              "value": "={{$json.message}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3c914e6e-d39b-4f7f-859a-00e572d3f446",
+      "name": "Failure",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        680,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Publish to RabbitMQ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publish to RabbitMQ": {
+      "main": [
+        [
+          {
+            "node": "Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "id": "MNBvc876HGFd345",
+  "meta": {},
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

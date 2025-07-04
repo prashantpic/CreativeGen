@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        This file defines the main menu items for the Billing application.
+    -->
+    <data>
+        <!-- Main Billing Menu -->
+        <menuitem
+            id="menu_billing_root"
+            name="CF Billing"
+            web_icon="creativeflow_subscription_billing,static/description/icon.png"
+            sequence="20"
+            groups="account.group_account_manager,sales_team.group_sale_salesman"/>
+
+        <!-- Subscriptions Menu -->
+        <menuitem
+            id="menu_billing_subscriptions"
+            name="Subscriptions"
+            parent="menu_billing_root"
+            action="sale_subscription.sale_subscription_action"
+            sequence="10"/>
+
+        <!-- Credit Log Menu -->
+        <menuitem
+            id="menu_billing_credit_logs"
+            name="Credit Logs"
+            parent="menu_billing_root"
+            action="action_creativeflow_credit_log"
+            sequence="20"/>
+
+        <!-- Configuration Menu -->
+        <menuitem
+            id="menu_billing_config"
+            name="Configuration"
+            parent="menu_billing_root"
+            sequence="100"
+            groups="account.group_account_manager"/>
+
+        <menuitem
+            id="menu_billing_config_products"
+            name="Subscription Products"
+            parent="menu_billing_config"
+            action="sale_subscription.product_template_action"
+            sequence="10"/>
+
+        <menuitem
+            id="menu_billing_config_templates"
+            name="Subscription Templates"
+            parent="menu_billing_config"
+            action="sale_subscription.sale_subscription_template_action"
+            sequence="20"/>
+
+        <menuitem
+            id="menu_billing_config_acquirers"
+            name="Payment Acquirers"
+            parent="menu_billing_config"
+            action="payment.action_payment_acquirer"
+            sequence="30"/>
+
+    </data>
+</odoo>

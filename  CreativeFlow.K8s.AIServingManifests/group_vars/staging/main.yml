@@ -1,0 +1,22 @@
+---
+# Variables specific to the Staging environment.
+# These values override variables defined in group_vars/all/common_vars.yml
+
+environment: 'staging'
+api_server_url: 'https://staging-api.creativeflow.ai'
+
+# Example: Define staging PostgreSQL settings with lower values
+pg_max_connections: 50
+pg_shared_buffers: '1GB'
+
+# Example: Nginx site configuration for staging
+nginx_sites:
+  - name: creativeflow_app_staging
+    server_name: "app.staging.creativeflow.ai"
+    upstream_servers:
+      - "stg-odoo-01.creativeflow.ai:8069"
+    listen_port: 443
+    ssl: true
+    # Staging certs might use a different authority or be self-signed
+    ssl_cert_path: "/etc/letsencrypt/live/app.staging.creativeflow.ai/fullchain.pem"
+    ssl_key_path: "/etc/letsencrypt/live/app.staging.creativeflow.ai/privkey.pem"

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_users_form_credit_transactions" model="ir.ui.view">
+        <field name="name">res.users.form.credit.transactions</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="creativeflow_user_extensions.view_users_form_creativeflow"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='creativeflow_details']/group" position="after">
+                <group string="Credit History">
+                    <field name="credit_transaction_ids" nolabel="1" readonly="1">
+                        <tree string="Credit Transactions" default_order="transaction_date desc">
+                            <field name="transaction_date"/>
+                            <field name="type"/>
+                            <field name="amount" sum="Total"/>
+                            <field name="balance_after_transaction"/>
+                            <field name="description"/>
+                        </tree>
+                    </field>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

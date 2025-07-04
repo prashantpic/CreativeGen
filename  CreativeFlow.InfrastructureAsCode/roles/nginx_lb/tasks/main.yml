@@ -1,0 +1,54 @@
+---
+- name: Install Nginx
+  ansible.builtin.apt:
+    name: "{{ nginx_package }}"
+    state: present
+    update_cache: true
+
+- name: Deploy main nginx.conf
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload Nginx
+
+- name: Create directories for site configs
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /etc/nginx/sites-available
+    - /etc/nginx/sites-enabled
+
+- name: Deploy virtual host configurations
+  ansible.builtin.template:
+    src: nginx_site.conf.j2
+    dest: "/etc/nginx/sites-available/{{ item.name }}.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ nginx_sites }}"
+  notify: Reload Nginx
+  when: nginx_sites is defined and nginx_sites | length > 0
+
+- name: Enable configured sites by creating symlinks
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/{{ item.name }}.conf"
+    dest: "/etc/nginx/sites-enabled/{{ item.name }}.conf"
+    state: link
+    owner: root
+    group: root
+  loop: "{{ nginx_sites }}"
+  notify: Reload Nginx
+  when: nginx_sites is defined and nginx_sites | length > 0
+
+- name: Ensure Nginx service is started and enabled
+  ansible.builtin.service:
+    name: "{{ nginx_service_name }}"
+    state: started
+    enabled: true

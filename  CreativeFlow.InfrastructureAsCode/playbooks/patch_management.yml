@@ -1,0 +1,40 @@
+---
+# This playbook handles system updates and patching.
+# It is designed to be run with a limit to target specific hosts or groups.
+# Example: ansible-playbook -i <inventory> playbooks/patch_management.yml --limit web_servers
+#
+# The `serial` keyword ensures that servers are updated sequentially (or in small batches)
+# to maintain service availability during the patching process.
+
+- name: Apply OS patches and perform managed reboot if required
+  hosts: all_servers # Use --limit to target specific groups
+  serial: 1 # Process one host at a time. Change to a number > 1 for batches.
+  vars:
+    reboot_required_file: /var/run/reboot-required
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600 # 1 hour
+      when: ansible_os_family == "Debian"
+
+    - name: Perform a safe system upgrade (apt-get dist-upgrade)
+      ansible.builtin.apt:
+        upgrade: dist
+      when: ansible_os_family == "Debian"
+
+    - name: Check if a reboot is required after patching
+      ansible.builtin.stat:
+        path: "{{ reboot_required_file }}"
+      register: reboot_required_stat
+      changed_when: false # This task does not change the system state
+
+    - name: Reboot the server if required
+      ansible.builtin.reboot:
+        msg: "Rebooting server after kernel/system updates."
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: whoami
+      when: reboot_required_stat.stat.exists

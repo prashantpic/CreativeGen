@@ -1,0 +1,46 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: yolo-custom-fastapi-hpa
+  namespace: creativeflow-ai-serving
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: yolo-custom-fastapi
+  minReplicas: 1
+  maxReplicas: 4 # Adjust based on capacity and cost
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
+  # Example of scaling on a custom metric from the FastAPI app.
+  # This requires prometheus-adapter to expose the metric to the HPA.
+  # - type: Pods
+  #   pods:
+  #     metric:
+  #       # This should match the metric name exposed by the application
+  #       name: yolo_detector_request_latency_seconds_bucket # HPA often scales on histograms/summaries
+  #     target:
+  #       type: AverageValue
+  #       averageValue: "500m" # Target average latency of 500ms
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 180
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60
+      - type: Pods
+        value: 1
+        periodSeconds: 60
+      selectPolicy: Max

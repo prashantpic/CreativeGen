@@ -1,0 +1,8 @@
+# This file contains variables that are specific to the Staging environment.
+# They will override any variables with the same name from group_vars/all/*.
+---
+environment: 'staging'
+api_server_url: 'https://staging-api.creativeflow.ai'
+
+# Enable debug logging or other non-production features
+enable_debug_mode: true

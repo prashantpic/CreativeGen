@@ -1,0 +1,3 @@
+# This directory is for host-specific variables.
+# For example, a file named 'prod-web-01.creativeflow.ai.yml' would contain
+# variables that apply only to that specific host.

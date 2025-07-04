@@ -1,0 +1,52 @@
+---
+# This is the main site playbook.
+# It orchestrates the configuration of the entire infrastructure
+# by applying roles to their respective host groups.
+
+- name: Apply common configuration to all servers
+  hosts: all_servers
+  roles:
+    - role: common
+
+- name: Configure Nginx Load Balancers
+  hosts: web_servers
+  roles:
+    - role: nginx_lb
+
+- name: Configure PostgreSQL Servers (Primary and Replicas)
+  hosts: db_primary, db_replicas
+  roles:
+    - role: postgresql_server
+
+- name: Configure Redis Caching Servers
+  hosts: redis_servers
+  roles:
+    - role: redis_server
+
+- name: Configure RabbitMQ Message Queue Servers
+  hosts: rabbitmq_servers
+  roles:
+    - role: rabbitmq_server
+
+- name: Configure Odoo Application Servers
+  hosts: odoo_servers
+  roles:
+    - role: odoo_server
+
+- name: Configure n8n Workflow Servers
+  hosts: n8n_servers
+  roles:
+    - role: n8n_server
+
+- name: Configure MinIO Object Storage Servers
+  hosts: minio_servers
+  roles:
+    - role: minio_server
+
+- name: Configure Kubernetes Cluster
+  import_playbook: playbooks/provision_kubernetes_cluster.yml
+
+- name: Deploy Monitoring Exporters
+  hosts: all_servers
+  roles:
+    - role: prometheus_exporters

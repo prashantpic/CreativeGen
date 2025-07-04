@@ -1,0 +1,17 @@
+---
+# Role to install and configure a Redis server.
+# This is a placeholder and should be fully implemented.
+- name: Placeholder task for Redis role
+  ansible.builtin.debug:
+    msg: "This role should install redis-server, deploy a redis.conf template, and ensure the service is running. Sentinel/cluster setup would require more advanced tasks."
+
+- name: Install Redis server
+  ansible.builtin.apt:
+    name: redis-server
+    state: present
+
+- name: Deploy redis.conf
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: /etc/redis/redis.conf
+  notify: restart redis

@@ -1,0 +1,69 @@
+# Defines common configuration tasks applied to all servers, such as
+# package installation, user creation, and service management.
+---
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+  when: inventory_hostname is defined
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  changed_when: false
+
+- name: Install common packages
+  ansible.builtin.apt:
+    name: "{{ common_packages }}"
+    state: present
+
+- name: Create the admin user
+  ansible.builtin.user:
+    name: "{{ admin_user }}"
+    groups: "{{ admin_user_groups }}"
+    shell: /bin/bash
+    state: present
+    append: yes
+
+- name: Set up authorized keys for the admin user
+  ansible.posix.authorized_key:
+    user: "{{ admin_user }}"
+    key: "{{ admin_user_ssh_key }}"
+    state: present
+    exclusive: yes # Removes other keys
+
+- name: Grant passwordless sudo to admin user
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^{{ admin_user }}'
+    line: '{{ admin_user }} ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
+- name: Harden SSH configuration
+  ansible.builtin.template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart ssh
+
+- name: Configure NTP for time synchronization
+  ansible.builtin.template:
+    src: timesyncd.conf.j2
+    dest: /etc/systemd/timesyncd.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart timesyncd
+
+- name: Ensure timesyncd service is started and enabled
+  ansible.builtin.service:
+    name: systemd-timesyncd
+    state: started
+    enabled: yes
+
+- name: Configure UFW (Uncomplicated Firewall)
+  ansible.builtin.include_tasks: ufw.yml
+  tags: [ufw, firewall]

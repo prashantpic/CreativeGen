@@ -1,0 +1,25 @@
+---
+nginx_package: "nginx"
+nginx_service_name: "nginx"
+nginx_worker_processes: "auto"
+nginx_worker_connections: 1024
+
+# nginx_sites should be a list of dictionaries.
+# This variable should be defined in environment-specific group_vars.
+# Example structure:
+# nginx_sites:
+#   - name: "my-app"
+#     server_name: "app.example.com"
+#     listen_port: 80
+#     ssl: false # or true
+#     ssl_cert_path: "/etc/ssl/certs/my-app.crt"
+#     ssl_key_path: "/etc/ssl/private/my-app.key"
+#     upstream_name: "my_app_backend"
+#     upstream_servers:
+#       - "10.0.0.1:8080"
+#       - "10.0.0.2:8080"
+#     extra_config: |
+#       location /static/ {
+#         alias /var/www/static/;
+#       }
+nginx_sites: []

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend Helpdesk Ticket Form View -->
+    <record id="helpdesk_ticket_view_form_inherit_creativeflow" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.form.inherit.creativeflow</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_ticket_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="cf_user_subscription_tier_at_creation" readonly="1"/>
+                <field name="cf_related_feature_area"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend Helpdesk Ticket Tree View -->
+    <record id="helpdesk_ticket_view_tree_inherit_creativeflow" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.tree.inherit.creativeflow</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_tickets_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='stage_id']" position="before">
+                <field name="cf_related_feature_area" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend Helpdesk Ticket Search View -->
+    <record id="helpdesk_ticket_view_search_inherit_creativeflow" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.search.inherit.creativeflow</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_tickets_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="cf_related_feature_area"/>
+            </xpath>
+            <xpath expr="//group" position="inside">
+                 <filter string="Feature Area" name="group_by_feature_area"
+                         context="{'group_by': 'cf_related_feature_area'}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,47 @@
+#!/bin/bash
+#
+# Template for environment variables needed by shell scripts (`.sh`) to interact
+# with RabbitMQ.
+#
+# INSTRUCTIONS:
+# 1. Copy this file to `rabbitmq_env.sh` in the same directory:
+#    cp rabbitmq_env.sh.template rabbitmq_env.sh
+#
+# 2. Fill in the actual values for your RabbitMQ cluster.
+#
+# 3. **IMPORTANT**: Ensure `rabbitmq_env.sh` is added to your `.gitignore` file
+#    if it contains plaintext secrets, to prevent them from being committed to
+#    version control.
+#
+
+# --- For scripts using rabbitmqctl ---
+
+# User and password if `rabbitmqctl` is run against a remote node that requires them.
+# Usually not needed if `rabbitmqctl` is run on a cluster node itself and can
+# authenticate via the Erlang cookie.
+# export RABBITMQ_USER="cf_admin"
+# export RABBITMQ_PASS="YOUR_ADMIN_PASSWORD"
+
+# Target a specific node in a cluster if the script is not run on that node.
+# Example: export RABBITMQ_CTL_NODE="rabbit@rabbitmq-node-1.example.com"
+# export RABBITMQ_CTL_NODE="rabbit@hostname1"
+
+# The shared secret Erlang cookie for remote `rabbitmqctl` commands.
+# The value must match the cookie on the target RabbitMQ nodes.
+# export RABBITMQ_CTL_ERLANG_COOKIE="YOUR_ERLANG_COOKIE_SECRET"
+
+
+# --- For scripts using the Management HTTP API (e.g., apply_definitions.sh) ---
+
+# The URL for the RabbitMQ Management Plugin.
+# This could be a single node or a load balancer address.
+export RABBITMQ_MANAGEMENT_URL="http://localhost:15672"
+
+# Credentials for a user with 'administrator' or at least 'management' and
+# 'policymaker' tags.
+export RABBITMQ_ADMIN_USER="cf_admin"
+export RABBITMQ_ADMIN_PASS="YOUR_ADMIN_PASSWORD"
+
+# The default virtual host to operate on. For `apply_definitions.sh`, this is the
+# vhost where the definitions will be loaded.
+export RABBITMQ_DEFAULT_VHOST="creativeflow_vhost"

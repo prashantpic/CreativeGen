@@ -1,0 +1,6 @@
+# Handlers for the RabbitMQ server role.
+---
+- name: Restart rabbitmq-server
+  ansible.builtin.service:
+    name: rabbitmq-server
+    state: restarted

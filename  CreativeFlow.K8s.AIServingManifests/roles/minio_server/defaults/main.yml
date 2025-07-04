@@ -1,0 +1,14 @@
+---
+# Default variables for the minio_server role.
+
+minio_user: 'minio-user'
+minio_group: 'minio-user'
+
+# Find latest checksum from https://dl.min.io/server/minio/release/linux-amd64/
+minio_checksum: 'a98a48126f5ea25c56216447953255f053246797a7a44c5b16955a53697669d6' # Example for a specific version
+
+minio_config_dir: '/etc/minio'
+minio_data_dirs:
+  - '/data/minio'
+
+minio_opts: '--address :9000 --console-address :9001'

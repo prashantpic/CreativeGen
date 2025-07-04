@@ -1,0 +1,10 @@
+---
+- name: Restart node_exporter
+  ansible.builtin.service:
+    name: node_exporter
+    state: restarted
+
+- name: Restart postgres_exporter
+  ansible.builtin.service:
+    name: postgres_exporter
+    state: restarted

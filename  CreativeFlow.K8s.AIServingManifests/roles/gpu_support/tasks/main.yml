@@ -1,0 +1,69 @@
+---
+# tasks file for gpu_support
+# This role should only be applied to nodes that have NVIDIA GPUs.
+# A condition like `when: "'k8s_workers_gpu' in group_names"` should be on the role inclusion.
+
+- name: Install prerequisite packages
+  ansible.builtin.apt:
+    name: ['build-essential', 'linux-headers-{{ ansible_kernel }}']
+    state: present
+    update_cache: yes
+
+- name: Add NVIDIA package repository key
+  ansible.builtin.apt_key:
+    url: "{{ nvidia_driver_repo_key_url }}"
+    state: present
+
+- name: Add NVIDIA driver repository
+  ansible.builtin.apt_repository:
+    repo: "{{ nvidia_driver_repo_url }}"
+    state: present
+
+- name: Install NVIDIA drivers
+  ansible.builtin.apt:
+    name: "nvidia-driver-{{ nvidia_driver_version }}"
+    state: present
+  notify: Reboot after driver install
+
+- name: Add NVIDIA container toolkit repository key
+  ansible.builtin.apt_key:
+    url: "{{ nvidia_container_toolkit_repo_key_url }}"
+    state: present
+
+- name: Add NVIDIA container toolkit repository
+  ansible.builtin.get_url:
+    url: "{{ nvidia_container_toolkit_repo_url }}"
+    dest: /etc/apt/sources.list.d/nvidia-docker.list
+    mode: '0644'
+
+- name: Install NVIDIA container toolkit
+  ansible.builtin.apt:
+    name: nvidia-container-toolkit
+    state: present
+    update_cache: yes
+  notify: Restart containerd
+
+- name: Configure containerd to use nvidia-container-runtime
+  ansible.builtin.blockinfile:
+    path: /etc/containerd/config.toml
+    block: |
+      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+        SystemdCgroup = true
+      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia]
+        privileged_without_host_devices = false
+        runtime_engine = ""
+        runtime_root = ""
+        runtime_type = "io.containerd.runtime.v1.linux"
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia.options]
+          BinaryName = "/usr/bin/nvidia-container-runtime"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK FOR NVIDIA"
+  notify: Restart containerd
+
+# The NVIDIA GPU Operator is deployed via Helm or kubectl apply. This task should be run once from a control node.
+- name: Deploy NVIDIA GPU Operator
+  community.kubernetes.k8s:
+    state: present
+    src: "{{ nvidia_gpu_operator_manifest_url }}"
+  delegate_to: localhost
+  run_once: true
+  when: deploy_gpu_operator | bool

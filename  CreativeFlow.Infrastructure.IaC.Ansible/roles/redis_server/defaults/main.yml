@@ -1,0 +1,6 @@
+# Default variables for the Redis server role.
+---
+redis_bind_address: "127.0.0.1"
+redis_port: 6379
+redis_maxmemory: "256mb"
+redis_maxmemory_policy: "allkeys-lru"

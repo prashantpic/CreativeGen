@@ -1,0 +1,33 @@
+# Role to deploy and configure a RabbitMQ server or cluster.
+---
+- name: Placeholder task for adding RabbitMQ repository key
+  ansible.builtin.debug:
+    msg: "TODO: Add repository keys from RabbitMQ and Erlang Solutions"
+
+- name: Placeholder task for adding RabbitMQ and Erlang repositories
+  ansible.builtin.debug:
+    msg: "TODO: Add the necessary apt repositories"
+
+- name: Placeholder task for installing RabbitMQ server and dependencies
+  ansible.builtin.debug:
+    msg: "TODO: Install rabbitmq-server package"
+
+- name: Placeholder task for enabling RabbitMQ management plugin
+  ansible.builtin.debug:
+    msg: "TODO: Run 'rabbitmq-plugins enable rabbitmq_management'"
+
+- name: Placeholder task for creating admin user
+  ansible.builtin.debug:
+    msg: "TODO: Create a RabbitMQ admin user with credentials from Vault"
+
+- name: Placeholder task for creating application vhost and user
+  ansible.builtin.debug:
+    msg: "TODO: Create application-specific vhost and user with permissions, using credentials from Vault"
+
+- name: Placeholder task for setting up RabbitMQ cluster
+  ansible.builtin.debug:
+    msg: "TODO: Implement clustering logic, including copying the erlang cookie"
+
+- name: Placeholder task for starting and enabling RabbitMQ service
+  ansible.builtin.debug:
+    msg: "TODO: Start and enable the rabbitmq-server.service"

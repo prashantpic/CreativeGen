@@ -1,0 +1,21 @@
+# Metadata for the 'common' Ansible role, specifying dependencies
+# and other role information.
+---
+galaxy_info:
+  author: CreativeFlow AI
+  description: A role to apply a common baseline configuration to all servers.
+  license: MIT
+  min_ansible_version: "2.10"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal (20.04)
+        - jammy (22.04)
+  galaxy_tags:
+    - system
+    - security
+    - hardening
+    - common
+
+dependencies: []
+# This role has no dependencies as it provides the most basic configuration.

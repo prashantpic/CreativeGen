@@ -1,0 +1,15 @@
+---
+# defaults file for kubernetes_master
+
+# Set to true to force a reset of the master node before init. Use with caution.
+kubeadm_reset: false
+
+# Pod network CIDR. Must match the CNI plugin's configuration.
+k8s_pod_network_cidr: "192.168.0.0/16"
+
+# CNI manifest URL. Calico is used here as an example.
+k8s_cni_manifest_url: "https://raw.githubusercontent.com/projectcalico/calico/v3.26.1/manifests/calico.yaml"
+
+# Extra arguments for kubeadm init
+kubeadm_init_extra_args: ""
+# Example: "--control-plane-endpoint 'k8s-api.creativeflow.ai:6443' --upload-certs"

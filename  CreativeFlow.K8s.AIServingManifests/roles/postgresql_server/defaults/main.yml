@@ -1,0 +1,26 @@
+---
+# defaults file for postgresql_server
+pg_version: "15"
+pg_port: 5432
+pg_data_dir: "/var/lib/postgresql/{{ pg_version }}/main"
+pg_config_path: "/etc/postgresql/{{ pg_version }}/main"
+pg_service_name: "postgresql@{{ pg_version }}-main"
+
+# Default DB tuning parameters (for small-medium instances)
+pg_max_connections: 100
+pg_shared_buffers: "1GB"
+
+# Client hosts allowed to connect to PostgreSQL
+pg_allowed_client_hosts:
+  - "127.0.0.1"
+  - "::1"
+
+pg_replication_user: "replicator"
+pg_default_db_owner: "postgres"
+
+# PgBouncer defaults
+pgbouncer_port: 6432
+pgbouncer_db_host: '127.0.0.1' # PgBouncer connects to local PG instance
+pgbouncer_max_client_conn: 1000
+pgbouncer_default_pool_size: 20
+pgbouncer_min_pool_size: 5

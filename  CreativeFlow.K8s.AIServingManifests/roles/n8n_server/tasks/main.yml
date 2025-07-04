@@ -1,0 +1,54 @@
+---
+# Role to install and configure n8n workflow engine server.
+# This is a placeholder structure. A production setup would likely use Docker or PM2.
+
+- name: Install Node.js and npm
+  ansible.builtin.include_role:
+    name: geerlingguy.nodejs # Example of using a community role for dependencies
+  vars:
+    nodejs_version: "18.x"
+
+- name: Install n8n globally using npm
+  community.general.npm:
+    name: n8n
+    global: yes
+    state: present
+
+- name: Create n8n user
+  ansible.builtin.user:
+    name: "{{ n8n_user }}"
+    shell: /bin/bash
+    system: yes
+
+- name: Create n8n data directory
+  ansible.builtin.file:
+    path: "{{ n8n_data_dir }}"
+    state: directory
+    owner: "{{ n8n_user }}"
+    group: "{{ n8n_user }}"
+    mode: '0755'
+
+- name: Deploy environment file for n8n configuration
+  ansible.builtin.template:
+    src: n8n.env.j2
+    dest: "/etc/n8n/n8n.env"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart n8n
+
+- name: Deploy systemd service file for n8n
+  ansible.builtin.template:
+    src: n8n.service.j2
+    dest: /etc/systemd/system/n8n.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart n8n
+
+- name: Enable and start n8n service
+  ansible.builtin.systemd:
+    name: n8n
+    state: started
+    enabled: yes
+    daemon_reload: yes

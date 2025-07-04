@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_creativeflow_brand_kit_user,creativeflow.brand_kit for base users,model_creativeflow_brand_kit,base.group_user,1,1,1,1
+access_creativeflow_workbench_user,creativeflow.workbench for base users,model_creativeflow_workbench,base.group_user,1,1,1,1
+access_creativeflow_project_user,creativeflow.project for base users,model_creativeflow_project,base.group_user,1,1,1,1
+access_creativeflow_generation_request_user,creativeflow.generation_request for base users,model_creativeflow_generation_request,base.group_user,1,1,1,1

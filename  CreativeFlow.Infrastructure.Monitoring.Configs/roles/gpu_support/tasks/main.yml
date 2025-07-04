@@ -1,0 +1,61 @@
+---
+- name: Add NVIDIA package repository
+  ansible.builtin.apt_repository:
+    repo: "ppa:graphics-drivers/ppa"
+    state: present
+
+- name: Install NVIDIA drivers
+  ansible.builtin.apt:
+    name: "nvidia-driver-{{ nvidia_driver_version }}"
+    state: present
+    update_cache: true
+  notify:
+    - restart containerd
+
+- name: Add NVIDIA container toolkit repository key
+  ansible.builtin.get_url:
+    url: "https://nvidia.github.io/libnvidia-container/gpgkey"
+    dest: /etc/apt/trusted.gpg.d/nvidia-container-toolkit.asc
+    mode: '0644'
+
+- name: Add NVIDIA container toolkit repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/trusted.gpg.d/nvidia-container-toolkit.asc] https://nvidia.github.io/libnvidia-container/stable/ubuntu/{{ ansible_distribution_release }} {{ ansible_distribution_release }} main"
+    state: present
+    filename: nvidia-container-toolkit
+
+- name: Install NVIDIA container toolkit
+  ansible.builtin.apt:
+    name: nvidia-container-toolkit
+    state: present
+    update_cache: true
+  notify:
+    - restart containerd
+
+- name: Add NVIDIA Helm repository
+  community.kubernetes.helm_repository:
+    name: nvidia
+    repo_url: "{{ nvidia_gpu_operator_chart_url }}"
+    state: present
+  delegate_to: localhost
+  run_once: true
+
+- name: Ensure GPU Operator namespace exists
+  community.kubernetes.k8s:
+    name: "{{ nvidia_gpu_operator_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+  delegate_to: localhost
+  run_once: true
+
+- name: Deploy NVIDIA GPU Operator using Helm
+  community.kubernetes.helm:
+    name: gpu-operator
+    chart_ref: nvidia/gpu-operator
+    chart_version: "{{ nvidia_gpu_operator_chart_version }}"
+    release_namespace: "{{ nvidia_gpu_operator_namespace }}"
+    state: present
+    create_namespace: true
+  delegate_to: localhost
+  run_once: true

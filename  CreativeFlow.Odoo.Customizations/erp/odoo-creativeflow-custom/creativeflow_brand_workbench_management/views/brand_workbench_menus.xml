@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main CreativeFlow Content Menu -->
+    <menuitem
+        id="creativeflow_content_menu_root"
+        name="CreativeFlow Content"
+        sequence="25"
+        web_icon="creativeflow_brand_workbench_management,static/description/icon.png"/>
+
+    <!-- Submenu for Brand Kits -->
+    <menuitem
+        id="creativeflow_brand_kit_menu"
+        name="Brand Kits"
+        parent="creativeflow_content_menu_root"
+        action="creativeflow_brand_kit_action"
+        sequence="10"/>
+
+    <!-- Submenu for Workbenches -->
+    <menuitem
+        id="creativeflow_workbench_menu"
+        name="Workbenches"
+        parent="creativeflow_content_menu_root"
+        action="creativeflow_workbench_action"
+        sequence="20"/>
+</odoo>

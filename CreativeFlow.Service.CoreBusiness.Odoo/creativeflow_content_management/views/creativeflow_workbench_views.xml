@@ -1,0 +1,103 @@
+<odoo>
+    <data>
+        <!-- Form View -->
+        <record id="view_creativeflow_workbench_form" model="ir.ui.view">
+            <field name="name">creativeflow.workbench.form</field>
+            <field name="model">creativeflow.workbench</field>
+            <field name="arch" type="xml">
+                <form string="Workbench">
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="%(action_creativeflow_project)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-folder-o">
+                                <field name="project_count" widget="statinfo" string="Projects"/>
+                            </button>
+                        </div>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only"/>
+                            <h1><field name="name" placeholder="e.g. Summer Campaign"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="user_id"/>
+                            </group>
+                            <group>
+                                <field name="default_brand_kit_id"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Projects">
+                                <field name="project_ids">
+                                    <tree>
+                                        <field name="name"/>
+                                        <field name="brand_kit_id"/>
+                                        <field name="create_date"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Tree View -->
+        <record id="view_creativeflow_workbench_tree" model="ir.ui.view">
+            <field name="name">creativeflow.workbench.tree</field>
+            <field name="model">creativeflow.workbench</field>
+            <field name="arch" type="xml">
+                <tree string="Workbenches">
+                    <field name="name"/>
+                    <field name="user_id"/>
+                    <field name="project_count"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Kanban View -->
+        <record id="view_creativeflow_workbench_kanban" model="ir.ui.view">
+            <field name="name">creativeflow.workbench.kanban</field>
+            <field name="model">creativeflow.workbench</field>
+            <field name="arch" type="xml">
+                <kanban>
+                    <field name="name"/>
+                    <field name="user_id"/>
+                    <field name="project_count"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_global_click">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title"><field name="name"/></strong>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <div><field name="user_id"/></div>
+                                    <div>
+                                        <span><field name="project_count"/> Projects</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- Action Window -->
+        <record id="action_creativeflow_workbench" model="ir.actions.act_window">
+            <field name="name">Workbenches</field>
+            <field name="res_model">creativeflow.workbench</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create your first Workbench
+                </p><p>
+                    Workbenches help you organize your creative projects.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,11 @@
+---
+# Default variables for the minio_server role.
+# These can be overridden in group_vars or host_vars.
+
+# Placeholder for minio version
+minio_version: "RELEASE.2023-03-20T20-16-18Z"
+
+# Placeholder for minio access and secret keys.
+# IMPORTANT: These should be set in a vaulted file (e.g., group_vars/all/secrets.yml)
+minio_access_key: "minio"
+minio_secret_key: "minio123"

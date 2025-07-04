@@ -1,0 +1,152 @@
+{
+  "name": "NotificationService_Trigger",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "19468e21-e945-4299-87c2-de6b0f9f36f9",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "notes": "Receives userId, notificationType, message, and metadata."
+    },
+    {
+      "parameters": {
+        "functionCode": "const inputs = $json;\n\nconst payload = {\n  userId: inputs.userId,\n  notificationType: inputs.notificationType,\n  message: inputs.message,\n  metadata: inputs.metadata || {}\n};\n\nreturn { payload };"
+      },
+      "id": "4e797d74-f3c5-430b-b1a1-f417f7d983c5",
+      "name": "Format Notification Payload",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "exchange": "={{ $env.RABBITMQ_NOTIFICATION_EXCHANGE || 'creativeflow.notifications.user' }}",
+        "routingKey": "={{$json.payload.notificationType}}",
+        "message": "={{JSON.stringify($json.payload)}}",
+        "options": {
+          "persistent": true
+        }
+      },
+      "id": "c1619888-038c-4a37-ac06-735f49d37536",
+      "name": "Publish to RabbitMQ",
+      "type": "n8n-nodes-base.rabbitMq",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ],
+      "notes": "Publishes a persistent message to the notification service exchange.",
+      "credentials": {
+        "rabbitMq": {
+          "id": "your-rabbitmq-credential-id",
+          "name": "RabbitMQ Credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "boolean": [
+            {
+              "name": "triggered",
+              "value": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "038e23c7-3e11-4777-a8b5-5d9c2409f485",
+      "name": "Success",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        920,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "boolean": [
+            {
+              "name": "triggered",
+              "value": false
+            }
+          ],
+          "string": [
+            {
+              "name": "error",
+              "value": "={{$json.message}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f5f08575-3760-466d-97e3-05908cd5d57b",
+      "name": "Failure",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        920,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Format Notification Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Notification Payload": {
+      "main": [
+        [
+          {
+            "node": "Publish to RabbitMQ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publish to RabbitMQ": {
+      "main": [
+        [
+          {
+            "node": "Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "id": "POiu789jkhg654f",
+  "meta": {},
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
